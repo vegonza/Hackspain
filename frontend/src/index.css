@@ -68,6 +68,9 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .viewer-panel + .viewer-panel { border-left: 1px solid var(--border); }
 .viewer-label-row { display: flex; align-items: center; height: 28px; flex-shrink: 0; padding: 0 8px; background: #fff; }
 .viewer-label { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--muted-foreground); font-size: 11px; font-weight: 500; line-height: 1; }
+.document-content { display: flex; flex: 1; min-height: 0; flex-direction: column; overflow: hidden; }
+.document-content > .viewer-grid { flex: 1; min-height: 0; }
+.features-panel { flex-shrink: 0; background: #fff; border-top: 1px solid var(--border); }
 .pdf-viewer { position: relative; flex: 1; min-height: 0; }
 .pdf-scroll { height: 100%; overflow: auto; background: #fff; }
 .pdf-page { background: white; border-bottom: 1px solid var(--border); }
@@ -78,6 +81,14 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .pdf-toolbar button:hover { background: #f0f0f0; }
 .pdf-page-count { padding-left: 12px; border-left: 1px solid var(--border); }
 .markdown-scroll { overflow: auto; flex: 1; }
+.features-view { padding: 8px 16px 12px; }
+.features-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px 14px; margin: 0; }
+.features-grid > div { min-width: 0; }
+.features-grid dt { margin-bottom: 2px; color: var(--muted-foreground); font-size: 10px; }
+.features-grid dd { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-variant-numeric: tabular-nums; }
+.features-grid .feature-lines { grid-column: span 2; }
+.feature-total { font-weight: 650; }
+.clover-tooltip { pointer-events: none; position: fixed; z-index: 9999; width: max-content; min-width: 140px; max-width: 280px; padding: 6px 10px; border-radius: 6px; background: var(--popover); color: var(--popover-foreground); box-shadow: 0 4px 12px #0000001a; outline: 1px solid #0000001a; text-align: center; white-space: normal; font-size: 11px; font-weight: 500; line-height: 1.25; }
 .markdown { padding: 28px; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
 .markdown > :first-child { margin-top: 0; }
 .markdown h1, .markdown h2, .markdown h3 { white-space: normal; font-weight: 600; line-height: 1.4; margin: 1.4em 0 0.65em; }
@@ -102,7 +113,10 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 @media (max-width: 900px) {
   .sidebar { width: 210px; padding-inline: 10px; }
   .workspace-header { padding-inline: 20px; }
-  .viewer-grid { grid-template-columns: 1fr; overflow: auto; }
+  .viewer-grid { grid-template-columns: 1fr; overflow: visible; }
+  .document-content { overflow-y: auto; }
+  .document-content > .viewer-grid { flex: none; height: auto; min-height: 0; }
+  .features-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .viewer-panel { min-height: 65dvh; }
   .pdf-viewer { min-height: 60dvh; flex: none; height: 60dvh; }
   .viewer-panel + .viewer-panel { border-left: 0; border-top: 1px solid var(--border); }

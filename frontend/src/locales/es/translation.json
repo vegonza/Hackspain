@@ -17,6 +17,8 @@
     "zoomIn": "Ampliar",
     "zoomOut": "Reducir",
     "markdown": "Markdown",
+    "features": "Datos extraídos",
+    "noFeatures": "No hay datos extraídos para este documento.",
     "error": "Sin Markdown",
     "delete": "Eliminar",
     "deleteConfirmation": "¿Eliminar «{{name}}»?",
@@ -24,5 +26,18 @@
     "invalidPdf": "Selecciona un archivo PDF válido.",
     "ocrFailed": "El PDF se ha guardado, pero ha fallado el OCR. Comprueba la clave de Mistral y la conexión.",
     "requestFailed": "No se ha podido completar la solicitud. Comprueba la conexión con el servidor."
+  },
+  "features": {
+    "invoiceNumber": "Número de factura",
+    "invoiceDate": "Fecha",
+    "purchaseOrder": "Pedido",
+    "supplierName": "Razón social",
+    "supplierNif": "NIF",
+    "iban": "IBAN",
+    "lineItems": "Conceptos",
+    "taxBase": "Base imponible",
+    "vatRate": "IVA",
+    "vatAmount": "Cuota de IVA",
+    "total": "Total"
   }
 }

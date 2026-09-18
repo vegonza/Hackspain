@@ -6,10 +6,11 @@ import { Markdown } from '@/components/documents/Markdown'
 import { DeleteButton } from '@/components/ui/delete-button'
 import { PdfViewer } from '@/components/documents/PdfViewer'
 import { Skeleton } from '@/components/ui/skeleton'
+import { InvoiceFeatures } from '@/components/documents/InvoiceFeatures'
 
 type Props = ReturnType<typeof useDocuments>
 
-export function DocumentsView({ documents, selected, selectedId, loading, uploading, deleting, onUpload, onDelete, onSelect, labels }: Props) {
+export function DocumentsView({ documents, selected, selectedId, loading, uploading, deleting, onUpload, onDelete, onSelect, labels, featureLabels }: Props) {
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -48,16 +49,26 @@ export function DocumentsView({ documents, selected, selectedId, loading, upload
             <div className="viewer-grid"><DocumentSkeleton /><DocumentSkeleton /></div>
           </div>
         ) : selected ? (
-          <div className="viewer-grid">
-            <section className="viewer-panel" aria-label={labels.pdf}>
-              <div className="viewer-label-row"><span className="viewer-label">{labels.pdf}</span></div>
-              <PdfViewer key={selected.id} documentId={selected.id} />
-            </section>
-            <section className="viewer-panel" aria-label={labels.markdown}>
-              <div className="viewer-label-row"><span className="viewer-label">{labels.markdown}</span></div>
-              <div className="markdown-scroll">
-                {selected.status === 'ready' ? <Markdown content={selected.markdown} /> : <p className="markdown-error">{labels.noMarkdown}</p>}
-              </div>
+          <div className="document-content">
+            <div className="viewer-grid">
+              <section className="viewer-panel" aria-label={labels.pdf}>
+                <div className="viewer-label-row"><span className="viewer-label">{labels.pdf}</span></div>
+                <PdfViewer key={selected.id} documentId={selected.id} />
+              </section>
+              <section className="viewer-panel" aria-label={labels.markdown}>
+                <div className="viewer-label-row"><span className="viewer-label">{labels.markdown}</span></div>
+                <div className="markdown-scroll">
+                  {selected.status === 'ready'
+                    ? <Markdown content={selected.markdown} />
+                    : <p className="markdown-error">{labels.noMarkdown}</p>}
+                </div>
+              </section>
+            </div>
+            <section className="features-panel" aria-label={labels.features}>
+              <div className="viewer-label-row"><span className="viewer-label">{labels.features}</span></div>
+              {selected.features
+                ? <InvoiceFeatures features={selected.features} labels={featureLabels} />
+                : <p className="markdown-error">{labels.noFeatures}</p>}
             </section>
           </div>
         ) : (

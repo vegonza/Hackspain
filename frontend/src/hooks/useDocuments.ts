@@ -81,15 +81,24 @@ export function useDocuments(initialDocuments: Document[]) {
       ...document,
       deleteConfirmation: t('documents.deleteConfirmation', { name: document.name }),
     })),
-    selected, selectedId, loading, uploading, deleting, onUpload, onDelete, onSelect: selectDocument,
+    selected, selectedId, loading, uploading, deleting,
+    onUpload, onDelete, onSelect: selectDocument,
     labels: {
       appName: t('app.name'), upload: t('documents.upload'),
       library: t('documents.library'),
       emptyList: t('documents.emptyList'), emptyTitle: t('documents.emptyTitle'),
       emptyDescription: t('documents.emptyDescription'), pdf: t('documents.pdf'),
       markdown: t('documents.markdown'), noMarkdown: t('documents.noMarkdown'),
+      features: t('documents.features'), noFeatures: t('documents.noFeatures'),
       error: t('documents.error'), loading: t('documents.loading'),
       delete: t('documents.delete'),
+    },
+    featureLabels: {
+      invoiceNumber: t('features.invoiceNumber'), invoiceDate: t('features.invoiceDate'),
+      purchaseOrder: t('features.purchaseOrder'), supplierName: t('features.supplierName'),
+      supplierNif: t('features.supplierNif'), iban: t('features.iban'),
+      lineItems: t('features.lineItems'), taxBase: t('features.taxBase'),
+      vatRate: t('features.vatRate'), vatAmount: t('features.vatAmount'), total: t('features.total'),
     },
   }
 }

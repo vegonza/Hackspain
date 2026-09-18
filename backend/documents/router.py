@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from documents.processor import extract_markdown
+from documents.features import InvoiceFeatures, extract_invoice_features
 from shared.logger import get_logger
 
 logger = get_logger()
@@ -25,6 +26,7 @@ class Document(BaseModel):
 
 class DocumentDetail(Document):
     markdown: str
+    features: InvoiceFeatures | None
 
 
 def document_directory(document_id: UUID) -> Path:
@@ -47,7 +49,8 @@ def write_document(directory: Path, document: Document) -> None:
 def document_detail(directory: Path) -> DocumentDetail:
     document = read_document(directory)
     markdown = (directory / "document.md").read_text(encoding="utf-8") if document.status == "ready" else ""
-    return DocumentDetail(**document.model_dump(), markdown=markdown)
+    features = extract_invoice_features(markdown) if document.status == "ready" else None
+    return DocumentDetail(**document.model_dump(), markdown=markdown, features=features)
 
 
 @router.get("")
@@ -81,7 +84,11 @@ def upload_document(file: UploadFile) -> DocumentDetail:
     document.pages = pages
     write_document(directory, document)
     logger.info("[DOCUMENTS] Markdown saved for %s (%s pages)", name, pages)
-    return DocumentDetail(**document.model_dump(), markdown=markdown)
+    return DocumentDetail(
+        **document.model_dump(),
+        markdown=markdown,
+        features=extract_invoice_features(markdown),
+    )
 
 
 @router.get("/{document_id}")

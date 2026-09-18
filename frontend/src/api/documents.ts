@@ -10,6 +10,26 @@ export interface Document {
 
 export interface DocumentDetail extends Document {
   markdown: string
+  features: InvoiceFeatures | null
+}
+
+export interface InvoiceLine {
+  description: string
+  amount: string
+}
+
+export interface InvoiceFeatures {
+  invoice_number: string
+  supplier_name: string
+  supplier_nif: string
+  iban: string
+  invoice_date: string
+  purchase_order: string
+  line_items: InvoiceLine[]
+  tax_base: string
+  vat_rate: string
+  vat_amount: string
+  total: string
 }
 
 export function fetchDocuments(): Promise<Document[]> {
