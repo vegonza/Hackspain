@@ -1,0 +1,13 @@
+{
+  "app": {
+    "name": "HackSpain"
+  },
+  "example": {
+    "title": "Página de ejemplo",
+    "description": "Comprueba la conexión con el backend.",
+    "connect": "Conectar con el backend",
+    "loading": "Conectando…",
+    "connected": "Conexión correcta con {{service}}.",
+    "error": "No se ha podido conectar con el backend."
+  }
+}

@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: #171717;
+  background: #fafafa;
+  --muted: #e5e5e5;
+  --border: #e5e5e5;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+}
+
+@theme inline {
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

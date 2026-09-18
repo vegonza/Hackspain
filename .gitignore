@@ -1,0 +1,59 @@
+# Local challenge data checkout
+/500-sombras-de-alberto/
+/invoice_review.csv
+
+# Environment files and credentials
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.sample
+!.env.template
+.envrc
+.direnv/
+*.pem
+*.key
+
+# Local agent and editor state
+.codex/
+.agents/
+.cursor/
+.claude/
+.idea/
+.vscode/
+.mcp.json
+mcp.json
+
+# JavaScript dependencies and build output
+node_modules/
+dist/
+dist-server/
+.vite/
+*.tsbuildinfo
+
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Test and tool output
+coverage/
+.coverage
+.coverage.*
+htmlcov/
+.cache/
+logs/
+*.log
+
+# Operating system and editor temporary files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

@@ -1,0 +1,58 @@
+name: hackspain-dev
+
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      ENV: development
+      TZ: Europe/Madrid
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8766/api/health', timeout=3).read()"]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+      start_period: 5s
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend
+          target: /app
+          initial_sync: true
+          ignore:
+            - Dockerfile
+            - requirements.txt
+        - action: rebuild
+          path: ./backend/Dockerfile
+        - action: rebuild
+          path: ./backend/requirements.txt
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      VITE_API_URL: http://backend:8766
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          initial_sync: true
+          ignore:
+            - Dockerfile.dev
+            - bun.lock
+            - package.json
+            - node_modules/
+            - dist/
+        - action: rebuild
+          path: ./frontend/Dockerfile.dev
+        - action: rebuild
+          path: ./frontend/bun.lock
+        - action: rebuild
+          path: ./frontend/package.json
