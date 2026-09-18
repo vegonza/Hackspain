@@ -27,7 +27,7 @@ export function Tooltip({ text, children, className, asChild = false, onlyWhenTr
     <>
       {trigger}
       {open && createPortal(
-        <div ref={positionTooltip} style={{ visibility: 'hidden' }} className="clover-tooltip">{text}</div>,
+        <div ref={positionTooltip} style={{ visibility: 'hidden' }} className="tooltip-content">{text}</div>,
         document.body,
       )}
     </>

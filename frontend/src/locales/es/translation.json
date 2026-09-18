@@ -6,7 +6,8 @@
     "cancel": "Cancelar"
   },
   "documents": {
-    "library": "Tus documentos",
+    "library": "Facturas",
+    "document": "Documento",
     "upload": "Subir PDF",
     "loading": "Cargando documento…",
     "emptyList": "Los PDF que subas aparecerán aquí.",

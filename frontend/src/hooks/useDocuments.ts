@@ -11,11 +11,13 @@ export function useDocuments(initialDocuments: Document[]) {
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [sourceTab, setSourceTab] = useState<'pdf' | 'markdown'>('pdf')
   const selectionRequest = useRef(0)
 
   async function selectDocument(id: string): Promise<void> {
     const request = ++selectionRequest.current
     setSelectedId(id)
+    setSourceTab('pdf')
     setLoading(true)
     try {
       const document = await fetchDocument(id)
@@ -45,6 +47,7 @@ export function useDocuments(initialDocuments: Document[]) {
       const document = await uploadDocument(file)
       setSelected(document)
       setSelectedId(document.id)
+      setSourceTab('pdf')
     } catch {
       // The API client displays errors; the saved PDF remains in the list.
     } finally {
@@ -81,8 +84,8 @@ export function useDocuments(initialDocuments: Document[]) {
       ...document,
       deleteConfirmation: t('documents.deleteConfirmation', { name: document.name }),
     })),
-    selected, selectedId, loading, uploading, deleting,
-    onUpload, onDelete, onSelect: selectDocument,
+    selected, selectedId, loading, uploading, deleting, sourceTab,
+    onUpload, onDelete, onSelect: selectDocument, onSourceTab: setSourceTab,
     labels: {
       appName: t('app.name'), upload: t('documents.upload'),
       library: t('documents.library'),
@@ -92,6 +95,7 @@ export function useDocuments(initialDocuments: Document[]) {
       features: t('documents.features'), noFeatures: t('documents.noFeatures'),
       error: t('documents.error'), loading: t('documents.loading'),
       delete: t('documents.delete'),
+      document: t('documents.document'),
     },
     featureLabels: {
       invoiceNumber: t('features.invoiceNumber'), invoiceDate: t('features.invoiceDate'),
