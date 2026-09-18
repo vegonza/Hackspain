@@ -6,10 +6,12 @@ import { Markdown } from '@/components/documents/Markdown'
 import { DeleteButton } from '@/components/ui/delete-button'
 import { PdfViewer } from '@/components/documents/PdfViewer'
 import { InvoiceFeatures } from '@/components/documents/InvoiceFeatures'
+import { InvoiceFeaturesSkeleton } from '@/components/documents/InvoiceFeaturesSkeleton'
+import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
 
 type Props = ReturnType<typeof useDocuments>
 
-export function DocumentsView({ documents, selected, selectedId, loading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels }: Props) {
+export function DocumentsView({ documents, selected, selectedId, selectedRow, loading, pdfUrl, pdfLoading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels }: Props) {
   return (
     <div className="app-shell" ref={watchDocuments}>
       <header className="app-header">
@@ -40,26 +42,32 @@ export function DocumentsView({ documents, selected, selectedId, loading, upload
               ))}
             </nav>
           </aside>
-          {loading || uploadSelected ? (
+          {uploadSelected ? (
             <ReviewSkeleton label={labels.loading} />
-          ) : selected ? (
+          ) : selectedRow ? (
             <div className="review-desk">
               <section className="viewer-panel" aria-label={sourceTab === 'pdf' ? labels.pdf : labels.markdown}>
                 <header className="source-header">
-                  <h2 title={selected.name}>{selected.name}</h2>
+                  <h2 title={selectedRow.name}>{selectedRow.name}</h2>
                   <div className="source-tabs" role="group" aria-label={labels.document}>
                     <button aria-pressed={sourceTab === 'pdf'} onClick={() => onSourceTab('pdf')}>{labels.pdf}</button>
                     <button aria-pressed={sourceTab === 'markdown'} onClick={() => onSourceTab('markdown')}>{labels.markdown}</button>
                   </div>
                 </header>
-                <div className="source-body" hidden={sourceTab !== 'pdf'}><PdfViewer key={selected.id} url={selected.pdfUrl} /></div>
+                <div className="source-body" hidden={sourceTab !== 'pdf'}>
+                  {pdfUrl ? <PdfViewer key={selectedRow.id} url={pdfUrl} /> : pdfLoading ? (
+                    <div className="pdf-viewer" role="status" aria-label={labels.loading}>
+                      <div className="pdf-scroll"><div className="pdf-page aspect-[210/297]"><DocumentSkeleton /></div></div>
+                    </div>
+                  ) : <p className="markdown-error">{labels.pdfError}</p>}
+                </div>
                 {sourceTab === 'markdown' && <div className="markdown-scroll">
-                  {selected.status === 'ready' ? <Markdown content={selected.markdown} /> : <p className="markdown-error">{labels.noMarkdown}</p>}
+                  {loading ? <DocumentSkeleton /> : selected && selected.status === 'ready' ? <Markdown content={selected.markdown} /> : <p className="markdown-error">{labels.noMarkdown}</p>}
                 </div>}
               </section>
-              <section className="features-panel" aria-label={labels.features}>
+              <section className="features-panel" aria-label={labels.features} aria-busy={loading}>
                 <header className="review-header"><h2>{labels.features}</h2></header>
-                {selected.features ?
+                {loading ? <InvoiceFeaturesSkeleton /> : selected && selected.features ?
                   <InvoiceFeatures features={selected.features} labels={featureLabels} />
                 : <p className="markdown-error">{labels.noFeatures}</p>}
               </section>

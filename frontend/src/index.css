@@ -28,7 +28,7 @@ button, input { font: inherit; }
 button, label { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
 button:disabled { cursor: default; opacity: 0.55; }
-button:focus-visible, label:focus-within { outline: 2px solid var(--primary); outline-offset: 3px; }
+button:focus-visible, .upload-button:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 3px; }
 .upload-button { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; height: 32px; flex-shrink: 0; margin-left: auto; padding: 0 12px; border-radius: 8px; background: var(--primary); color: white; cursor: pointer; font-size: 13px; font-weight: 500; }
 .upload-button:hover { background: #14332c; box-shadow: 0 2px 5px #1b403826; }
 .upload-button.disabled { opacity: 0.6; cursor: wait; }

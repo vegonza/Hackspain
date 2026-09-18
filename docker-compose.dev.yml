@@ -63,6 +63,7 @@ services:
       ENV: development
       TZ: Europe/Madrid
       REDIS_URL: redis://redis:6379/0
+      DOCUMENT_WORKERS: "5"
     volumes:
       - ./backend/data:/app/data
       - ./backend/logs:/app/logs

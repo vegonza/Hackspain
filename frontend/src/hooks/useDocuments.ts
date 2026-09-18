@@ -9,7 +9,9 @@ export function useDocuments(initialDocuments: Document[]) {
   const { t } = useTranslation()
   const [documents, setDocuments] = useState(initialDocuments)
   const [uploads, setUploads] = useState<UploadingFile[]>([])
-  const [selected, setSelected] = useState<(DocumentDetail & { pdfUrl: string }) | null>(null)
+  const [selected, setSelected] = useState<DocumentDetail | null>(null)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [pdfLoading, setPdfLoading] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -30,22 +32,26 @@ export function useDocuments(initialDocuments: Document[]) {
     setSelectedId(id)
     setSourceTab('pdf')
     setSelected(null)
+    setPdfUrl(null)
+    setPdfLoading(false)
     if (id.startsWith('upload-')) {
       setLoading(false)
       return
     }
     setLoading(true)
-    try {
-      const [document, { url }] = await Promise.all([fetchDocument(id), fetchPdfUrl(id)])
-      if (request === selectionRequest.current) setSelected({ ...document, pdfUrl: url })
-    } catch {
-      if (request === selectionRequest.current) {
-        setSelectedId(null)
-        activeId.current = null
-      }
-    } finally {
-      if (request === selectionRequest.current) setLoading(false)
-    }
+    setPdfLoading(true)
+    await Promise.allSettled([
+      fetchDocument(id).then(document => {
+        if (request === selectionRequest.current) setSelected(document)
+      }).finally(() => {
+        if (request === selectionRequest.current) setLoading(false)
+      }),
+      fetchPdfUrl(id).then(({ url }) => {
+        if (request === selectionRequest.current) setPdfUrl(url)
+      }).finally(() => {
+        if (request === selectionRequest.current) setPdfLoading(false)
+      }),
+    ])
   }, [])
 
   const watchDocuments = useCallback((node: HTMLDivElement | null) => {
@@ -155,7 +161,8 @@ export function useDocuments(initialDocuments: Document[]) {
 
   return {
     documents: rows,
-    selected, selectedId, loading, deleting, sourceTab, watchDocuments,
+    selected, selectedId, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments,
+    selectedRow: rows.find(document => document.id === selectedId),
     uploadSelected: rows.some(document => document.id === selectedId && document.pending),
     onUpload, onDelete, onSelect: selectDocument, onSourceTab: setSourceTab,
     labels: {
@@ -168,6 +175,7 @@ export function useDocuments(initialDocuments: Document[]) {
       error: t('documents.error'), loading: t('documents.loading'),
       delete: t('documents.delete'),
       document: t('documents.document'),
+      pdfError: t('documents.pdfError'),
     },
     featureLabels: {
       invoiceNumber: t('features.invoiceNumber'), invoiceDate: t('features.invoiceDate'),
