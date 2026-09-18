@@ -1,4 +1,4 @@
-import { fetchBlob, fetchJson } from '@/api/client'
+import { API_BASE, fetchJson } from '@/api/client'
 
 export interface Document {
   id: string
@@ -20,8 +20,8 @@ export function fetchDocument(id: string): Promise<DocumentDetail> {
   return fetchJson<DocumentDetail>(`/documents/${id}`)
 }
 
-export function fetchPdf(id: string, signal: AbortSignal): Promise<Blob> {
-  return fetchBlob(`/documents/${id}/pdf`, { signal })
+export function getPdfUrl(id: string): string {
+  return `${API_BASE}/documents/${id}/pdf`
 }
 
 export function deleteDocument(id: string): Promise<{ deleted: boolean }> {

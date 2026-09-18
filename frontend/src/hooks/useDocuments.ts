@@ -57,15 +57,18 @@ export function useDocuments(initialDocuments: Document[]) {
     }
   }
 
-  async function onDelete(): Promise<void> {
-    if (!selected || deleting) return
+  async function onDelete(id: string): Promise<void> {
+    if (deleting) return
     setDeleting(true)
     try {
-      await deleteDocument(selected.id)
-      ++selectionRequest.current
-      setDocuments(current => current.filter(document => document.id !== selected.id))
-      setSelected(null)
-      setSelectedId(null)
+      await deleteDocument(id)
+      setDocuments(current => current.filter(document => document.id !== id))
+      if (selectedId === id) {
+        ++selectionRequest.current
+        setSelected(null)
+        setSelectedId(null)
+        setLoading(false)
+      }
     } catch {
       // The API client displays the error; the document stays selected.
     } finally {
@@ -74,16 +77,19 @@ export function useDocuments(initialDocuments: Document[]) {
   }
 
   return {
-    documents, selected, selectedId, loading, uploading, deleting, onUpload, onDelete, onSelect: selectDocument,
+    documents: documents.map(document => ({
+      ...document,
+      deleteConfirmation: t('documents.deleteConfirmation', { name: document.name }),
+    })),
+    selected, selectedId, loading, uploading, deleting, onUpload, onDelete, onSelect: selectDocument,
     labels: {
-      appName: t('app.name'), title: t('documents.title'), upload: t('documents.upload'),
+      appName: t('app.name'), upload: t('documents.upload'),
       uploading: t('documents.uploading'), library: t('documents.library'),
       emptyList: t('documents.emptyList'), emptyTitle: t('documents.emptyTitle'),
       emptyDescription: t('documents.emptyDescription'), pdf: t('documents.pdf'),
       markdown: t('documents.markdown'), noMarkdown: t('documents.noMarkdown'),
       error: t('documents.error'), loading: t('documents.loading'),
-      delete: t('documents.delete'), deleting: t('documents.deleting'),
-      pages: selected ? t('documents.pages', { count: selected.pages }) : '',
+      delete: t('documents.delete'),
     },
   }
 }

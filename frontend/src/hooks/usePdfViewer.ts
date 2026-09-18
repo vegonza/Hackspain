@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { fetchPdf } from '@/api/documents'
+import { getPdfUrl } from '@/api/documents'
 import { usePdfZoom } from '@/hooks/usePdfZoom'
 
 const RENDER_BUFFER = 4
@@ -9,7 +9,6 @@ const PAGE_VISIBILITY_THRESHOLDS = [0, 0.25, 0.5, 0.75, 1]
 
 export function usePdfViewer(documentId: string) {
   const { t } = useTranslation()
-  const [file, setFile] = useState<Blob | null>(null)
   const [pageCount, setPageCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [renderedPages, setRenderedPages] = useState<Set<number>>(() => new Set())
@@ -30,21 +29,14 @@ export function usePdfViewer(documentId: string) {
 
   const containerRef = useCallback((element: HTMLDivElement | null) => {
     if (!element) return
-    const controller = new AbortController()
     initScroll(element)
-    void fetchPdf(documentId, controller.signal).then(pdf => {
-      if (!controller.signal.aborted) setFile(pdf)
-    }).catch(() => {
-      if (!controller.signal.aborted) setFailed(true)
-    })
     return () => {
-      controller.abort()
       initScroll(null)
       for (const observer of observers.current.values()) observer.disconnect()
       observers.current.clear()
       visibility.current.clear()
     }
-  }, [documentId, initScroll])
+  }, [initScroll])
 
   const registerPage = useCallback((page: number, node: HTMLDivElement | null) => {
     const previous = observers.current.get(page)
@@ -102,7 +94,7 @@ export function usePdfViewer(documentId: string) {
   }))
 
   return {
-    containerRef, setInner, file, pageWidth, pages, pageCount, currentPage, failed,
+    containerRef, setInner, file: getPdfUrl(documentId), pageWidth, pages, pageCount, currentPage, failed,
     zoom, zoomIn, zoomOut, zoomMin: ZOOM_MIN, zoomMax: ZOOM_MAX, onLoadSuccess, onPageLoad, onError,
     labels: { error: t('documents.pdfError'), zoomIn: t('documents.zoomIn'), zoomOut: t('documents.zoomOut') },
   }

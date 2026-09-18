@@ -2,8 +2,10 @@
   "app": {
     "name": "hUMAnos"
   },
+  "common": {
+    "cancel": "Cancelar"
+  },
   "documents": {
-    "title": "Documentos",
     "library": "Tus documentos",
     "upload": "Subir PDF",
     "uploading": "Extrayendo Markdown…",
@@ -16,11 +18,9 @@
     "zoomIn": "Ampliar",
     "zoomOut": "Reducir",
     "markdown": "Markdown",
-    "pages_one": "{{count}} página",
-    "pages_other": "{{count}} páginas",
     "error": "Sin Markdown",
-    "delete": "Mantén pulsado para borrar",
-    "deleting": "Borrando…",
+    "delete": "Eliminar",
+    "deleteConfirmation": "¿Eliminar «{{name}}»?",
     "noMarkdown": "El PDF está guardado, pero no se pudo extraer su Markdown.",
     "invalidPdf": "Selecciona un archivo PDF válido.",
     "ocrFailed": "El PDF se ha guardado, pero ha fallado el OCR. Comprueba la clave de Mistral y la conexión.",

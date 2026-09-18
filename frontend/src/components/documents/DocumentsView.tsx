@@ -3,7 +3,7 @@ import logo from '@/assets/logo.jpeg'
 import type { useDocuments } from '@/hooks/useDocuments'
 import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
 import { Markdown } from '@/components/documents/Markdown'
-import { HoldButton } from '@/components/ui/hold-button'
+import { DeleteButton } from '@/components/ui/delete-button'
 import { PdfViewer } from '@/components/documents/PdfViewer'
 
 type Props = ReturnType<typeof useDocuments>
@@ -21,23 +21,22 @@ export function DocumentsView({ documents, selected, selectedId, loading, upload
         <nav className="document-list" aria-label={labels.library}>
           {documents.length === 0 && <p className="empty-list">{labels.emptyList}</p>}
           {documents.map(document => (
-            <button key={document.id} className="document-item" aria-current={selectedId === document.id ? 'true' : undefined}
-              disabled={uploading || deleting} onClick={() => void onSelect(document.id)}>
-              <FileText size={17} />
-              <span className="document-name" title={document.name}>{document.name}</span>
-              {document.status === 'error' && <span className="error-dot" title={labels.error} aria-label={labels.error} />}
-            </button>
+            <div key={document.id} className="document-row" data-selected={selectedId === document.id}>
+              <button className="document-item" aria-current={selectedId === document.id ? 'true' : undefined}
+                disabled={uploading || deleting} onClick={() => void onSelect(document.id)}>
+                <FileText size={17} />
+                <span className="document-name" title={document.name}>{document.name}</span>
+                {document.status === 'error' && <span className="error-dot" title={labels.error} aria-label={labels.error} />}
+              </button>
+              <DeleteButton label={labels.delete} confirmation={document.deleteConfirmation}
+                disabled={uploading || deleting} onDelete={() => void onDelete(document.id)} />
+            </div>
           ))}
         </nav>
       </aside>
       <main className="workspace">
         <header className="workspace-header">
-          <div><span className="eyebrow">{labels.title}</span><h1>{selected ? selected.name : labels.library}</h1></div>
-          {selected && <div className="document-actions">
-            {selected.status === 'ready' && <span className="page-count">{labels.pages}</span>}
-            <HoldButton key={selectedId} label={deleting ? labels.deleting : labels.delete}
-              disabled={loading || uploading || deleting} onConfirm={onDelete} />
-          </div>}
+          {selected && <h1 title={selected.name}>{selected.name}</h1>}
         </header>
         {loading || uploading ? (
           <div className="loading-workspace" role="status">
@@ -46,12 +45,10 @@ export function DocumentsView({ documents, selected, selectedId, loading, upload
           </div>
         ) : selected ? (
           <div className="viewer-grid">
-            <section className="viewer-panel">
-              <div className="panel-heading">{labels.pdf}</div>
+            <section className="viewer-panel" aria-label={labels.pdf}>
               <PdfViewer key={selected.id} documentId={selected.id} />
             </section>
-            <section className="viewer-panel">
-              <div className="panel-heading">{labels.markdown}</div>
+            <section className="viewer-panel" aria-label={labels.markdown}>
               <div className="markdown-scroll">
                 {selected.status === 'ready' ? <Markdown content={selected.markdown} /> : <p className="markdown-error">{labels.noMarkdown}</p>}
               </div>

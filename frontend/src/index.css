@@ -39,23 +39,26 @@ button:focus-visible, label:focus-within { outline: 2px solid var(--primary); ou
 .library-label span { font-variant-numeric: tabular-nums; }
 .document-list { overflow-y: auto; flex: 1; }
 .empty-list { padding: 12px 11px; font-size: 13px; line-height: 1.7; color: #909090; }
-.document-item { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; border-radius: 8px; background: transparent; padding: 11px 10px; text-align: left; font-size: 13px; color: #525252; margin-bottom: 3px; }
+.document-item { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; border: 0; border-radius: 8px; background: transparent; padding: 11px 10px; text-align: left; font-size: 13px; color: #525252; }
 .document-item svg { flex-shrink: 0; color: #737373; }
-.document-item:hover { background: #f3f3f3; }
-.document-item[aria-current='true'] { background: #ededed; color: #171717; }
 .document-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.document-row { display: flex; align-items: center; border-radius: 8px; margin-bottom: 3px; padding-right: 5px; }
+.document-row:hover, .document-row:focus-within { background: #f3f3f3; }
+.document-row[data-selected='true'] { background: #ededed; }
+.document-delete { display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: #737373; opacity: 0; pointer-events: none; }
+.document-row:hover .document-delete, .document-row:focus-within .document-delete, .document-delete[data-state='open'] { opacity: 1; pointer-events: auto; }
+.document-delete:hover { background: #fee2e2; color: #b91c1c; }
+.delete-confirmation { z-index: 60; width: max-content; max-width: min(18rem, var(--radix-popover-content-available-width)); padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: white; box-shadow: 0 5px 20px #00000012; }
+.delete-confirmation p { margin: 0 0 12px; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.confirmation-actions { display: flex; gap: 8px; }
+.confirmation-actions button { border: 1px solid var(--border); border-radius: 7px; padding: 6px 11px; background: white; font-size: 12px; }
+.confirmation-actions .confirm-delete { border-color: transparent; background: #fef2f2; color: #b91c1c; }
+.confirmation-actions .confirm-delete:hover { background: #fee2e2; }
+@media (hover: none) { .document-delete { opacity: 1; pointer-events: auto; } }
 .error-dot { width: 6px; height: 6px; background: #b45309; border-radius: 50%; flex-shrink: 0; margin-left: auto; }
 .workspace { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.workspace-header { min-height: 94px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 30px; border-bottom: 1px solid var(--border); }
-.workspace-header > div { min-width: 0; }
-.eyebrow { color: var(--muted-foreground); font-size: 12px; }
-h1 { margin: 3px 0 0; font-size: 17px; font-weight: 550; letter-spacing: -0.4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.page-count { flex-shrink: 0; font-size: 12px; color: var(--muted-foreground); }
-.document-actions { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
-.hold-button { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid #fecaca; border-radius: 8px; background: #fff7f7; color: #b91c1c; font-size: 12px; white-space: nowrap; touch-action: none; user-select: none; }
-.hold-button > :not(.hold-progress) { position: relative; }
-.hold-progress { position: absolute; inset: 0; background: #fecaca; transform: scaleX(0); transform-origin: left; }
-.hold-button[data-holding='true'] .hold-progress { transform: scaleX(1); transition: transform 900ms linear; }
+.workspace-header { height: 46px; flex-shrink: 0; display: flex; align-items: center; padding: 0 24px; border-bottom: 1px solid var(--border); }
+h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing: -0.4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .empty-workspace { display: flex; flex: 1; flex-direction: column; justify-content: center; align-items: center; padding: 32px; text-align: center; }
 .empty-icon { display: grid; place-items: center; width: 64px; height: 72px; background: #f5f5f5; border: 1px solid #eaeaea; color: #777; border-radius: 14px; margin-bottom: 23px; }
 .empty-workspace h2 { font-size: 20px; font-weight: 500; letter-spacing: -0.5px; margin: 0 0 10px; }
@@ -63,7 +66,6 @@ h1 { margin: 3px 0 0; font-size: 17px; font-weight: 550; letter-spacing: -0.4px;
 .viewer-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); flex: 1; min-height: 0; }
 .viewer-panel { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .viewer-panel + .viewer-panel { border-left: 1px solid var(--border); }
-.panel-heading { display: flex; align-items: center; height: 46px; flex-shrink: 0; padding: 0 24px; font-size: 12px; color: #737373; border-bottom: 1px solid var(--border); }
 .pdf-viewer { position: relative; flex: 1; min-height: 0; }
 .pdf-scroll { height: 100%; overflow: auto; background: #efefef; padding: 16px 16px 65px; }
 .pdf-page { margin-bottom: 16px; background: white; box-shadow: 0 1px 5px #00000012; }
@@ -105,8 +107,6 @@ h1 { margin: 3px 0 0; font-size: 17px; font-weight: 550; letter-spacing: -0.4px;
   .markdown-scroll { overflow: visible; }
 }
 @media (max-width: 560px) {
-  .workspace-header { flex-wrap: wrap; }
-  .document-actions { gap: 10px; }
   .app-shell { flex-direction: column; }
   .sidebar { width: 100%; max-height: 220px; padding: 14px; border-right: 0; border-bottom: 1px solid var(--border); }
   .brand { padding: 0; justify-content: flex-start; }
@@ -115,7 +115,7 @@ h1 { margin: 3px 0 0; font-size: 17px; font-weight: 550; letter-spacing: -0.4px;
   .library-label { padding: 16px 0 8px; }
   .document-list { min-height: 40px; }
   .workspace { min-height: 0; }
-  .workspace-header { min-height: 76px; padding: 14px 20px; }
+  .workspace-header { height: 44px; padding: 0 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

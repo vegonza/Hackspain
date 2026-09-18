@@ -27,9 +27,5 @@ export async function fetchJson<T>(url: string, options: RequestInit = {}): Prom
   return response.json()
 }
 
-export async function fetchBlob(url: string, options: RequestInit = {}): Promise<Blob> {
-  const response = await baseFetch(url, options)
-  return response.blob()
-}
 import i18n from '@/i18n'
 import { toast } from 'sonner'
