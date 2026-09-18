@@ -9,38 +9,33 @@ import { InvoiceFeatures } from '@/components/documents/InvoiceFeatures'
 
 type Props = ReturnType<typeof useDocuments>
 
-export function DocumentsView({ documents, selected, selectedId, loading, uploading, uploadName, uploadSelected, deleting, sourceTab, onSourceTab, onUpload, onDelete, onSelect, onSelectUpload, labels, featureLabels }: Props) {
+export function DocumentsView({ documents, selected, selectedId, loading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels }: Props) {
   return (
-    <div className="app-shell">
+    <div className="app-shell" ref={watchDocuments}>
       <header className="app-header">
         <img className="brand-logo" src={logo} alt={labels.appName} />
         <span className="header-divider" />
         <h1>{labels.library}</h1>
         <span className="document-count">{documents.length}</span>
-        <label className={`upload-button ${uploading ? 'disabled' : ''}`}>
+        <label className="upload-button">
           <Upload size={15} />{labels.upload}
-          <input type="file" accept="application/pdf,.pdf" onChange={onUpload} disabled={uploading || deleting} aria-label={labels.upload} />
+          <input type="file" accept="application/pdf,.pdf" multiple onChange={onUpload} aria-label={labels.upload} />
         </label>
       </header>
         <main className="review-layout">
           <aside className="sidebar">
             <nav className="document-list" aria-label={labels.library}>
-              {uploading && <div className="document-row" data-selected={uploadSelected}>
-                <button className="document-item" onClick={onSelectUpload} aria-current={uploadSelected ? 'true' : undefined}>
-                  <span className="document-name">{uploadName}</span>
-                  <LoaderCircle size={15} className="upload-spinner" aria-label={labels.loading} />
-                </button>
-              </div>}
-              {documents.length === 0 && !uploading && <p className="empty-list">{labels.emptyList}</p>}
+              {documents.length === 0 && <p className="empty-list">{labels.emptyList}</p>}
               {documents.map(document => (
                 <div key={document.id} className="document-row" data-selected={selectedId === document.id}>
                   <button className="document-item" aria-current={selectedId === document.id ? 'true' : undefined}
                     onClick={() => void onSelect(document.id)}>
                     <span className="document-name" title={document.name}>{document.name}</span>
+                    {document.pending && <LoaderCircle size={15} className="upload-spinner" aria-label={document.statusLabel} />}
                     {document.status === 'error' && <span className="error-dot" title={labels.error} />}
                   </button>
-                  <DeleteButton label={labels.delete} confirmation={document.deleteConfirmation}
-                    disabled={deleting} onDelete={() => void onDelete(document.id)} />
+                  {!document.pending && <DeleteButton label={labels.delete} confirmation={document.deleteConfirmation}
+                    disabled={deleting} onDelete={() => void onDelete(document.id)} />}
                 </div>
               ))}
             </nav>
@@ -57,7 +52,7 @@ export function DocumentsView({ documents, selected, selectedId, loading, upload
                     <button aria-pressed={sourceTab === 'markdown'} onClick={() => onSourceTab('markdown')}>{labels.markdown}</button>
                   </div>
                 </header>
-                <div className="source-body" hidden={sourceTab !== 'pdf'}><PdfViewer key={selected.id} documentId={selected.id} /></div>
+                <div className="source-body" hidden={sourceTab !== 'pdf'}><PdfViewer key={selected.id} url={selected.pdfUrl} /></div>
                 {sourceTab === 'markdown' && <div className="markdown-scroll">
                   {selected.status === 'ready' ? <Markdown content={selected.markdown} /> : <p className="markdown-error">{labels.noMarkdown}</p>}
                 </div>}

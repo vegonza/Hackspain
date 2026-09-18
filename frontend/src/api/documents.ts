@@ -1,10 +1,10 @@
-import { API_BASE, fetchJson } from '@/api/client'
+import { fetchJson } from '@/api/client'
 
 export interface Document {
   id: string
   name: string
   created_at: string
-  status: 'ready' | 'error'
+  status: 'queued' | 'processing' | 'ready' | 'error'
   pages: number
 }
 
@@ -40,16 +40,16 @@ export function fetchDocument(id: string): Promise<DocumentDetail> {
   return fetchJson<DocumentDetail>(`/documents/${id}`)
 }
 
-export function getPdfUrl(id: string): string {
-  return `${API_BASE}/documents/${id}/pdf`
+export function fetchPdfUrl(id: string): Promise<{ url: string }> {
+  return fetchJson(`/documents/${id}/pdf-url`)
 }
 
 export function deleteDocument(id: string): Promise<{ deleted: boolean }> {
   return fetchJson(`/documents/${id}`, { method: 'DELETE' })
 }
 
-export function uploadDocument(file: File): Promise<DocumentDetail> {
+export function uploadDocument(file: File): Promise<Document> {
   const body = new FormData()
   body.append('file', file)
-  return fetchJson<DocumentDetail>('/documents', { method: 'POST', body })
+  return fetchJson<Document>('/documents', { method: 'POST', body })
 }

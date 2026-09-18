@@ -4,11 +4,16 @@ services:
   backend:
     build:
       context: ./backend
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8766", "--reload", "--reload-dir", "/app", "--reload-delay", "0.1", "--reload-include", "*", "--reload-exclude", "data", "--reload-exclude", "logs"]
     env_file:
       - backend/.env
     environment:
       ENV: development
       TZ: Europe/Madrid
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
     volumes:
       - ./backend/data:/app/data
       - ./backend/logs:/app/logs
@@ -20,7 +25,7 @@ services:
       start_period: 5s
     develop:
       watch:
-        - action: sync+restart
+        - action: sync
           path: ./backend
           target: /app
           initial_sync: true
@@ -35,6 +40,46 @@ services:
           path: ./backend/Dockerfile
         - action: rebuild
           path: ./backend/requirements.txt
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "always", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  worker:
+    build:
+      context: ./backend
+    command: ["python", "-m", "documents.worker"]
+    restart: unless-stopped
+    env_file:
+      - backend/.env
+    environment:
+      ENV: development
+      TZ: Europe/Madrid
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend
+          target: /app
+          initial_sync: true
+          ignore: [Dockerfile, requirements.txt, data/, .venv/, .env, logs/, __pycache__/]
+        - action: rebuild
+          path: ./backend/requirements.txt
+        - action: rebuild
+          path: ./backend/Dockerfile
 
   frontend:
     build:
@@ -65,3 +110,6 @@ services:
           path: ./frontend/bun.lock
         - action: rebuild
           path: ./frontend/package.json
+
+volumes:
+  redis_data:

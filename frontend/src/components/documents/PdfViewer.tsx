@@ -14,11 +14,11 @@ const options = {
   standardFontDataUrl: '/pdfjs/standard_fonts/',
 }
 
-export function PdfViewer({ documentId }: { documentId: string }) {
+export function PdfViewer({ url }: { url: string }) {
   const {
     containerRef, setInner, file, pageWidth, pages, pageCount, currentPage, failed,
     zoom, zoomIn, zoomOut, zoomMin, zoomMax, onLoadSuccess, onPageLoad, onError, labels,
-  } = usePdfViewer(documentId)
+  } = usePdfViewer(url)
   return (
     <div className="pdf-viewer">
     <div ref={containerRef} className="pdf-scroll">

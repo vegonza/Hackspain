@@ -1,13 +1,12 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { getPdfUrl } from '@/api/documents'
 import { usePdfZoom } from '@/hooks/usePdfZoom'
 
 const RENDER_BUFFER = 4
 const PAGE_VISIBILITY_THRESHOLDS = [0, 0.25, 0.5, 0.75, 1]
 
-export function usePdfViewer(documentId: string) {
+export function usePdfViewer(url: string) {
   const { t } = useTranslation()
   const [pageCount, setPageCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
@@ -94,7 +93,7 @@ export function usePdfViewer(documentId: string) {
   }))
 
   return {
-    containerRef, setInner, file: getPdfUrl(documentId), pageWidth, pages, pageCount, currentPage, failed,
+    containerRef, setInner, file: url, pageWidth, pages, pageCount, currentPage, failed,
     zoom, zoomIn, zoomOut, zoomMin: ZOOM_MIN, zoomMax: ZOOM_MAX, onLoadSuccess, onPageLoad, onError,
     labels: { error: t('documents.pdfError'), zoomIn: t('documents.zoomIn'), zoomOut: t('documents.zoomOut') },
   }
