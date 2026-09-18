@@ -1,6 +1,7 @@
 # Local challenge data checkout
 /500-sombras-de-alberto/
 /invoice_review.csv
+/backend/data/
 
 # Environment files and credentials
 .env

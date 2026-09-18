@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   color: #171717;
-  background: #fafafa;
-  --muted: #e5e5e5;
+  background: #fdfdfd;
+  --muted: #f0f0f0;
   --border: #e5e5e5;
   --popover: #ffffff;
   --popover-foreground: #171717;
+  --primary: oklch(0.546 0.245 262.88);
+  --muted-foreground: #737373;
 }
 
 @theme inline {
@@ -18,6 +20,102 @@
 body {
   margin: 0;
   min-width: 320px;
+}
+
+button, input { font: inherit; }
+button, label { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: 0.55; }
+button:focus-visible, label:focus-within { outline: 2px solid var(--primary); outline-offset: 3px; }
+.app-shell { display: flex; height: 100dvh; overflow: hidden; }
+.sidebar { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; padding: 24px 14px; background: #fafafa; border-right: 1px solid var(--border); }
+.brand { display: flex; align-items: center; justify-content: center; padding: 0 10px; }
+.brand img { display: block; width: 200px; max-width: 100%; height: auto; mix-blend-mode: multiply; }
+.upload-button { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; height: 38px; margin: 28px 4px 30px; border-radius: 8px; background: var(--primary); color: white; cursor: pointer; font-size: 13px; font-weight: 500; }
+.upload-button:hover { filter: brightness(0.96); }
+.upload-button.disabled { opacity: 0.6; cursor: wait; }
+.upload-button input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: inherit; }
+.library-label { display: flex; justify-content: space-between; padding: 0 11px 12px; font-size: 12px; color: var(--muted-foreground); }
+.library-label span { font-variant-numeric: tabular-nums; }
+.document-list { overflow-y: auto; flex: 1; }
+.empty-list { padding: 12px 11px; font-size: 13px; line-height: 1.7; color: #909090; }
+.document-item { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; border-radius: 8px; background: transparent; padding: 11px 10px; text-align: left; font-size: 13px; color: #525252; margin-bottom: 3px; }
+.document-item svg { flex-shrink: 0; color: #737373; }
+.document-item:hover { background: #f3f3f3; }
+.document-item[aria-current='true'] { background: #ededed; color: #171717; }
+.document-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.error-dot { width: 6px; height: 6px; background: #b45309; border-radius: 50%; flex-shrink: 0; margin-left: auto; }
+.workspace { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.workspace-header { min-height: 94px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 30px; border-bottom: 1px solid var(--border); }
+.workspace-header > div { min-width: 0; }
+.eyebrow { color: var(--muted-foreground); font-size: 12px; }
+h1 { margin: 3px 0 0; font-size: 17px; font-weight: 550; letter-spacing: -0.4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.page-count { flex-shrink: 0; font-size: 12px; color: var(--muted-foreground); }
+.document-actions { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.hold-button { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid #fecaca; border-radius: 8px; background: #fff7f7; color: #b91c1c; font-size: 12px; white-space: nowrap; touch-action: none; user-select: none; }
+.hold-button > :not(.hold-progress) { position: relative; }
+.hold-progress { position: absolute; inset: 0; background: #fecaca; transform: scaleX(0); transform-origin: left; }
+.hold-button[data-holding='true'] .hold-progress { transform: scaleX(1); transition: transform 900ms linear; }
+.empty-workspace { display: flex; flex: 1; flex-direction: column; justify-content: center; align-items: center; padding: 32px; text-align: center; }
+.empty-icon { display: grid; place-items: center; width: 64px; height: 72px; background: #f5f5f5; border: 1px solid #eaeaea; color: #777; border-radius: 14px; margin-bottom: 23px; }
+.empty-workspace h2 { font-size: 20px; font-weight: 500; letter-spacing: -0.5px; margin: 0 0 10px; }
+.empty-workspace p { max-width: 350px; font-size: 14px; line-height: 1.75; color: var(--muted-foreground); }
+.viewer-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); flex: 1; min-height: 0; }
+.viewer-panel { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.viewer-panel + .viewer-panel { border-left: 1px solid var(--border); }
+.panel-heading { display: flex; align-items: center; height: 46px; flex-shrink: 0; padding: 0 24px; font-size: 12px; color: #737373; border-bottom: 1px solid var(--border); }
+.pdf-viewer { position: relative; flex: 1; min-height: 0; }
+.pdf-scroll { height: 100%; overflow: auto; background: #efefef; padding: 16px 16px 65px; }
+.pdf-page { margin-bottom: 16px; background: white; box-shadow: 0 1px 5px #00000012; }
+.pdf-scroll canvas { display: block; }
+.pdf-toolbar { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 9px; padding: 5px 10px; border-radius: 30px; background: #ffffffed; box-shadow: 0 2px 8px #00000012; backdrop-filter: blur(10px); font-size: 12px; color: #666; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pdf-toolbar button { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; }
+.pdf-toolbar button:hover { background: #f0f0f0; }
+.pdf-page-count { padding-left: 12px; border-left: 1px solid var(--border); }
+.markdown-scroll { overflow: auto; flex: 1; }
+.markdown { padding: 28px; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.markdown > :first-child { margin-top: 0; }
+.markdown h1, .markdown h2, .markdown h3 { white-space: normal; font-weight: 600; line-height: 1.4; margin: 1.4em 0 0.65em; }
+.markdown h1 { font-size: 23px; }
+.markdown h2 { font-size: 19px; }
+.markdown h3 { font-size: 16px; }
+.markdown p, .markdown ul, .markdown ol { margin: 0.8em 0; }
+.markdown ul { list-style: disc; padding-left: 22px; }
+.markdown ol { list-style: decimal; padding-left: 22px; }
+.markdown table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: 12px; margin: 20px 0; }
+.markdown th, .markdown td { padding: 9px 12px; border: 1px solid var(--border); text-align: left; }
+.markdown th { background: #f7f7f7; }
+.markdown pre { background: #f5f5f5; border-radius: 8px; padding: 14px; overflow: auto; }
+.markdown code { font-size: 0.9em; }
+.markdown img { max-width: 100%; height: auto; }
+.markdown a { color: var(--primary); text-decoration: underline; }
+.markdown blockquote { border-left: 3px solid var(--border); padding-left: 15px; color: var(--muted-foreground); }
+.markdown hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
+.markdown-error { margin: 28px; color: var(--muted-foreground); font-size: 14px; line-height: 1.7; }
+.loading-workspace { display: flex; flex: 1; min-height: 0; flex-direction: column; }
+.loading-workspace > p { margin: 0; padding: 20px 30px; font-size: 13px; color: var(--muted-foreground); }
+.document-skeleton { width: 100%; padding: 30px; max-width: 700px; }
+@media (max-width: 900px) {
+  .sidebar { width: 210px; padding-inline: 10px; }
+  .workspace-header { padding-inline: 20px; }
+  .viewer-grid { grid-template-columns: 1fr; overflow: auto; }
+  .viewer-panel { min-height: 65dvh; }
+  .pdf-viewer { min-height: 60dvh; flex: none; height: 60dvh; }
+  .viewer-panel + .viewer-panel { border-left: 0; border-top: 1px solid var(--border); }
+  .markdown-scroll { overflow: visible; }
+}
+@media (max-width: 560px) {
+  .workspace-header { flex-wrap: wrap; }
+  .document-actions { gap: 10px; }
+  .app-shell { flex-direction: column; }
+  .sidebar { width: 100%; max-height: 220px; padding: 14px; border-right: 0; border-bottom: 1px solid var(--border); }
+  .brand { padding: 0; justify-content: flex-start; }
+  .brand img { width: 100px; }
+  .upload-button { position: absolute; right: 14px; top: 14px; margin: 0; padding: 0 12px; }
+  .library-label { padding: 16px 0 8px; }
+  .document-list { min-height: 40px; }
+  .workspace { min-height: 0; }
+  .workspace-header { min-height: 76px; padding: 14px 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,13 +1,29 @@
 {
   "app": {
-    "name": "HackSpain"
+    "name": "hUMAnos"
   },
-  "example": {
-    "title": "Página de ejemplo",
-    "description": "Comprueba la conexión con el backend.",
-    "connect": "Conectar con el backend",
-    "loading": "Conectando…",
-    "connected": "Conexión correcta con {{service}}.",
-    "error": "No se ha podido conectar con el backend."
+  "documents": {
+    "title": "Documentos",
+    "library": "Tus documentos",
+    "upload": "Subir PDF",
+    "uploading": "Extrayendo Markdown…",
+    "loading": "Cargando documento…",
+    "emptyList": "Los PDF que subas aparecerán aquí.",
+    "emptyTitle": "Un PDF, todo su contenido",
+    "emptyDescription": "Sube un documento o selecciona uno de la lista para ver el original y su Markdown, lado a lado.",
+    "pdf": "PDF original",
+    "pdfError": "No se ha podido mostrar el PDF.",
+    "zoomIn": "Ampliar",
+    "zoomOut": "Reducir",
+    "markdown": "Markdown",
+    "pages_one": "{{count}} página",
+    "pages_other": "{{count}} páginas",
+    "error": "Sin Markdown",
+    "delete": "Mantén pulsado para borrar",
+    "deleting": "Borrando…",
+    "noMarkdown": "El PDF está guardado, pero no se pudo extraer su Markdown.",
+    "invalidPdf": "Selecciona un archivo PDF válido.",
+    "ocrFailed": "El PDF se ha guardado, pero ha fallado el OCR. Comprueba la clave de Mistral y la conexión.",
+    "requestFailed": "No se ha podido completar la solicitud. Comprueba la conexión con el servidor."
   }
 }

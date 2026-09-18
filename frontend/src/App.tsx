@@ -1,11 +1,12 @@
 import { Toaster } from '@/components/ui/sonner'
-import { ExamplePage } from '@/pages/ExamplePage'
+import { DocumentsPage } from '@/pages/DocumentsPage'
+import type { Document } from '@/api/documents'
 
-export function App() {
+export function App({ initialDocuments }: { initialDocuments: Document[] }) {
   return (
     <>
       <Toaster position="top-center" duration={4000} />
-      <ExamplePage />
+      <DocumentsPage initialDocuments={initialDocuments} />
     </>
   )
 }
