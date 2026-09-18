@@ -84,7 +84,7 @@ export function useDocuments(initialDocuments: Document[]) {
     selected, selectedId, loading, uploading, deleting, onUpload, onDelete, onSelect: selectDocument,
     labels: {
       appName: t('app.name'), upload: t('documents.upload'),
-      uploading: t('documents.uploading'), library: t('documents.library'),
+      library: t('documents.library'),
       emptyList: t('documents.emptyList'), emptyTitle: t('documents.emptyTitle'),
       emptyDescription: t('documents.emptyDescription'), pdf: t('documents.pdf'),
       markdown: t('documents.markdown'), noMarkdown: t('documents.noMarkdown'),
