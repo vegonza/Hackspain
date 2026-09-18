@@ -3,19 +3,31 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { deleteDocument, fetchDocument, fetchDocuments, uploadDocument, type Document, type DocumentDetail } from '@/api/documents'
 
+const UPLOADING_ID = 'uploading'
+
 export function useDocuments(initialDocuments: Document[]) {
   const { t } = useTranslation()
   const [documents, setDocuments] = useState(initialDocuments)
   const [selected, setSelected] = useState<DocumentDetail | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [uploading, setUploading] = useState(false)
+  const [uploadName, setUploadName] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [sourceTab, setSourceTab] = useState<'pdf' | 'markdown'>('pdf')
   const selectionRequest = useRef(0)
+  const activeId = useRef<string | null>(null)
+
+  function selectUpload(): void {
+    ++selectionRequest.current
+    activeId.current = UPLOADING_ID
+    setSelectedId(UPLOADING_ID)
+    setSelected(null)
+    setLoading(false)
+  }
 
   async function selectDocument(id: string): Promise<void> {
     const request = ++selectionRequest.current
+    activeId.current = id
     setSelectedId(id)
     setSourceTab('pdf')
     setLoading(true)
@@ -26,6 +38,7 @@ export function useDocuments(initialDocuments: Document[]) {
       if (request === selectionRequest.current) {
         setSelected(null)
         setSelectedId(null)
+        activeId.current = null
       }
     } finally {
       if (request === selectionRequest.current) setLoading(false)
@@ -40,23 +53,31 @@ export function useDocuments(initialDocuments: Document[]) {
       toast.error(t('documents.invalidPdf'))
       return
     }
-    ++selectionRequest.current
-    setLoading(false)
-    setUploading(true)
+    setUploadName(file.name)
+    selectUpload()
     try {
       const document = await uploadDocument(file)
-      setSelected(document)
-      setSelectedId(document.id)
-      setSourceTab('pdf')
+      setDocuments(current => [document, ...current])
+      if (activeId.current === UPLOADING_ID) {
+        activeId.current = document.id
+        setSelected(document)
+        setSelectedId(document.id)
+        setSourceTab('pdf')
+      }
     } catch {
-      // The API client displays errors; the saved PDF remains in the list.
-    } finally {
+      // Failed OCR still saves the PDF on the server.
       try {
         setDocuments(await fetchDocuments())
       } catch {
         // Keep the current list when refreshing it fails.
       }
-      setUploading(false)
+      if (activeId.current === UPLOADING_ID) {
+        activeId.current = null
+        setSelectedId(null)
+        setSelected(null)
+      }
+    } finally {
+      setUploadName(null)
     }
   }
 
@@ -66,8 +87,9 @@ export function useDocuments(initialDocuments: Document[]) {
     try {
       await deleteDocument(id)
       setDocuments(current => current.filter(document => document.id !== id))
-      if (selectedId === id) {
+      if (activeId.current === id) {
         ++selectionRequest.current
+        activeId.current = null
         setSelected(null)
         setSelectedId(null)
         setLoading(false)
@@ -84,8 +106,9 @@ export function useDocuments(initialDocuments: Document[]) {
       ...document,
       deleteConfirmation: t('documents.deleteConfirmation', { name: document.name }),
     })),
-    selected, selectedId, loading, uploading, deleting, sourceTab,
-    onUpload, onDelete, onSelect: selectDocument, onSourceTab: setSourceTab,
+    selected, selectedId, loading, uploading: uploadName !== null, uploadName, deleting, sourceTab,
+    uploadSelected: selectedId === UPLOADING_ID,
+    onUpload, onDelete, onSelect: selectDocument, onSelectUpload: selectUpload, onSourceTab: setSourceTab,
     labels: {
       appName: t('app.name'), upload: t('documents.upload'),
       library: t('documents.library'),

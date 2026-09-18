@@ -37,6 +37,8 @@ button:focus-visible, label:focus-within { outline: 2px solid var(--primary); ou
 .empty-list { padding: 12px 11px; font-size: 13px; line-height: 1.7; color: #909090; }
 .document-item { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; border: 0; border-radius: 8px; background: transparent; padding: 11px 10px; text-align: left; font-size: 13px; color: #525252; }
 .document-item svg { flex-shrink: 0; color: #737373; }
+.upload-spinner { margin-left: auto; animation: upload-spin 800ms linear infinite; }
+@keyframes upload-spin { to { transform: rotate(360deg); } }
 .document-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .document-row { position: relative; display: flex; align-items: center; border-radius: 8px; margin-bottom: 3px; padding-right: 5px; }
 .document-row:hover, .document-row:focus-within { background: #f3f3f3; }
@@ -56,7 +58,7 @@ button:focus-visible, label:focus-within { outline: 2px solid var(--primary); ou
 .error-dot { width: 6px; height: 6px; background: #b45309; border-radius: 50%; flex-shrink: 0; margin-left: auto; }
 h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing: -0.4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .viewer-panel { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
-.pdf-viewer { position: relative; flex: 1; min-height: 0; }
+.pdf-viewer { position: relative; flex: 1; min-width: 0; min-height: 0; overflow: hidden; }
 .pdf-scroll { height: 100%; overflow: auto; padding: 16px; background: #efeeec; }
 .pdf-page { background: white; border-bottom: 1px solid var(--border); box-shadow: 0 2px 8px #25211b14; }
 .pdf-page:last-child { border-bottom: 0; }
@@ -109,7 +111,7 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .source-tabs button { padding: 0; border: 0; border-bottom: 2px solid transparent; background: none; color: #737373; font-size: 11px; }
 .source-tabs button:hover { color: var(--primary); }
 .source-tabs button[aria-pressed='true'] { border-bottom-color: var(--accent); color: var(--primary); }
-.source-body { display: flex; flex: 1; min-height: 0; }
+.source-body { display: flex; flex: 1; min-width: 0; min-height: 0; }
 .source-body[hidden] { display: none; }
 .features-panel { min-width: 0; overflow-y: auto; border-left: 1px solid var(--border); background: white; }
 .review-header { justify-content: space-between; }
