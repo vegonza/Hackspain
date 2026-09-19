@@ -1,10 +1,8 @@
-import type { ReactElement } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Popover } from 'radix-ui'
 import { useConfirmPopover } from '@/hooks/useConfirmPopover'
 
 interface Props {
-  trigger?: ReactElement
   label: string
   confirmation: string
   disabled: boolean
@@ -13,14 +11,14 @@ interface Props {
   variant: 'delete' | 'redo'
 }
 
-export function ConfirmButton({ label, confirmation, disabled, onConfirm, icon: Icon, variant, trigger }: Props) {
+export function ConfirmButton({ label, confirmation, disabled, onConfirm, icon: Icon, variant }: Props) {
   const controller = useConfirmPopover(onConfirm, disabled)
   return (
     <Popover.Root open={controller.open} onOpenChange={controller.onOpenChange}>
       <Popover.Trigger asChild>
-        {trigger === undefined ? <button type="button" className={`invoice-${variant}`} disabled={disabled} aria-label={label} title={label}>
+        <button type="button" className={`invoice-${variant}`} disabled={disabled} aria-label={label} title={label}>
           <Icon size={15} />
-        </button> : trigger}
+        </button>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content className="action-confirmation" align="end" sideOffset={6} collisionPadding={8}

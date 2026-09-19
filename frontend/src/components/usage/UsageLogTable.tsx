@@ -1,4 +1,3 @@
-import { TablePagination } from '@/components/ui/table-pagination'
 import { Badge } from '@/components/ui/badge'
 import { TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import type { useUsage } from '@/hooks/useUsage'
@@ -6,14 +5,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
 import { UsageCostBreakdown } from '@/components/usage/UsageCostBreakdown'
 
-type Props = Pick<ReturnType<typeof useUsage>, 'loading' | 'records' | 'pagination' | 'pageKey' | 'labels' | 'totalLabel'>
+type Props = Pick<ReturnType<typeof useUsage>, 'loading' | 'records' | 'pageKey' | 'labels'>
 
-export function UsageLogTable({ loading, records, pagination, pageKey, labels, totalLabel }: Props) {
+export function UsageLogTable({ loading, records, pageKey, labels }: Props) {
   return <section className="usage-log">
-    <header className="usage-log-header">
-      <h2>{labels.history}</h2><span className="usage-record-count">{totalLabel}</span>
-      <TablePagination pagination={pagination} loading={loading} />
-    </header>
     <div className="usage-table-scroll" key={pageKey}><table className="usage-table">
       <colgroup><col style={{ width: '21%' }} /><col style={{ width: '13%' }} /><col style={{ width: '22%' }} /><col style={{ width: '12%' }} /><col style={{ width: '20%' }} /><col style={{ width: '12%' }} /></colgroup>
       <TableHeader><TableRow>{[labels.date, labels.provider, labels.model, labels.operation, labels.invoice, labels.cost].map(label => <TableHead key={label}>{label}</TableHead>)}</TableRow></TableHeader>

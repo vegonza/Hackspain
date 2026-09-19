@@ -85,20 +85,20 @@ export function useOrders() {
   }
 
   const query = search.trim().toLocaleLowerCase('es-ES')
-  const table = useTablePagination(sortRows(orders.filter(order => [order.order_id, order.supplier_id, order.tax_id ?? '', order.amount, order.status, order.date]
-      .some(value => value.toLocaleLowerCase('es-ES').includes(query))),
-      (row, column) => column === 'amount' ? Number(row.amount) : row[column])
-      .map(order => ({
-        ...order,
-        deleteConfirmation: t('common.deleteConfirmation', { name: order.order_id }),
-        displayAmount: amountFormat.format(Number(order.amount)),
-        displayDate: dateFormat.format(new Date(`${order.date}T00:00:00`)),
-      })), JSON.stringify([search, sortColumn, sortDirection]))
+  const filtered = sortRows(orders.filter(order => [order.order_id, order.supplier_id, order.tax_id ?? '', order.amount, order.status, order.date]
+    .some(value => value.toLocaleLowerCase('es-ES').includes(query))),
+    (row, column) => column === 'amount' ? Number(row.amount) : row[column])
+  const table = useTablePagination(filtered, JSON.stringify([search, sortColumn, sortDirection]))
   return {
     pagination: table.pagination, pageKey: table.pageKey,
     sortColumn, sortDirection, onToggleSort,
     mount, loading, failed, editing, saving, deleting, onDelete: remove, draft, editingId, search, onSearch: setSearch,
-    rows: table.rows,
+    rows: table.rows.map(order => ({
+      ...order,
+      deleteConfirmation: t('common.deleteConfirmation', { name: order.order_id }),
+      displayAmount: amountFormat.format(Number(order.amount)),
+      displayDate: dateFormat.format(new Date(`${order.date}T00:00:00`)),
+    })),
     onNew: () => edit(null), onEdit: edit, onChange: change, onSave: save,
     onCancel: () => setEditing(false), onRetry: () => setReload(value => value + 1),
     labels: {

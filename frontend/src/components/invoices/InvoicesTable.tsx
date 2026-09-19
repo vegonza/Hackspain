@@ -1,5 +1,5 @@
 import { InvoiceDecisionBadge } from '@/components/invoices/InvoiceDecisionBadge'
-import { TablePagination } from '@/components/ui/table-pagination'
+import { TableToolbar } from '@/components/ui/table-toolbar'
 import type { useInvoiceTable } from '@/hooks/useInvoiceTable'
 import { InvoicesTableHead } from '@/components/invoices/InvoicesTableHead'
 import { Button } from '@/components/ui/button'
@@ -21,14 +21,14 @@ export type InvoicesTableProps = Pick<ReturnType<typeof useInvoices>, 'invoicesL
 export function InvoicesTable({ invoicesLoading, sortColumn, sortDirection, onToggleSort, onUpload, table: { rows, pagination, pageKey }, search, onSearch, onSelect, onInvoiceLink, onDelete, deleting, labels, onRedo, redoDisabled }: InvoicesTableProps) {
   return (
     <section className="invoices-browser" aria-label={labels.library}>
-      <header className="invoices-toolbar">
-        <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
-        <TablePagination pagination={pagination} loading={invoicesLoading} />
+      <TableToolbar pagination={pagination} loading={invoicesLoading} actions={
         <Button asChild size="sm" className="table-add-button"><label className="upload-button">
           <Upload size={15} />{labels.upload}
           <input type="file" accept="application/pdf,.pdf" multiple onChange={onUpload} aria-label={labels.upload} />
         </label></Button>
-      </header>
+      }>
+        <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
+      </TableToolbar>
       <div className="invoices-table-scroll" key={pageKey}>
         <table className="invoices-table" aria-busy={invoicesLoading}>
           <colgroup><col /><col style={{ width: '180px' }} /><col style={{ width: '130px' }} /><col style={{ width: '130px' }} /><col style={{ width: '130px' }} /><col style={{ width: '210px' }} /><col style={{ width: '88px' }} /></colgroup>

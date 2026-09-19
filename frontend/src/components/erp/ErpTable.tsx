@@ -1,5 +1,5 @@
-import { TablePagination } from '@/components/ui/table-pagination'
 import { Building2, CircleAlert, Clock, Euro, IdCard, Hash, ListChecks, Package, RefreshCw } from 'lucide-react'
+import { TableToolbar } from '@/components/ui/table-toolbar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { SearchInput } from '@/components/ui/search-input'
@@ -25,14 +25,14 @@ export function ErpTable({ onRefresh, refreshing, loading, failed, rows, paginat
   ] as const
   return (
     <>
-      <header className="invoices-toolbar">
-        <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
-        <TablePagination pagination={pagination} loading={loading} />
+      <TableToolbar pagination={pagination} loading={loading} actions={
         <Button size="sm" className="table-add-button" onClick={onRefresh} disabled={loading || refreshing} aria-busy={refreshing}>
           <RefreshCw className={cn('size-3.5', refreshing && 'animate-spin')} />
           {refreshing ? labels.refreshing : labels.refresh}
         </Button>
-      </header>
+      }>
+        <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
+      </TableToolbar>
       <div className="invoices-table-scroll" key={pageKey}>
         <table className="invoices-table" style={{ minWidth: 1170 }} aria-busy={loading}>
           <colgroup>{columns.map(column => <col key={column.column} style={{ width: column.width }} />)}</colgroup>

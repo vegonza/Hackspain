@@ -47,10 +47,10 @@ export function InvoiceDetails({ mountDetail, invoiceName, selectedId, selected,
           </div>}
         </>}
       </section>
-      <section className="viewer-panel invoice-result-pane" aria-label={dataTab === 'erp' ? labels.erpData : labels.extraction}>
+      <section className="viewer-panel invoice-result-pane" aria-label={labels.extraction}>
         <header className="invoice-pane-header">
           <div className="invoice-pane-summary">
-            <h2>{dataTab === 'erp' ? labels.erpData : labels.extraction}</h2>
+            <h2>{labels.extraction}</h2>
             <dl className="invoice-header-metrics" aria-busy={metricsLoading}>
               <Tooltip text={labels.totalCost} asChild><div><dt><DollarSign size={14} aria-hidden="true" /><span className="sr-only">{labels.totalCost}</span></dt><dd>{metricsLoading ? <Skeleton className="h-4 w-12" /> : totalCost}</dd></div></Tooltip>
               <Tooltip text={labels.totalTime} asChild><div><dt><Clock size={14} aria-hidden="true" /><span className="sr-only">{labels.totalTime}</span></dt><dd>{metricsLoading ? <Skeleton className="h-4 w-12" /> : totalDuration}</dd></div></Tooltip>

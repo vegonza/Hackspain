@@ -88,10 +88,7 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "operations": {
-      "text": "Texto (histórico)",
       "extraction": "Extracción",
-      "ocr": "OCR (histórico)",
-      "merge": "Combinado (histórico)",
       "classification": "Clasificación"
     }
   },
@@ -104,6 +101,8 @@
     "supplierNif": "NIF",
     "iban": "IBAN",
     "lineItems": "Conceptos",
+    "showMore": "Ver más",
+    "showLess": "Ver menos",
     "taxBase": "Base imponible",
     "vatRate": "IVA",
     "vatAmount": "Cuota de IVA",
@@ -173,7 +172,7 @@
     "taxId": "NIF",
     "iban": "IBAN",
     "city": "Ciudad",
-    "terms": "Plazo de pago (días)",
+    "terms": "Plazo de pago",
     "days": "días",
     "save": "Guardar",
     "saving": "Guardando…",

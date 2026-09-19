@@ -7,9 +7,9 @@ import { useTablePagination } from '@/hooks/useTablePagination'
 
 const money = (amount: string) => `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(Number(amount))}`
 const detailFields = ['pages_processed', 'prompt_tokens', 'completion_tokens', 'total_tokens'] as const
-type UsageOperation = 'text' | 'extraction' | 'merge' | 'ocr' | 'classification'
+type UsageOperation = 'extraction' | 'classification'
 
-const operationColors = { text: '#64748b', ocr: '#2563eb', merge: '#d97706', extraction: '#7c3aed', classification: '#059669' } satisfies Record<UsageOperation, string>
+const operationColors = { extraction: '#7c3aed', classification: '#059669' } satisfies Record<UsageOperation, string>
 
 export function useUsage() {
   const { t } = useTranslation()
@@ -60,7 +60,6 @@ export function useUsage() {
     failedPending: data === null ? 0 : data.failed_pending,
     pendingError: t('usage.pendingError', { count: data === null ? 0 : data.failed_pending }),
     mount, loading, failed,
-    totalLabel: t('usage.records', { count: data === null ? 0 : data.total }),
     stats: data === null ? [] : [
       { label: t('usage.totalCost'), value: money(data.summary.cost_usd) },
       { label: t('usage.invoiceCost'), value: money(data.summary.average_invoice_cost_usd) },

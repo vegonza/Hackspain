@@ -30,6 +30,9 @@ export function useInvoices() {
     }
   }
   const { view, invoiceId: selectedId, navigate, followLink } = useAppRoute()
+  const [lineItemsState, setLineItemsState] = useState({ invoiceId: selectedId, expanded: false })
+  if (lineItemsState.invoiceId !== selectedId) setLineItemsState({ invoiceId: selectedId, expanded: false })
+  const lineItemsExpanded = lineItemsState.invoiceId === selectedId && lineItemsState.expanded
   const { selected, loading, pdfUrl, pdfLoading, mountDetail, refreshDetail, updateMetrics, sourceTab, onSourceTab, dataTab, onDataTab } = useInvoiceDetail(selectedId)
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [invoicesLoading, setInvoicesLoading] = useState(true)
@@ -224,7 +227,11 @@ export function useInvoices() {
     vatRate: extraction.vat_rate === '' ? t('extraction.unavailable') : `${extraction.vat_rate}%`,
     vatAmount: featureMoney(extraction.vat_amount, extraction.currency),
     total: featureMoney(extraction.total, extraction.currency),
-    lineItems: extraction.line_items.map(line => `${line.description} · ${featureMoney(line.amount, extraction.currency)}`).join(', '),
+    lineItems: (lineItemsExpanded ? extraction.line_items : extraction.line_items.slice(0, 3))
+      .map(line => ({ description: line.description, amount: featureMoney(line.amount, extraction.currency) })),
+    canExpandLineItems: extraction.line_items.length > 3,
+    lineItemsExpanded,
+    onToggleLineItems: () => setLineItemsState({ invoiceId: selectedId, expanded: !lineItemsExpanded }),
   }
   const erpMoney = (value: number) => `${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)} €`
   const difference = erp !== null && erp.amount !== null && extraction !== null && extraction.currency === 'EUR' && extraction.total !== ''
@@ -293,6 +300,7 @@ export function useInvoices() {
       purchaseOrder: t('extraction.purchaseOrder'), supplierName: t('extraction.supplierName'),
       supplierNif: t('extraction.supplierNif'), iban: t('extraction.iban'),
       lineItems: t('extraction.lineItems'), taxBase: t('extraction.taxBase'),
+      showMore: t('extraction.showMore'), showLess: t('extraction.showLess'),
       vatRate: t('extraction.vatRate'), vatAmount: t('extraction.vatAmount'), total: t('extraction.total'),
     },
   }
