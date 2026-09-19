@@ -7,12 +7,41 @@ from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from extractor.extraction import InvoiceExtraction
-from invoices.repository import read_invoice_detail, save_invoice_extraction
+from invoices.repository import InvoiceDetails, read_invoice_detail, save_invoice_extraction
 from invoices.router import router
 from shared.retries import RetryState
 
 
 class InvoiceDetailTests(unittest.TestCase):
+    def test_invalid_saved_extraction_requires_explicit_reprocessing(self) -> None:
+        invoice = InvoiceDetails(
+            id=uuid4(), name="invoice.pdf", sha256="a" * 64,
+            created_at=datetime.now(timezone.utc), status="ready",
+            result_path="extraction/features.json",
+        )
+        extraction = InvoiceExtraction(
+            invoice_number="INV-1", supplier_name="Proveedor", supplier_nif="N-1", iban="",
+            invoice_date="2026-01-01", purchase_order="PO-1", currency="EUR", line_items=[],
+            tax_base="10", vat_rate="21", vat_amount="2.10", total="12.10", notes=[], uncertainties=[],
+        )
+        app = FastAPI()
+        app.include_router(router)
+        for payload in (extraction.model_dump_json(exclude={"currency"}).encode(), b"{invalid json"):
+            with (
+                self.subTest(payload=payload),
+                patch("invoices.router.read_invoice_detail", return_value=invoice),
+                patch("invoices.router.download_file", return_value=payload) as download,
+                patch("invoices.repository.get_client") as database,
+                patch("extractor.extraction.create_extractor") as extract,
+                TestClient(app) as client,
+            ):
+                response = client.get(f"/api/invoices/{invoice.id}")
+                self.assertEqual(response.status_code, 409)
+                self.assertEqual(response.json(), {"detail": "invalid_saved_extraction"})
+                download.assert_called_once_with(invoice.result_path)
+                database.assert_not_called()
+                extract.assert_not_called()
+
     def test_open_document_reads_saved_result_without_running_extraction(self) -> None:
         identifier = uuid4()
         database, redis = MagicMock(), MagicMock()

@@ -57,6 +57,7 @@
     "invalidPdf": "Selecciona un archivo PDF válido.",
     "duplicatePdf": "Este PDF ya está subido.",
     "extractionFailed": "El PDF se ha guardado, pero no se pudieron extraer los datos de la factura.",
+    "invalidSavedExtraction": "La extracción guardada no cumple el formato actual. Usa «Reprocesar» en la lista de facturas para extraer de nuevo los datos del PDF.",
     "requestFailed": "No se ha podido completar la solicitud. Comprueba la conexión con el servidor.",
     "text": "Texto",
     "errorStatus": "Error",

@@ -4,6 +4,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, UploadFile
 from postgrest.exceptions import APIError
+from pydantic import ValidationError
 
 from invoices.queue import enqueue, RETRIES, SCHEDULED, QUEUE, PROCESSING
 from shared.redis import get_redis
@@ -30,7 +31,12 @@ def invoice_detail(invoice_record: InvoiceDetails) -> InvoiceDetail:
     extraction = None
     native_text = None
     if invoice_record.result_path is not None:
-        extraction = InvoiceExtraction.model_validate_json(download_file(invoice_record.result_path))
+        payload = download_file(invoice_record.result_path)
+        try:
+            extraction = InvoiceExtraction.model_validate_json(payload)
+        except ValidationError:
+            logger.warning("[INVOICES] Invalid saved extraction for %s (%s); reprocessing required", invoice_record.name, invoice_record.id)
+            raise HTTPException(status_code=409, detail="invalid_saved_extraction") from None
         native_text = download_file(f"{invoice_record.id}/native.txt").decode("utf-8")
     return InvoiceDetail(**invoice_record.model_dump(exclude={"result_path"}), native_text=native_text, extraction=extraction)
 
