@@ -13,3 +13,6 @@ tools/
 
 # Design notes kept for my own use. Not part of the deliverable.
 docs/
+
+# Internal notes for the team. Kept local until the work is finished.
+README.md
