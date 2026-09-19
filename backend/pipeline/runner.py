@@ -1,5 +1,4 @@
-from pipeline.extraction_4.processor import process as process_extraction
-from pipeline.merge_3.processor import process as process_merge
+from pipeline.extraction_3.processor import process as process_extraction
 from pipeline.ocr_2 import process as process_ocr
 from pipeline.text_1 import process as process_text
 from documents.repository import DocumentDetails
@@ -16,7 +15,5 @@ def run_pipeline(document: DocumentDetails) -> None:
             process_text(pdf, document)
         if records["ocr"].status != "ready":
             process_ocr(pdf, document)
-    if records["merge"].status != "ready":
-        process_merge(document)
     if records["extraction"].status != "ready":
         process_extraction(document)

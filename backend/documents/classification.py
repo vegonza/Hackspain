@@ -7,7 +7,7 @@ from typing import Literal
 import openpyxl
 from pydantic import BaseModel
 
-from pipeline.extraction_4.extraction import InvoiceExtraction
+from pipeline.extraction_3.extraction import InvoiceExtraction
 from documents.payment_notes import review_payment_notes
 from erp import ErpEntry
 

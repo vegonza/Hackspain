@@ -6,7 +6,9 @@ import type { StageId } from '@/api/documents'
 
 const money = (amount: string) => `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(Number(amount))}`
 const detailFields = ['pages_processed', 'prompt_tokens', 'completion_tokens', 'total_tokens'] as const
-const phaseColors = { text: '#64748b', ocr: '#2563eb', merge: '#d97706', extraction: '#7c3aed' } satisfies Record<StageId, string>
+type UsageOperation = StageId | 'merge'
+
+const phaseColors = { text: '#64748b', ocr: '#2563eb', merge: '#d97706', extraction: '#7c3aed' } satisfies Record<UsageOperation, string>
 
 export function useUsage() {
   const { t } = useTranslation()
@@ -50,7 +52,7 @@ export function useUsage() {
   }
 
   return {
-    phases: (Object.keys(phaseColors) as StageId[]).map(id => ({ id, label: t(`pipeline.stages.${id}`), color: phaseColors[id] })),
+    phases: (Object.keys(phaseColors) as UsageOperation[]).map(id => ({ id, label: t(id === 'merge' ? 'usage.historicalMerge' : `pipeline.stages.${id}`), color: phaseColors[id] })),
     onRetry, retrying,
     failedPending: data === null ? 0 : data.failed_pending,
     pendingError: t('usage.pendingError', { count: data === null ? 0 : data.failed_pending }),
@@ -66,11 +68,11 @@ export function useUsage() {
       operations: Object.fromEntries(Object.entries(day.operations).map(([operation, cost]) => [operation, Number(cost)])),
       totalLabel: money(day.cost_usd),
       dateLabel: new Date(`${day.date}T00:00:00`).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }),
-      breakdown: Object.entries(day.operations).filter(([, cost]) => Number(cost) > 0).sort((first, second) => Number(second[1]) - Number(first[1])).map(([operation, cost]) => ({ operation: t(`pipeline.stages.${operation as StageId}`), cost: money(cost), color: phaseColors[operation as StageId] })),
+      breakdown: Object.entries(day.operations).filter(([, cost]) => Number(cost) > 0).sort((first, second) => Number(second[1]) - Number(first[1])).map(([operation, cost]) => ({ operation: t(operation === 'merge' ? 'usage.historicalMerge' : `pipeline.stages.${operation as StageId}`), cost: money(cost), color: phaseColors[operation as UsageOperation] })),
     })),
     records: data === null ? [] : data.records.map(record => ({ ...record,
-      operation: t(`pipeline.stages.${record.operation as StageId}`),
-      color: phaseColors[record.operation as StageId],
+      operation: t(record.operation === 'merge' ? 'usage.historicalMerge' : `pipeline.stages.${record.operation as StageId}`),
+      color: phaseColors[record.operation as UsageOperation],
       providerName: t(`usage.providers.${record.provider}`),
       date: formatDateLong(record.created_at, 'es-ES'),
       cost: money(String(record.usage.reduce((sum, item) => sum + Number(item.cost), 0))),

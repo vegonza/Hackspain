@@ -12,8 +12,9 @@ type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsa
 export function DocumentsView({ watchDocuments, labels, view, onNavigate, usage, selectedId,
   sortColumn, sortDirection, onToggleSort, onUpload, filteredDocuments, documentsLoading, search, onSearch, onSelect,
   onDocumentLink, onDelete, deleting, mountDetail, documentName, selected, loading, extractionLoading,
-  pdfUrl, pdfLoading, sourceTab, activeStage, diffLabel, emptyMessage, extractionLabels, canRetry, onRetrySelected,
-  retrying, stageNavigation, metricsLoading, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts }: Props) {
+  pdfUrl, pdfLoading, sourceTab, activeStage, emptyMessage, extractionLabels, canRetry, onRetrySelected,
+  retrying, stageNavigation, metricsLoading, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts,
+  redoing, onRedo }: Props) {
   return (
     <div className="app-shell" ref={watchDocuments}>
       <main className="review-layout">
@@ -32,12 +33,13 @@ export function DocumentsView({ watchDocuments, labels, view, onNavigate, usage,
           : view === 'not-found' ? <section className="stage-empty"><h1>{labels.notFound}</h1><Button variant="link" asChild><a href="/docs" onClick={onNavigate}>{labels.library}</a></Button></section>
           : selectedId !== null ? <DocumentDetails mountDetail={mountDetail} documentName={documentName} selectedId={selectedId}
             selected={selected} featureAmounts={featureAmounts} loading={loading} extractionLoading={extractionLoading} pdfUrl={pdfUrl} pdfLoading={pdfLoading}
-            sourceTab={sourceTab} activeStage={activeStage} diffLabel={diffLabel} emptyMessage={emptyMessage} labels={labels} extractionLabels={extractionLabels}
+            sourceTab={sourceTab} activeStage={activeStage} emptyMessage={emptyMessage} labels={labels} extractionLabels={extractionLabels}
             canRetry={canRetry} onRetrySelected={onRetrySelected} retrying={retrying} stageNavigation={stageNavigation} metricsLoading={metricsLoading}
             onNavigate={onNavigate} onSourceTab={onSourceTab} erpRows={erpRows} totalDuration={totalDuration} totalCost={totalCost} />
           : <DocumentsTable sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort}
             onUpload={onUpload} rows={filteredDocuments} documentsLoading={documentsLoading} search={search} onSearch={onSearch}
-            onSelect={onSelect} onDocumentLink={onDocumentLink} onDelete={onDelete} deleting={deleting} labels={labels} />}
+            onSelect={onSelect} onDocumentLink={onDocumentLink} onDelete={onDelete} deleting={deleting} labels={labels}
+            onRedo={onRedo} redoDisabled={redoing || retrying || deleting} />}
       </main>
     </div>
   )

@@ -10,7 +10,7 @@ AS $$
         'stages', (
             SELECT COALESCE(jsonb_agg(
                 to_jsonb(s) || jsonb_build_object('cost_usd', costs.cost_usd)
-                ORDER BY CASE s.stage WHEN 'ocr' THEN 0 WHEN 'text' THEN 1 WHEN 'merge' THEN 2 ELSE 3 END
+                ORDER BY CASE s.stage WHEN 'ocr' THEN 0 WHEN 'text' THEN 1 ELSE 2 END
             ), '[]'::jsonb)
             FROM public.document_stages s
             LEFT JOIN (

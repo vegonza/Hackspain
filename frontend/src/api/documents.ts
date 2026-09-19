@@ -16,16 +16,8 @@ export interface Document {
   next_retry_at: string | null
 }
 
-export type StageId = 'ocr' | 'text' | 'merge' | 'extraction'
+export type StageId = 'ocr' | 'text' | 'extraction'
 export type StageStatus = 'queued' | 'processing' | 'ready' | 'error' | 'retrying' | 'unavailable'
-
-export interface DiffLine {
-  kind: 'equal' | 'removed' | 'added'
-  text: string
-  before: number | null
-  after: number | null
-  spans: { text: string; changed: boolean }[]
-}
 
 export interface DocumentStage {
   id: StageId
@@ -35,7 +27,6 @@ export interface DocumentStage {
   duration_ms: number | null
   cost_usd: string | null
   content: string | null
-  diff: DiffLine[] | null
 }
 
 export type ErpWarning = 'missing_entry_id' | 'missing_supplier_id' | 'missing_tax_id' | 'missing_order_id'
@@ -101,6 +92,10 @@ export function deleteDocument(id: string): Promise<{ deleted: boolean }> {
 
 export function retryDocument(id: string): Promise<Document> {
   return fetchJson(`/documents/${id}/retry`, { method: 'POST' })
+}
+
+export function redoDocument(id: string): Promise<Document> {
+  return fetchJson(`/documents/${id}/redo`, { method: 'POST' })
 }
 
 export function uploadDocument(file: File): Promise<Document> {

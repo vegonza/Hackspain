@@ -5,7 +5,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from pipeline.text_1 import extract_text
-from pipeline.extraction_4.extraction import InvoiceExtraction
+from pipeline.extraction_3.extraction import InvoiceExtraction
 from shared.logger import get_logger
 
 logger = get_logger()

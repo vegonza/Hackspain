@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from documents.batch import refresh_order_index
-from pipeline.extraction_4.extraction import InvoiceExtraction
+from pipeline.extraction_3.extraction import InvoiceExtraction
 
 
 class BatchTests(unittest.TestCase):

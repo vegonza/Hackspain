@@ -102,8 +102,7 @@ class PipelineErpTests(unittest.TestCase):
             patch("pipeline.runner.download_file", return_value=b"PDF"),
             patch("pipeline.runner.process_text", events.text),
             patch("pipeline.runner.process_ocr", events.ocr),
-            patch("pipeline.runner.process_merge", events.merge),
             patch("pipeline.runner.process_extraction", events.extraction),
         ):
             run_pipeline(document)
-        self.assertEqual([call[0] for call in events.mock_calls], ["bind", "text", "ocr", "merge", "extraction"])
+        self.assertEqual([call[0] for call in events.mock_calls], ["bind", "text", "ocr", "extraction"])

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS public.document_stages (
     document_id UUID NOT NULL REFERENCES public.documents(id) ON DELETE CASCADE,
-    stage TEXT NOT NULL CHECK (stage IN ('ocr', 'text', 'merge', 'extraction')),
+    stage TEXT NOT NULL CHECK (stage IN ('ocr', 'text', 'extraction')),
     status TEXT NOT NULL DEFAULT 'unavailable'
         CHECK (status IN ('unavailable', 'queued', 'processing', 'ready', 'error')),
     started_at TIMESTAMPTZ,
@@ -20,7 +20,7 @@ CREATE OR REPLACE FUNCTION public.initialize_document_stages()
 RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
     INSERT INTO public.document_stages (document_id, stage, status)
-    VALUES (NEW.id, 'ocr', 'queued'), (NEW.id, 'text', 'unavailable'), (NEW.id, 'merge', 'unavailable'),
+    VALUES (NEW.id, 'ocr', 'queued'), (NEW.id, 'text', 'unavailable'),
         (NEW.id, 'extraction', 'unavailable');
     RETURN NEW;
 END;

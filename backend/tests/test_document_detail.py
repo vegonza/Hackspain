@@ -6,7 +6,7 @@ from uuid import uuid4
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from pipeline.extraction_4.extraction import InvoiceExtraction
+from pipeline.extraction_3.extraction import InvoiceExtraction
 from documents.repository import read_document_detail, save_document_extraction
 from documents.router import router
 from shared.retries import RetryState
@@ -27,7 +27,6 @@ class DocumentDetailTests(unittest.TestCase):
                 {"document_id": str(identifier), "stage": "ocr", "status": "ready",
                  "result_path": "document.md", "duration_ms": 1200, "cost_usd": "0.004"},
                 {"document_id": str(identifier), "stage": "text", "status": "ready", "result_path": "native.txt"},
-                {"document_id": str(identifier), "stage": "merge", "status": "ready", "result_path": "merge/document.md"},
                 {"document_id": str(identifier), "stage": "extraction", "status": "ready",
                  "result_path": "extraction/features.json", "duration_ms": 2400, "cost_usd": "0.002",
                  "finished_at": "2026-09-19T10:00:20+00:00"},
@@ -39,7 +38,7 @@ class DocumentDetailTests(unittest.TestCase):
             invoice_date="2026-01-01", purchase_order="PO-1", line_items=[],
             tax_base="10", vat_rate="21", vat_amount="2.10", total="12.10", notes=[], uncertainties=[],
         )
-        artifacts = {"document.md": b"# Invoice", "native.txt": b"Invoice", "merge/document.md": b"# Invoice",
+        artifacts = {"document.md": b"# Invoice", "native.txt": b"Invoice",
                      "extraction/features.json": extraction.model_dump_json().encode("utf-8")}
         app = FastAPI()
         app.include_router(router)
@@ -47,7 +46,7 @@ class DocumentDetailTests(unittest.TestCase):
             patch("documents.repository.get_client", return_value=database),
             patch("documents.repository.get_redis", return_value=redis),
             patch("pipeline.results.download_file", side_effect=artifacts.__getitem__),
-            patch("pipeline.extraction_4.extraction.create_extractor") as extract,
+            patch("pipeline.extraction_3.extraction.create_extractor") as extract,
             TestClient(app) as client,
         ):
             response = client.get(f"/api/documents/{identifier}")
@@ -59,14 +58,11 @@ class DocumentDetailTests(unittest.TestCase):
         self.assertEqual(response.json()["erp"]["entry_id"], "AS-REAL")
         database.table.assert_not_called()
         stages = response.json()["stages"]
-        self.assertEqual([stage["id"] for stage in stages], ["ocr", "text", "merge", "extraction"])
+        self.assertEqual([stage["id"] for stage in stages], ["ocr", "text", "extraction"])
         self.assertEqual(stages[0]["cost_usd"], "0.004")
         self.assertEqual(stages[2]["status"], "ready")
         self.assertEqual(stages[2]["depends_on"], ["ocr", "text"])
-        self.assertEqual([line["kind"] for line in stages[2]["diff"]], ["equal"])
-        self.assertEqual(stages[2]["diff"][0]["text"], "# Invoice")
-        self.assertEqual(stages[3]["depends_on"], ["merge"])
-        self.assertEqual(stages[3]["cost_usd"], "0.002")
+        self.assertEqual(stages[2]["cost_usd"], "0.002")
         self.assertEqual(response.json()["extraction"], extraction.model_dump())
         extract.assert_not_called()
 

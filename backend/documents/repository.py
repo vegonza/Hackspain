@@ -9,7 +9,7 @@ from shared.storage import get_client
 from shared.redis import get_redis
 from shared.retries import RetryState
 from documents.queue import RETRIES
-from pipeline.extraction_4.extraction import InvoiceExtraction
+from pipeline.extraction_3.extraction import InvoiceExtraction
 from shared.logger import get_logger
 from documents.stages import StageDetail, StageId
 from erp import ErpEntry
@@ -93,6 +93,19 @@ def write_document(document: Document) -> None:
 
 def archive_document(document_id: UUID) -> None:
     get_client().table("documents").update({"deleted_at": datetime.now(timezone.utc).isoformat()}).eq("id", str(document_id)).execute()
+
+
+def reset_document(document_id: UUID, name: str) -> None:
+    client = get_client()
+    client.table("document_stages").update({
+        "status": "unavailable", "started_at": None, "finished_at": None,
+        "duration_ms": None, "result_path": None,
+    }).eq("document_id", str(document_id)).execute()
+    fields = {field: None for field in InvoiceExtraction.model_fields if field not in {"notes", "uncertainties"}}
+    client.table("documents").update({
+        **fields, "status": "queued", "pages": 0, "erp_entry_id": None,
+    }).eq("id", str(document_id)).is_("deleted_at", "null").execute()
+    get_logger().info("[DOCUMENTS] Reset processing results for %s", name)
 
 
 class DocumentDetails(Document):

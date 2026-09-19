@@ -4,8 +4,8 @@ import { formatDateLong } from '@/lib/format'
 import { toast } from 'sonner'
 import { documentPath, useAppRoute } from '@/hooks/useAppRoute'
 import { useDocumentDetail } from '@/hooks/useDocumentDetail'
-import { totalStageDuration } from '@/hooks/documentMetrics'
-import { deleteDocument, retryDocument, fetchDocuments, uploadDocument, type Document } from '@/api/documents'
+import { documentStageMetrics, totalStageDuration } from '@/hooks/documentMetrics'
+import { deleteDocument, redoDocument, retryDocument, fetchDocuments, uploadDocument, type Document } from '@/api/documents'
 
 const isProcessing = (document: Document) => document.status === 'queued' || document.status === 'processing'
 
@@ -33,10 +33,11 @@ export function useDocuments() {
   const { selected, loading, pdfUrl, pdfLoading, mountDetail, refreshDetail, updateMetrics, sourceTab, onSourceTab } = useDocumentDetail(selectedId)
   const [documents, setDocuments] = useState<Document[]>([])
   const [documentsLoading, setDocumentsLoading] = useState(true)
-  const documentsLoaded = useRef(false)
   const [uploads, setUploads] = useState<UploadingFile[]>([])
   const [deleting, setDeleting] = useState(false)
   const [retrying, setRetrying] = useState(false)
+  const [redoing, setRedoing] = useState(false)
+  const redoInFlight = useRef(false)
   const documentsRef = useRef<Document[]>([])
   const listRevision = useRef(0)
 
@@ -51,14 +52,13 @@ export function useDocuments() {
     let timer: ReturnType<typeof setTimeout>
     async function poll(): Promise<void> {
       try {
-        if (!document.hidden && (!documentsLoaded.current || documentsRef.current.some(isProcessing))) {
+        if (!document.hidden) {
           const revision = listRevision.current
           const next = await fetchDocuments()
           if (!active) return
           if (revision === listRevision.current) {
             const previous = documentsRef.current
             updateDocuments(next)
-            documentsLoaded.current = true
             setDocumentsLoading(false)
             updateMetrics(next)
             for (const document of next) {
@@ -153,6 +153,24 @@ export function useDocuments() {
     }
   }
 
+  async function onRedo(id: string): Promise<void> {
+    if (redoInFlight.current) return
+    redoInFlight.current = true
+    setRedoing(true)
+    ++listRevision.current
+    try {
+      const document = await redoDocument(id)
+      ++listRevision.current
+      updateDocuments([document, ...documentsRef.current.filter(item => item.id !== id)])
+      if (selectedId === id) await refreshDetail()
+    } catch {
+      // The API client displays the error.
+    } finally {
+      redoInFlight.current = false
+      setRedoing(false)
+    }
+  }
+
   const formatCost = (cost: string | null): string => cost === null ? '—' : `$${Number(cost).toFixed(4)}`
   const formatDuration = (duration: number | null): string => duration === null ? '—'
     : duration < 60000 ? t('pipeline.durationSeconds', { value: Math.floor(duration / 1000) })
@@ -172,11 +190,13 @@ export function useDocuments() {
       durationBreakdown: document.stage_metrics.map(metric => ({ label: t(`pipeline.stages.${metric.stage}`), value: formatDuration(metric.duration_ms) })),
       canOpen: document.status !== 'uploading',
       canDelete: (document.status === 'ready' || document.status === 'error'),
+      canRedo: document.status === 'ready' || document.status === 'error',
       statusIcon: document.status === 'uploading' || document.status === 'processing' ? 'spinner'
         : document.status === 'queued' ? 'clock' : document.status === 'error' ? 'error' : null,
       statusLabel: document.status !== 'uploading' && document.next_retry_at !== null
         ? t('documents.retryQueued') : t(`documents.${document.status}`),
       deleteConfirmation: t('documents.deleteConfirmation', { name: document.name }),
+      redoConfirmation: t('documents.redoConfirmation', { name: document.name }),
       dateLabel: document.status === 'uploading' ? '—' : formatDateLong(document.created_at, 'es-ES'),
       errorMessage: document.status === 'error' ? t('documents.error') : '',
     }
@@ -240,30 +260,27 @@ export function useDocuments() {
   ]
   const selectedRow = rows.find(document => document.id === selectedId)
   const metricsLoading = loading && selected === null && selectedRow === undefined
-  const stageMetrics = selectedRow !== undefined ? selectedRow.stage_metrics
-    : selected === null ? [] : selected.stages.map(stage => ({ stage: stage.id, cost_usd: stage.cost_usd, duration_ms: stage.duration_ms }))
-  const stageNavigation = (['ocr', 'text', 'merge', 'extraction'] as const).map(id => {
+  const stageMetrics = documentStageMetrics(selected, selectedRow)
+  const stageNavigation = (['ocr', 'text', 'extraction'] as const).map(id => {
     const metric = stageMetrics.find(item => item.stage === id)
     return {
       id,
       label: t(`pipeline.stages.${id}`),
-      costLabel: id === 'text' ? formatCost('0') : metric === undefined || metric.cost_usd === null ? null : formatCost(metric.cost_usd),
+      costLabel: formatCost(id === 'text' ? '0' : metric === undefined ? null : metric.cost_usd),
       durationLabel: metric === undefined || metric.duration_ms === null ? null : formatDuration(metric.duration_ms),
     }
   })
   const totalDuration = formatDuration(totalStageDuration(stageMetrics))
   const totalCost = formatCost(String(stageMetrics.reduce((sum, metric) => sum + (metric.cost_usd === null ? 0 : Number(metric.cost_usd)), 0)))
   const activeStage = stages.find(stage => stage.id === sourceTab)
-  const diffLabel = t('pipeline.diffChanges')
   const emptyMessage = activeStage !== undefined && activeStage.status === 'ready' && sourceTab !== 'extraction'
-    ? activeStage.diff !== null
-      ? activeStage.diff.some(line => line.kind !== 'equal') ? null : t('pipeline.diffUnchanged')
-      : activeStage.content === null || activeStage.content.trim() === '' ? t('pipeline.noText') : null
+    ? activeStage.content === null || activeStage.content.trim() === '' ? t('pipeline.noText') : null
     : null
   const extractionLoading = loading || (selected !== null && selected.extraction === null && isProcessing(selected))
 
   return {
-    stageNavigation, metricsLoading, activeStage, diffLabel, emptyMessage, erpRows, totalDuration, totalCost,
+    redoing, onRedo,
+    stageNavigation, metricsLoading, activeStage, emptyMessage, erpRows, totalDuration, totalCost,
     filteredDocuments, documentsLoading, sortColumn, sortDirection, onToggleSort,
     search, onSearch: setSearch, onDocumentLink, onNavigate: followLink,
     selected, selectedId, mountDetail, featureAmounts,
@@ -288,6 +305,8 @@ export function useDocuments() {
       notFound: t('documents.pageNotFound'),
       usage: t('usage.title'),
       retry: t('documents.retry'),
+      redo: t('documents.redo'),
+      actions: t('documents.actions'),
     },
     extractionLabels: {
       notes: t('extraction.notes'), uncertainties: t('extraction.uncertainties'),

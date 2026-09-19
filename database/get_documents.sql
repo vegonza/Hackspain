@@ -19,8 +19,8 @@ WITH page AS MATERIALIZED (
     SELECT document_id, MAX(finished_at) AS finished_at,
         SUM(cost)::text AS total_cost_usd, SUM(duration_ms)::bigint AS total_duration_ms,
         jsonb_agg(jsonb_build_object('stage', stage, 'cost_usd', cost::text, 'duration_ms', duration_ms)
-            ORDER BY CASE stage WHEN 'ocr' THEN 0 WHEN 'text' THEN 1 WHEN 'merge' THEN 2 ELSE 3 END) AS stage_metrics,
-        COALESCE(jsonb_agg(stage ORDER BY CASE stage WHEN 'ocr' THEN 0 WHEN 'text' THEN 1 WHEN 'merge' THEN 2 ELSE 3 END)
+            ORDER BY CASE stage WHEN 'ocr' THEN 0 WHEN 'text' THEN 1 ELSE 2 END) AS stage_metrics,
+        COALESCE(jsonb_agg(stage ORDER BY CASE stage WHEN 'ocr' THEN 0 WHEN 'text' THEN 1 ELSE 2 END)
             FILTER (WHERE status IN ('processing', 'queued', 'error')), '[]'::jsonb) AS current_stages
     FROM metrics GROUP BY document_id
 )

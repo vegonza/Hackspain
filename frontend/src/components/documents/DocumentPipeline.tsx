@@ -1,10 +1,10 @@
-import { FileText, Text, ScanText, Combine, ListChecks, Landmark } from 'lucide-react'
+import { FileText, Text, ScanText, ListChecks, Landmark } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { StageId } from '@/api/documents'
 import type { useDocuments } from '@/hooks/useDocuments'
 
-const stageIcons = { text: Text, ocr: ScanText, merge: Combine, extraction: ListChecks } satisfies Record<StageId, typeof Text>
+const stageIcons = { text: Text, ocr: ScanText, extraction: ListChecks } satisfies Record<StageId, typeof Text>
 
 type Props = Pick<ReturnType<typeof useDocuments>, 'stageNavigation' | 'metricsLoading' | 'sourceTab' | 'onSourceTab'> & {
   label: string
@@ -24,7 +24,7 @@ export function DocumentPipeline({ stageNavigation, metricsLoading, sourceTab, o
           <Icon /><span>{stage.label}</span>
           <span className="document-stage-metrics" aria-busy={metricsLoading}>
             {metricsLoading ? <Skeleton className="h-3 w-10" /> : stage.durationLabel !== null && <span>{stage.durationLabel}</span>}
-            {metricsLoading ? <Skeleton className="h-3 w-12" /> : stage.costLabel !== null && <span>{stage.costLabel}</span>}
+            {metricsLoading ? <Skeleton className="h-3 w-12" /> : <span>{stage.costLabel}</span>}
           </span>
         </Button>
       })}

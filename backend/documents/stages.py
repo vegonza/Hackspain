@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from shared.logger import get_logger
 from shared.storage import get_client
 
-StageId = Literal["ocr", "text", "merge", "extraction"]
+StageId = Literal["ocr", "text", "extraction"]
 logger = get_logger()
 
 

@@ -8,19 +8,18 @@ import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
 import { InvoiceExtraction } from '@/components/documents/InvoiceExtraction'
 import { InvoiceExtractionSkeleton } from '@/components/documents/InvoiceExtractionSkeleton'
 import { Markdown } from '@/components/documents/Markdown'
-import { MarkdownDiff } from '@/components/documents/MarkdownDiff'
 import { PdfViewer } from '@/components/documents/PdfViewer'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import type { useDocuments } from '@/hooks/useDocuments'
 
 type Props = Pick<ReturnType<typeof useDocuments>,
   'mountDetail' | 'documentName' | 'selectedId' | 'selected' | 'loading' | 'extractionLoading' |
-  'pdfUrl' | 'pdfLoading' | 'sourceTab' | 'activeStage' | 'diffLabel' | 'emptyMessage' | 'labels' | 'extractionLabels' |
+  'pdfUrl' | 'pdfLoading' | 'sourceTab' | 'activeStage' | 'emptyMessage' | 'labels' | 'extractionLabels' |
   'canRetry' | 'onRetrySelected' | 'retrying' | 'stageNavigation' | 'metricsLoading' | 'totalDuration' | 'totalCost' |
   'onNavigate' | 'onSourceTab' | 'erpRows' | 'featureAmounts'>
 
 export function DocumentDetails({ mountDetail, documentName, selectedId, selected, loading, extractionLoading,
-  pdfUrl, pdfLoading, sourceTab, activeStage, diffLabel, emptyMessage, labels, extractionLabels, canRetry, onRetrySelected,
+  pdfUrl, pdfLoading, sourceTab, activeStage, emptyMessage, labels, extractionLabels, canRetry, onRetrySelected,
   retrying, stageNavigation, metricsLoading, onNavigate, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts }: Props) {
   return (
     <div className="review-desk" ref={mountDetail}>
@@ -56,7 +55,6 @@ export function DocumentDetails({ mountDetail, documentName, selectedId, selecte
               : loading || (activeStage && (activeStage.status === 'processing' || activeStage.status === 'retrying')) ? <DocumentSkeleton />
               : sourceTab === 'extraction' && selected !== null && selected.extraction !== null && featureAmounts !== null ? <InvoiceExtraction title={labels.extraction} extraction={selected.extraction} amounts={featureAmounts} labels={extractionLabels} />
               : emptyMessage !== null ? <div className="document-empty" role="status"><FileText size={32} strokeWidth={1.5} aria-hidden="true" /><p>{emptyMessage}</p></div>
-              : activeStage && activeStage.diff !== null ? <MarkdownDiff lines={activeStage.diff} label={diffLabel} />
               : activeStage && activeStage.content !== null ? activeStage.format === 'markdown'
                 ? <Markdown content={activeStage.content} /> : <pre className="extracted-text">{activeStage.content}</pre>
               : activeStage && <div className="stage-empty"><h3>{activeStage.label}</h3><p>{activeStage.description}</p>{activeStage.status !== 'unavailable' && <span>{activeStage.statusLabel}</span>}<p>{activeStage.status === 'error' ? labels.error : activeStage.status !== 'unavailable' ? labels.waiting : ''}</p></div>}

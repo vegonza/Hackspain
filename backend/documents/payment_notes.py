@@ -2,7 +2,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict
 
-from pipeline.extraction_4.extractor import create_extractor
+from pipeline.extraction_3.extractor import create_extractor
 
 
 class PaymentConcern(BaseModel):

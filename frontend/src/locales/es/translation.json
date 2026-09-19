@@ -6,6 +6,10 @@
     "cancel": "Cancelar"
   },
   "documents": {
+    "redo": "Reprocesar",
+    "redoConfirmation": "¿Reprocesar «{{name}}»?",
+    "actions": "Acciones",
+    "processingConflict": "El documento ya se está procesando. Espera a que termine para volver a intentarlo.",
     "unavailable": "El documento no está disponible.",
     "pageNotFound": "Página no encontrada",
     "library": "Documentos",
@@ -43,6 +47,7 @@
     "requestFailed": "No se ha podido completar la solicitud. Comprueba la conexión con el servidor."
   },
   "usage": {
+    "historicalMerge": "Combinado (histórico)",
     "pendingError": "{{count}} registros de consumo pendientes de guardar tras un error.",
     "title": "Consumo", "cost": "Coste", "calls": "Llamadas", "pages": "Páginas procesadas",
     "totalCost": "Coste total", "documentCost": "Coste medio por documento",
@@ -65,8 +70,6 @@
     "vatRate": "IVA",
     "vatAmount": "Cuota de IVA",
     "total": "Total",
-    "diffChanges": "Cambios respecto al OCR",
-    "diffUnchanged": "Sin cambios respecto al OCR",
     "notes": "Notas",
     "uncertainties": "Aspectos por revisar"
   },
@@ -104,8 +107,6 @@
     "states": { "PENDIENTE": "Pendiente", "PAGADA": "Pagada" }
   },
   "pipeline": {
-    "diffChanges": "Cambios respecto al OCR",
-    "diffUnchanged": "No hay cambios.",
     "noText": "No hay texto.",
     "durationSeconds": "{{value}} s",
     "durationMinutes": "{{minutes}} min {{seconds}} s",
@@ -113,7 +114,6 @@
     "stages": {
       "ocr": "OCR",
       "text": "Texto",
-      "merge": "Combinado",
       "extraction": "Extracción"
     },
     "status": {
@@ -127,8 +127,7 @@
     "description": {
       "ocr": "Markdown extraído con OCR",
       "text": "Texto extraído del PDF sin IA",
-      "merge": "Markdown combinado a partir del OCR y del texto",
-      "extraction": "Datos extraídos del documento"
+      "extraction": "Datos extraídos del texto, OCR e imágenes de la factura"
     }
   }
 }

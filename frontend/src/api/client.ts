@@ -10,6 +10,8 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
       const error: { detail: unknown } = await response.json()
       const message = error.detail === 'invalid_pdf'
         ? i18n.t('documents.invalidPdf')
+        : error.detail === 'document_processing'
+          ? i18n.t('documents.processingConflict')
         : error.detail === 'duplicate_pdf'
           ? i18n.t('documents.duplicatePdf')
         : error.detail === 'ocr_failed'

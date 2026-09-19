@@ -1,5 +1,6 @@
 import os
-from collections.abc import Iterator
+import base64
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from decimal import Decimal
 from pathlib import Path
@@ -28,8 +29,17 @@ class ExtractionManager:
     def run(
         self, instruction: str, content: str, result_type: type[Result],
         usage: UsageRecord | None = None,
+        page_images: Sequence[bytes] = (),
     ) -> Result:
         user_content: list[ChatCompletionContentPartParam] = [{"type": "text", "text": content}]
+        for number, image in enumerate(page_images, start=1):
+            user_content.extend([
+                {"type": "text", "text": f"Invoice page {number}"},
+                {"type": "image_url", "image_url": {
+                    "url": "data:image/jpeg;base64," + base64.b64encode(image).decode("ascii"),
+                    "detail": "high",
+                }},
+            ])
         result = self.client.chat.completions.create(
             model=MODEL,
             stream=False,

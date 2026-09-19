@@ -7,13 +7,14 @@ from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import RedirectResponse
 from postgrest.exceptions import APIError
 
-from documents.queue import enqueue, RETRIES, SCHEDULED, QUEUE
+from documents.queue import enqueue, RETRIES, SCHEDULED, QUEUE, PROCESSING
 from shared.redis import get_redis
 from documents.repository import DocumentDetails, read_document_detail, Document, archive_document, read_document, write_document, create_document, find_document_by_hash
 from documents.repository import list_documents as read_documents
+from documents.repository import reset_document
 from pipeline.results import DocumentStage, document_stages
 from erp import ErpEntry
-from pipeline.extraction_4.extraction import InvoiceExtraction
+from pipeline.extraction_3.extraction import InvoiceExtraction
 from shared.logger import get_logger
 from shared.storage import invalidate_document_urls, signed_url, upload_file, delete_file
 
@@ -107,6 +108,30 @@ def retry_document(document_id: UUID) -> Document:
             transaction.lpush(QUEUE, str(document_id))
             transaction.execute()
     logger.info("[QUEUE] Manual retry requested for %s", document.name)
+    return read_document(document_id)
+
+
+@router.post("/{document_id}/redo", status_code=202)
+def redo_document(document_id: UUID) -> Document:
+    with get_redis() as redis, redis.lock(f"documents:retry-lock:{document_id}", timeout=30):
+        document = read_document(document_id)
+        if document.status in ("queued", "processing") or redis.lpos(PROCESSING, str(document_id)) is not None:
+            raise HTTPException(status_code=409, detail="document_processing")
+        try:
+            with redis.pipeline(transaction=True) as transaction:
+                transaction.delete(f"documents:ocr:{document_id}")
+                transaction.hdel(RETRIES, str(document_id))
+                transaction.zrem(SCHEDULED, str(document_id))
+                transaction.lrem(QUEUE, 0, str(document_id))
+                transaction.execute()
+            reset_document(document_id, document.name)
+            enqueue(str(document_id), document.name)
+        except Exception:
+            document.status = "error"
+            write_document(document)
+            logger.exception("[QUEUE] Could not restart processing for %s", document.name)
+            raise HTTPException(status_code=503, detail="queue_unavailable") from None
+    logger.info("[QUEUE] Full reprocessing requested for %s", document.name)
     return read_document(document_id)
 
 

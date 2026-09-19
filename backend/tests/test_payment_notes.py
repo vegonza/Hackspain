@@ -9,7 +9,7 @@ import openpyxl
 
 from documents.classification import PaymentRules
 from erp import ErpEntry
-from pipeline.extraction_4.extraction import InvoiceExtraction, InvoiceLine
+from pipeline.extraction_3.extraction import InvoiceExtraction, InvoiceLine
 from documents.payment_notes import PaymentConcern, PaymentNotesReview, SourcedPaymentConcern, SourcedPaymentNotesReview, review_payment_notes
 
 

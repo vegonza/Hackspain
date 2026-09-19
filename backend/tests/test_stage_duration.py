@@ -18,7 +18,7 @@ def queued_document() -> DocumentDetails:
     return DocumentDetails(
         id=identifier, name="invoice.pdf", sha256="a" * 64,
         created_at=datetime.now(timezone.utc),
-        stages=[StageDetail(document_id=identifier, stage=stage, status="unavailable" if stage in ("merge", "extraction") else "queued") for stage in ("text", "ocr", "merge", "extraction")],
+        stages=[StageDetail(document_id=identifier, stage=stage, status="unavailable" if stage == "extraction" else "queued") for stage in ("text", "ocr", "extraction")],
     )
 
 
@@ -91,7 +91,6 @@ class StageDurationTests(unittest.TestCase):
         events = MagicMock()
         with (
             patch("pipeline.runner.download_file", return_value=b"%PDF-test"),
-            patch("pipeline.runner.process_merge"),
             patch("pipeline.runner.process_extraction"),
             patch("documents.stages.start_stage"),
             patch("documents.stages.finish_stage", events.finish),
@@ -119,7 +118,6 @@ class StageDurationTests(unittest.TestCase):
         with (
             patch("pipeline.runner.download_file", return_value=b"%PDF-test"),
             patch("pipeline.runner.process_ocr") as ocr,
-            patch("pipeline.runner.process_merge"),
             patch("pipeline.runner.process_extraction"),
             patch.object(text_phase, "extract_text", return_value="Invoice"),
             patch.object(text_phase, "upload_file", side_effect=ConnectionError("storage")),
@@ -142,7 +140,6 @@ class StageDurationTests(unittest.TestCase):
             patch("pipeline.runner.download_file", return_value=b"PDF"),
             patch("pipeline.runner.process_text") as text,
             patch("pipeline.runner.process_ocr") as ocr,
-            patch("pipeline.runner.process_merge"),
             patch("pipeline.runner.process_extraction"),
         ):
             run_pipeline(document)
@@ -193,7 +190,7 @@ class StageDurationTests(unittest.TestCase):
             record.status = "unavailable"
         stages = document_stages(document, document.stages)
         self.assertTrue(all(stage.duration_ms is None for stage in stages))
-        self.assertEqual([stage.id for stage in stages], ["ocr", "text", "merge", "extraction"])
+        self.assertEqual([stage.id for stage in stages], ["ocr", "text", "extraction"])
 
     def test_stage_result_and_cost_come_from_persistent_records(self) -> None:
         document = queued_document()
@@ -217,7 +214,7 @@ class StageDurationTests(unittest.TestCase):
         document.stages[1].status = "error"
         with patch("pipeline.results.download_file", return_value=b"text"):
             stages = document_stages(document, document.stages)
-        self.assertEqual([stage.status for stage in stages], ["retrying", "ready", "unavailable", "unavailable"])
+        self.assertEqual([stage.status for stage in stages], ["retrying", "ready", "unavailable"])
 
     def test_saving_document_snapshot_does_not_write_stage_fields_to_documents(self) -> None:
         document = queued_document()

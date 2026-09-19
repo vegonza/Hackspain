@@ -8,7 +8,7 @@ from unittest.mock import patch
 import openpyxl
 
 from documents.classification import PaymentRules
-from pipeline.extraction_4.extraction import InvoiceExtraction, InvoiceLine
+from pipeline.extraction_3.extraction import InvoiceExtraction, InvoiceLine
 from documents.payment_notes import PaymentConcern, PaymentNotesReview
 from erp import ErpEntry
 
