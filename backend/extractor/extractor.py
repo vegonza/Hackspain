@@ -8,8 +8,9 @@ from typing import Any, TypeVar, cast
 
 from openai import OpenAI
 from openai.types.chat import ChatCompletionContentPartParam
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from shared.logger import get_logger
+from shared.retries import InvalidModelResponse
 from shared.usage import UsageEntry, UsageRecord
 
 MODEL = "google/gemini-3.8-flash"
@@ -85,11 +86,19 @@ class ExtractionManager:
                 cost=Decimal(str(reported_usage["cost"])),
                 details={"response_id": result.id, "result_type": result_type.__name__, **reported_usage},
             ))
-        tool_call, = result.choices[0].message.tool_calls
+        if not result.choices:
+            raise InvalidModelResponse(f"{model} returned no choices (response {result.id})")
+        calls = result.choices[0].message.tool_calls
+        if calls is None or len(calls) != 1:
+            raise InvalidModelResponse(f"{model} did not return exactly one output tool call (response {result.id})")
+        tool_call, = calls
         function = tool_call.function
         if function.name != result_type.__name__:
-            raise ValueError(f"Unexpected output tool: {function.name}")
-        parsed = result_type.model_validate_json(function.arguments)
+            raise InvalidModelResponse(f"Unexpected output tool: {function.name}")
+        try:
+            parsed = result_type.model_validate_json(function.arguments)
+        except ValidationError as error:
+            raise InvalidModelResponse(f"{model} returned invalid {result_type.__name__} JSON or schema (response {result.id})") from error
         logger.info("[EXTRACTION] Extracted %s with %s", result_type.__name__, model)
         return parsed
 

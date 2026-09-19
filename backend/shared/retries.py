@@ -4,12 +4,16 @@ from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
 import httpx
-from openai import PermissionDeniedError
+from openai import APIConnectionError, APIResponseValidationError, PermissionDeniedError
 from pydantic import BaseModel
 from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError, TimeoutError as RedisTimeoutError
 
 MAX_ATTEMPTS = 5
+
+
+class InvalidModelResponse(ValueError):
+    """The provider returned no usable structured response."""
 
 
 class RetryState(BaseModel):
@@ -35,6 +39,8 @@ def status_code(error: Exception) -> int | None:
 
 
 def retryable(error: Exception) -> bool:
+    if isinstance(error, (InvalidModelResponse, APIConnectionError, APIResponseValidationError)):
+        return True
     status = status_code(error)
     if status is not None:
         return status in (408, 429) or 500 <= status <= 599

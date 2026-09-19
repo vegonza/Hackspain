@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict
 
 from extractor.extractor import create_extractor
 from shared.usage import UsageRecord
+from shared.retries import InvalidModelResponse
 
 CLASSIFICATION_MODEL = "openai/gpt-5.6-luna"
 
@@ -79,6 +80,6 @@ def review_payment_notes(notes: list[str], checks: dict[str, bool], usage: Usage
     concerns: list[PaymentConcern] = []
     for concern in review.concerns:
         if not 0 <= concern.note_index < len(notes) or not notes[concern.note_index].strip():
-            raise ValueError("Payment concern evidence is absent from invoice notes")
+            raise InvalidModelResponse("Payment concern evidence is absent from invoice notes")
         concerns.append(PaymentConcern(evidence=notes[concern.note_index], reason=concern.reason))
     return PaymentNotesReview(concerns=concerns)

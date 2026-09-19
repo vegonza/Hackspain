@@ -5,11 +5,12 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import httpx2
-from openai import InternalServerError, OpenAI
+from openai import APIConnectionError, APITimeoutError, APIResponseValidationError, InternalServerError, OpenAI
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from extractor.extractor import MODEL, ExtractionManager, create_extractor
 from shared.usage import UsageRecord
+from shared.retries import InvalidModelResponse, RetryState, record_failure, retryable
 
 
 class ExtractedText(BaseModel):
@@ -78,6 +79,17 @@ class RequiredOutputToolTests(unittest.TestCase):
         self.manager.run("Extract invoice", "Invoice", ExtractedText)
         self.assertEqual(json.loads(self.requests[-1].content)["model"], "google/gemini-3.8-flash")
 
+    def test_missing_tool_call_is_retryable_and_keeps_billed_usage(self) -> None:
+        self.response_body["choices"][0]["message"]["tool_calls"] = None
+        with self.assertRaises(InvalidModelResponse) as failure:
+            self.manager.run("Read", "Text", ExtractedText, usage=self.usage)
+        self.assertEqual(len(self.requests), 1)
+        self.assertEqual(self.usage.usage[0].cost, Decimal("0.001"))
+        state = record_failure(RetryState(attempts=1), failure.exception)
+        self.assertFalse(state.failed)
+        self.assertIsNotNone(state.next_attempt)
+        self.assertTrue(record_failure(RetryState(attempts=5), failure.exception).failed)
+
     def test_requires_exactly_one_call_without_using_message_content_or_making_another_request(self) -> None:
         for calls in ([], [tool_call('{"text":"One"}'), tool_call('{"text":"Two"}')]):
             with self.subTest(calls=len(calls)):
@@ -110,12 +122,39 @@ class RequiredOutputToolTests(unittest.TestCase):
             self.manager.run("Read", "Text", ExtractedText)
         self.assertEqual(len(self.requests), 1)
 
-    def test_invalid_arguments_fail_schema_validation_and_preserve_billed_usage(self) -> None:
-        self.response_body = response([tool_call('{"invented":"Factura"}')])
-        with self.assertRaises(ValidationError):
-            self.manager.run("Read", "Text", ExtractedText, usage=self.usage)
-        self.assertEqual(self.usage.usage[0].cost, Decimal("0.001"))
-        self.assertEqual(len(self.requests), 1)
+    def test_invalid_json_and_schema_are_retryable_and_preserve_billed_usage(self) -> None:
+        for arguments in ('{"text":', '{"invented":"Factura"}', '{"text":42}'):
+            with self.subTest(arguments=arguments):
+                self.requests.clear()
+                self.usage.usage.clear()
+                self.response_body = response([tool_call(arguments)])
+                with self.assertRaises(InvalidModelResponse) as failure:
+                    self.manager.run("Read", "Text", ExtractedText, usage=self.usage)
+                self.assertIsInstance(failure.exception.__cause__, ValidationError)
+                self.assertTrue(retryable(failure.exception))
+                self.assertEqual(self.usage.usage[0].cost, Decimal("0.001"))
+                self.assertEqual(len(self.requests), 1)
+
+    def test_empty_choices_are_retryable(self) -> None:
+        self.response_body["choices"] = []
+        with self.assertRaises(InvalidModelResponse):
+            self.manager.run("Read", "Text", ExtractedText)
+
+    def test_sdk_connection_and_response_errors_are_retryable_but_local_validation_is_not(self) -> None:
+        request = httpx2.Request("POST", "https://example.test")
+        for error in (
+            APIConnectionError(request=request), APITimeoutError(request=request),
+            APIResponseValidationError(response=httpx2.Response(200, request=request), body={}),
+        ):
+            with self.subTest(error=type(error).__name__):
+                state = record_failure(RetryState(attempts=1), error)
+                self.assertFalse(state.failed)
+                self.assertIsNotNone(state.next_attempt)
+                self.assertTrue(record_failure(RetryState(attempts=5), error).failed)
+        self.assertFalse(retryable(ValueError("invalid PDF")))
+        with self.assertRaises(ValidationError) as failure:
+            ExtractedText.model_validate({})
+        self.assertFalse(retryable(failure.exception))
 
     def test_provider_error_does_not_trigger_sdk_retries(self) -> None:
         self.status_code = 500
