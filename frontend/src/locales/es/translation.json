@@ -3,7 +3,8 @@
     "name": "hUMAnos"
   },
   "common": {
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "close": "Cerrar"
   },
   "documents": {
     "unavailable": "El documento no está disponible.",
@@ -130,5 +131,25 @@
       "merge": "Markdown combinado a partir del OCR y del texto",
       "extraction": "Datos extraídos del documento"
     }
+  },
+  "suppliers": {
+    "title": "Proveedores",
+    "search": "Buscar proveedores…",
+    "add": "Añadir proveedor",
+    "edit": "Editar proveedor",
+    "id": "Código",
+    "name": "Razón social",
+    "taxId": "NIF",
+    "iban": "IBAN",
+    "city": "Ciudad",
+    "terms": "Plazo de pago (días)",
+    "days": "días",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "saved": "Proveedor guardado",
+    "empty": "No hay proveedores que mostrar.",
+    "retry": "Reintentar",
+    "exists": "Ya existe un proveedor con ese código.",
+    "notFound": "El proveedor ya no está disponible."
   }
 }
