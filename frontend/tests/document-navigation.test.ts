@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import type { MouseEvent } from 'react'
 import { documentPath, followLink, navigate, parseRoute } from '../src/hooks/useAppRoute'
-import { elapsedMilliseconds } from '../src/hooks/useDocumentClock'
 
 const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window')
 const originalPopStateEvent = Object.getOwnPropertyDescriptor(globalThis, 'PopStateEvent')
@@ -71,28 +70,5 @@ describe('document URLs', () => {
     followLink({ button: 0, currentTarget: { pathname: '/docs/invoice-1' }, preventDefault } as unknown as MouseEvent<HTMLAnchorElement>)
     expect(preventDefault).toHaveBeenCalledOnce()
     expect(history.pushState).toHaveBeenCalledWith(null, '', '/docs/invoice-1')
-  })
-})
-
-describe('elapsed document time', () => {
-  const uploaded = '2026-09-19T10:00:00.000Z'
-  const start = Date.parse(uploaded)
-
-  test('advances from upload time without any new server response', () => {
-    expect(elapsedMilliseconds(uploaded, null, true, start + 1000)).toBe(1000)
-    expect(elapsedMilliseconds(uploaded, null, true, start + 2000)).toBe(2000)
-    expect(elapsedMilliseconds(uploaded, null, true, start + 61000)).toBe(61000)
-  })
-
-  test('completion stays fixed after reload and later clock ticks', () => {
-    const finished = '2026-09-19T10:01:12.900Z'
-    expect(elapsedMilliseconds(uploaded, finished, false, start + 90000)).toBe(72900)
-    expect(elapsedMilliseconds(uploaded, finished, false, start + 86400000)).toBe(72900)
-  })
-
-  test('a retry resumes the elapsed clock and unknown completion times remain unknown', () => {
-    expect(elapsedMilliseconds(uploaded, '2026-09-19T10:00:10Z', true, start + 60000)).toBe(60000)
-    expect(elapsedMilliseconds(uploaded, null, false, start + 60000)).toBeNull()
-    expect(elapsedMilliseconds(uploaded, null, true, start - 1000)).toBe(0)
   })
 })

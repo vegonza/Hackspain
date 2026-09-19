@@ -36,7 +36,7 @@ export function useDocumentDetail(documentId: string | null) {
         stage_metrics: summary.stage_metrics,
         stages: current.stages.map(stage => {
           const metric = summary.stage_metrics.find(item => item.stage === stage.id)
-          return metric === undefined || metric.cost_usd === null ? stage : { ...stage, cost_usd: metric.cost_usd }
+          return metric === undefined ? stage : { ...stage, cost_usd: metric.cost_usd, duration_ms: metric.duration_ms }
         }),
       }
     })

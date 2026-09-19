@@ -4,7 +4,7 @@ import { formatDateLong } from '@/lib/format'
 import { toast } from 'sonner'
 import { documentPath, useAppRoute } from '@/hooks/useAppRoute'
 import { useDocumentDetail } from '@/hooks/useDocumentDetail'
-import { elapsedMilliseconds, useDocumentClock } from '@/hooks/useDocumentClock'
+import { totalStageDuration } from '@/hooks/documentMetrics'
 import { deleteDocument, retryDocument, fetchDocuments, uploadDocument, type Document } from '@/api/documents'
 
 const isProcessing = (document: Document) => document.status === 'queued' || document.status === 'processing'
@@ -37,7 +37,6 @@ export function useDocuments() {
   const [uploads, setUploads] = useState<UploadingFile[]>([])
   const [deleting, setDeleting] = useState(false)
   const [retrying, setRetrying] = useState(false)
-  const now = useDocumentClock(view === 'documents' && (uploads.length > 0 || documents.some(isProcessing) || (selected !== null && isProcessing(selected))))
   const documentsRef = useRef<Document[]>([])
   const listRevision = useRef(0)
 
@@ -162,14 +161,13 @@ export function useDocuments() {
     ...uploads.map(upload => ({ ...upload, status: 'uploading' as const, finished_at: null, total_cost_usd: null, stage_metrics: [], current_stages: [] })),
     ...documents,
   ].map(document => {
-    const elapsed = elapsedMilliseconds(document.created_at, document.finished_at,
-      document.status === 'uploading' || isProcessing(document), now)
+    const durationMs = totalStageDuration(document.stage_metrics)
     return {
       ...document,
       costLabel: formatCost(document.total_cost_usd),
-      elapsed,
+      durationMs,
       href: documentPath(document.id),
-      durationLabel: formatDuration(elapsed),
+      durationLabel: formatDuration(durationMs),
       costBreakdown: document.stage_metrics.map(metric => ({ label: t(`pipeline.stages.${metric.stage}`), value: formatCost(metric.cost_usd) })),
       durationBreakdown: document.stage_metrics.map(metric => ({ label: t(`pipeline.stages.${metric.stage}`), value: formatDuration(metric.duration_ms) })),
       canOpen: document.status !== 'uploading',
@@ -189,7 +187,7 @@ export function useDocuments() {
       case 'name': return row.name
       case 'status': return row.statusLabel
       case 'cost': return row.total_cost_usd === null ? null : Number(row.total_cost_usd)
-      case 'duration': return row.elapsed
+      case 'duration': return row.durationMs
       case 'created': return row.status === 'uploading' ? null : Date.parse(row.created_at)
       default: return null
     }
@@ -242,9 +240,8 @@ export function useDocuments() {
   ]
   const selectedRow = rows.find(document => document.id === selectedId)
   const metricsLoading = loading && selected === null && selectedRow === undefined
-  const stageMetrics = selected !== null
-    ? selected.stages.map(stage => ({ stage: stage.id, cost_usd: stage.cost_usd, duration_ms: stage.duration_ms }))
-    : selectedRow === undefined ? [] : selectedRow.stage_metrics
+  const stageMetrics = selectedRow !== undefined ? selectedRow.stage_metrics
+    : selected === null ? [] : selected.stages.map(stage => ({ stage: stage.id, cost_usd: stage.cost_usd, duration_ms: stage.duration_ms }))
   const stageNavigation = (['ocr', 'text', 'merge', 'extraction'] as const).map(id => {
     const metric = stageMetrics.find(item => item.stage === id)
     return {
@@ -254,8 +251,7 @@ export function useDocuments() {
       durationLabel: metric === undefined || metric.duration_ms === null ? null : formatDuration(metric.duration_ms),
     }
   })
-  const totalDuration = selectedRow !== undefined ? selectedRow.durationLabel : selected !== null
-    ? formatDuration(elapsedMilliseconds(selected.created_at, selected.finished_at, isProcessing(selected), now)) : '—'
+  const totalDuration = formatDuration(totalStageDuration(stageMetrics))
   const totalCost = formatCost(String(stageMetrics.reduce((sum, metric) => sum + (metric.cost_usd === null ? 0 : Number(metric.cost_usd)), 0)))
   const activeStage = stages.find(stage => stage.id === sourceTab)
   const diffLabel = t('pipeline.diffChanges')
