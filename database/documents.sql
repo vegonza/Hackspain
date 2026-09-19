@@ -17,7 +17,14 @@ CREATE TABLE IF NOT EXISTS public.documents (
     vat_rate NUMERIC,
     vat_amount NUMERIC,
     total NUMERIC,
-    deleted_at TIMESTAMPTZ
+    erp_snapshot_id UUID REFERENCES public.erp_snapshots(id),
+    erp_entry_id UUID,
+    deleted_at TIMESTAMPTZ,
+    CONSTRAINT documents_erp_entry_requires_snapshot
+        CHECK (erp_entry_id IS NULL OR erp_snapshot_id IS NOT NULL),
+    CONSTRAINT documents_erp_entry_snapshot_fk
+        FOREIGN KEY (erp_snapshot_id, erp_entry_id)
+        REFERENCES public.erp_entries(snapshot_id, id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_documents_active_created_at
