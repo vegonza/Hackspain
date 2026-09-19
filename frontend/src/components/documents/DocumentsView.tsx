@@ -49,7 +49,7 @@ export function DocumentsView({ erpRows, stages, activeStage, totalCost, documen
                 </div>
               ))}
             </nav>
-            <Button variant="sidebar" size="sidebar" className="sidebar-usage" aria-current={view === 'usage' ? 'page' : undefined} onClick={onUsage}><DollarSign /><span>{labels.usage}</span></Button>
+            <Button variant="sidebar" size="sidebar" className={`sidebar-usage mt-3 [&>svg]:text-muted-foreground ${view === 'usage' ? 'bg-selected hover:bg-selected' : ''}`} aria-current={view === 'usage' ? 'page' : undefined} onClick={onUsage}><DollarSign /><span>{labels.usage}</span></Button>
           </aside>
           {view === 'usage' ? <UsageView {...usage} /> : uploadSelected ? (
             <ReviewSkeleton label={labels.loading} />
@@ -73,7 +73,7 @@ export function DocumentsView({ erpRows, stages, activeStage, totalCost, documen
                 </div>
                 {sourceTab !== 'pdf' && <div className="markdown-scroll">
                   {loading || (activeStage && (activeStage.status === 'processing' || activeStage.status === 'retrying')) ? <DocumentSkeleton />
-                    : activeStage && activeStage.diff !== null ? <MarkdownDiff lines={activeStage.diff} labels={labels.diff} />
+                    : activeStage && activeStage.diff !== null ? <MarkdownDiff lines={activeStage.diff} />
                     : activeStage && activeStage.content !== null ? activeStage.format === 'markdown'
                       ? <Markdown content={activeStage.content} /> : <pre className="extracted-text">{activeStage.content}</pre>
                     : activeStage && <div className="stage-empty"><h3>{activeStage.label}</h3><p>{activeStage.description}</p>{activeStage.status !== 'unavailable' && <span>{activeStage.statusLabel}</span>}<p>{activeStage.status === 'error' ? labels.error : activeStage.status !== 'unavailable' ? labels.waiting : ''}</p></div>}

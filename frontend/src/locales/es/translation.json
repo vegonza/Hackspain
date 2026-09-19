@@ -75,7 +75,6 @@
     "durationMilliseconds": "{{value}} ms",
     "durationSeconds": "{{value}} s",
     "durationMinutes": "{{minutes}} min {{seconds}} s",
-    "diff": { "title": "OCR → Markdown combinado", "removed": "Eliminado", "added": "Añadido" },
     "title": "Proceso",
     "waiting": "El resultado aparecerá al completar esta etapa.",
     "stages": {

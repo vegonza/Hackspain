@@ -237,7 +237,6 @@ export function useDocuments(initialDocuments: Document[]) {
     onUpload, onDelete, onSelect: (id: string) => { setView('documents'); return selectDocument(id) }, onSourceTab: setSourceTab,
     labels: {
       erp: t('erp.title'),
-      diff: { title: t('pipeline.diff.title'), removed: t('pipeline.diff.removed'), added: t('pipeline.diff.added') },
       totalCost: t('usage.totalCost'), pipeline: t('pipeline.title'), waiting: t('pipeline.waiting'), appName: t('app.name'), upload: t('documents.upload'),
       library: t('documents.library'),
       emptyList: t('documents.emptyList'), emptyTitle: t('documents.emptyTitle'),
