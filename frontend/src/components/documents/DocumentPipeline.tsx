@@ -3,6 +3,7 @@ import type { StageId } from '@/api/documents'
 import type { useDocuments } from '@/hooks/useDocuments'
 
 type Props = {
+  totalDuration: string
   totalCost: string
   totalLabel: string
   title: string
@@ -11,7 +12,7 @@ type Props = {
   onSelect: (stage: StageId) => void
 }
 
-export function DocumentPipeline({ title, stages, selected, onSelect, totalCost, totalLabel }: Props) {
+export function DocumentPipeline({ title, stages, selected, onSelect, totalCost, totalDuration, totalLabel }: Props) {
   return (
     <section className="document-pipeline" aria-label={title}>
       <header className="review-header"><h2>{title}</h2></header>
@@ -30,7 +31,7 @@ export function DocumentPipeline({ title, stages, selected, onSelect, totalCost,
           </li>
         ))}
       </ol>
-      <footer className="pipeline-total"><span>{totalLabel}</span><strong aria-live="polite">{totalCost}</strong></footer>
+      <footer className="pipeline-total"><span>{totalLabel}</span><span className="pipeline-total-values" aria-live="polite"><strong>{totalDuration}</strong><strong>{totalCost}</strong></span></footer>
     </section>
   )
 }

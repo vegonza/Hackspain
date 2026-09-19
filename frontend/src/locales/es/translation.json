@@ -75,6 +75,7 @@
     "states": { "PENDIENTE": "Pendiente", "PAGADA": "Pagada" }
   },
   "pipeline": {
+    "total": "Total",
     "durationMilliseconds": "{{value}} ms",
     "durationSeconds": "{{value}} s",
     "durationMinutes": "{{minutes}} min {{seconds}} s",

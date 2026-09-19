@@ -244,12 +244,14 @@ export function useDocuments(initialDocuments: Document[]) {
     { label: t('erp.nif'), value: erp === null ? '—' : erp.nif },
     { label: t('erp.registeredAt'), value: erp === null ? '—' : new Date(`${erp.registered_at}T00:00:00`).toLocaleDateString('es-ES') },
   ]
+  const knownDurations = stages.filter(stage => stage.duration_ms !== null)
+  const totalDuration = formatDuration(knownDurations.length === 0 ? null : knownDurations.reduce((sum, stage) => sum + Number(stage.duration_ms), 0))
   const knownCosts = stages.filter(stage => stage.cost_usd !== null)
   const totalCost = knownCosts.length === 0 ? '—' : `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(knownCosts.reduce((sum, stage) => sum + Number(stage.cost_usd), 0))}`
   const activeStage = stages.find(stage => stage.id === sourceTab)
 
   return {
-    stages, activeStage, totalCost, erpRows,
+    stages, activeStage, totalCost, totalDuration, erpRows,
     filteredDocuments: rows.filter(document => document.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())),
     search, onSearch: setSearch, onBack,
     selected,
@@ -260,7 +262,7 @@ export function useDocuments(initialDocuments: Document[]) {
     onUpload, onDelete, onSelect: (id: string) => { setView('documents'); return selectDocument(id) }, onSourceTab: setSourceTab,
     labels: {
       erp: t('erp.title'), totalTime: t('documents.totalTime'),
-      totalCost: t('usage.totalCost'), pipeline: t('pipeline.title'), waiting: t('pipeline.waiting'), appName: t('app.name'), upload: t('documents.upload'),
+      total: t('pipeline.total'), totalCost: t('usage.totalCost'), pipeline: t('pipeline.title'), waiting: t('pipeline.waiting'), appName: t('app.name'), upload: t('documents.upload'),
       library: t('documents.library'), search: t('documents.search'), back: t('documents.back'),
       errorStatus: t('pipeline.status.error'), status: t('documents.status'), created: t('documents.created'), noResults: t('documents.noResults'),
       emptyList: t('documents.emptyList'), pdf: t('documents.pdf'),

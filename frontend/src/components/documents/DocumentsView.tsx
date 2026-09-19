@@ -18,7 +18,7 @@ import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
 
 type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsage> }
 
-export function DocumentsView({ erpRows, stages, activeStage, totalCost, filteredDocuments, search, onSearch, onBack, selected, selectedRow, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage, onRetry, retrying }: Props) {
+export function DocumentsView({ erpRows, stages, activeStage, totalCost, totalDuration, filteredDocuments, search, onSearch, onBack, selected, selectedRow, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage, onRetry, retrying }: Props) {
   return (
     <div className="app-shell" ref={watchDocuments}>
         <main className="review-layout">
@@ -57,13 +57,15 @@ export function DocumentsView({ erpRows, stages, activeStage, totalCost, filtere
                 </div>}
               </section>
               <section className="features-panel" aria-label={labels.features} aria-busy={loading}>
-                {loading ? <div className="pipeline-skeleton"><Skeleton className="h-3 w-20" />{[0, 1, 2].map(index => <Skeleton key={index} className="h-12 w-full" />)}</div>
-                  : <DocumentPipeline totalCost={totalCost} totalLabel={labels.totalCost} title={labels.pipeline} stages={stages} selected={sourceTab} onSelect={onSourceTab} />}
-                <header className="review-header"><h2>{labels.features}</h2></header>
-                {selectedRow.status === 'error' && selectedRow.errorMessage && <p role="alert" className="markdown-error">{selectedRow.errorMessage}</p>}
-                {loading ? <InvoiceFeaturesSkeleton /> : selected && selected.features ?
-                  <InvoiceFeatures features={selected.features} labels={featureLabels} />
-                : <p className="markdown-error">{labels.noFeatures}</p>}
+                {loading ? <div className="pipeline-skeleton"><Skeleton className="h-3 w-20" />{[0, 1, 2].map(index => <Skeleton key={index} className="h-6 w-full" />)}</div>
+                  : <DocumentPipeline totalCost={totalCost} totalDuration={totalDuration} totalLabel={labels.total} title={labels.pipeline} stages={stages} selected={sourceTab} onSelect={onSourceTab} />}
+                <section className="document-features" aria-label={labels.features}>
+                  <header className="review-header"><h2>{labels.features}</h2></header>
+                  {selectedRow.status === 'error' && selectedRow.errorMessage && <p role="alert" className="markdown-error">{selectedRow.errorMessage}</p>}
+                  {loading ? <InvoiceFeaturesSkeleton /> : selected && selected.features ?
+                    <InvoiceFeatures features={selected.features} labels={featureLabels} />
+                  : <p className="markdown-error">{labels.noFeatures}</p>}
+                </section>
                 <DocumentErp title={labels.erp} loading={loading} rows={erpRows} />
               </section>
             </div>
