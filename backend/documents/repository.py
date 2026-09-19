@@ -3,12 +3,22 @@ from typing import Literal
 from uuid import UUID
 
 from fastapi import HTTPException
-from pydantic import BaseModel
+from decimal import Decimal
+from pydantic import BaseModel, Field
 from shared.storage import get_client
 from shared.redis import get_redis
 from shared.retries import RetryState
 from documents.queue import RETRIES
-from documents.stages import StageDetail
+from documents.stages import StageDetail, StageId
+
+
+class StageMetrics(BaseModel):
+    stage: StageId
+    cost_usd: Decimal | None = None
+    duration_ms: int | None = None
+
+
+DOCUMENT_VIRTUAL_FIELDS = {"retry_attempts", "last_error", "next_retry_at", "stage_metrics", "current_stages", "total_cost_usd", "total_duration_ms"}
 
 
 class Document(BaseModel):
@@ -18,6 +28,10 @@ class Document(BaseModel):
     created_at: datetime
     status: Literal["queued", "processing", "ready", "error"] = "queued"
     pages: int = 0
+    total_cost_usd: Decimal | None = None
+    total_duration_ms: int | None = None
+    stage_metrics: list[StageMetrics] = Field(default_factory=list)
+    current_stages: list[StageId] = Field(default_factory=list)
     retry_attempts: int = 0
     last_error: str | None = None
     next_retry_at: datetime | None = None
@@ -47,7 +61,7 @@ def read_document(document_id: UUID) -> Document:
 def list_documents() -> list[Document]:
     documents: list[Document] = []
     while True:
-        rows = get_client().table("documents").select("*").is_("deleted_at", "null").order("created_at", desc=True).order("id").range(len(documents), len(documents) + 999).execute().data
+        rows = get_client().rpc("get_documents", {"p_offset": len(documents), "p_limit": 1000}).execute().data
         if rows:
             with get_redis() as redis:
                 states = redis.hmget(RETRIES, [row["id"] for row in rows])
@@ -61,11 +75,11 @@ def find_document_by_hash(sha256: str) -> bool:
 
 
 def create_document(document: Document) -> None:
-    get_client().table("documents").insert(document.model_dump(mode="json", exclude={"retry_attempts", "last_error", "next_retry_at"})).execute()
+    get_client().table("documents").insert(document.model_dump(mode="json", exclude=DOCUMENT_VIRTUAL_FIELDS)).execute()
 
 
 def write_document(document: Document) -> None:
-    get_client().table("documents").upsert(document.model_dump(mode="json", exclude={"retry_attempts", "last_error", "next_retry_at"})).execute()
+    get_client().table("documents").upsert(document.model_dump(mode="json", exclude=DOCUMENT_VIRTUAL_FIELDS)).execute()
 
 
 def archive_document(document_id: UUID) -> None:

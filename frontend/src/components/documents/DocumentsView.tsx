@@ -33,7 +33,7 @@ export function DocumentsView({ erpRows, stages, activeStage, totalCost, filtere
             <div className="review-desk">
               <section className="viewer-panel" aria-label={sourceTab === 'pdf' ? labels.pdf : labels.markdown}>
                 <header className="source-header">
-                  <Button variant="ghost" size="icon-sm" onClick={onBack} aria-label={labels.back} title={labels.back}><ArrowLeft size={16} /></Button>
+                  <Button variant="ghost" size="icon-sm" onClick={onBack} aria-label={labels.back}><ArrowLeft size={16} /></Button>
                   <Tooltip text={selectedRow.name} onlyWhenTruncated asChild><h2>{selectedRow.name}</h2></Tooltip>
                   {selectedRow.status === 'error' && <Button variant="outline" size="sm" disabled={retrying} onClick={() => void onRetry(selectedRow.id)}>{labels.retry}</Button>}
                   <div className="source-tabs" role="group" aria-label={labels.document}>

@@ -55,7 +55,7 @@ button:focus-visible, .upload-button:has(input:focus-visible) { outline: 2px sol
 .upload-spinner { margin-left: auto; animation: upload-spin 800ms linear infinite; }
 @keyframes upload-spin { to { transform: rotate(360deg); } }
 .upload-button, .document-delete, .source-tabs button, .pdf-toolbar button { transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease, opacity 140ms ease; }
-.document-delete { position: absolute; right: 5px; top: 5px; display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: #737373; visibility: hidden; opacity: 0; pointer-events: none; }
+.document-delete { display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: #737373; visibility: hidden; opacity: 0; pointer-events: none; }
 .document-delete:hover { background: #fee2e2; color: #b91c1c; }
 .delete-confirmation { z-index: 60; width: max-content; max-width: min(18rem, var(--radix-popover-content-available-width)); padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: white; box-shadow: 0 5px 20px #00000012; }
 .delete-confirmation p { margin: 0 0 12px; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
@@ -63,7 +63,6 @@ button:focus-visible, .upload-button:has(input:focus-visible) { outline: 2px sol
 .confirmation-actions button { border: 1px solid var(--border); border-radius: 7px; padding: 6px 11px; background: white; font-size: 12px; }
 .confirmation-actions .confirm-delete { border-color: transparent; background: #fef2f2; color: #b91c1c; }
 .confirmation-actions .confirm-delete:hover { background: #fee2e2; }
-.error-dot { width: 6px; height: 6px; background: #b45309; border-radius: 50%; flex-shrink: 0; margin-left: auto; }
 h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing: -0.4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .viewer-panel { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .pdf-viewer { position: relative; flex: 1; min-width: 0; min-height: 0; overflow: hidden; }
@@ -212,7 +211,7 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .documents-browser { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; }
 .documents-toolbar { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 8px 12px; }
 .documents-table-scroll { flex: 1; overflow: auto; }
-.documents-table { width: 100%; min-width: 760px; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+.documents-table { width: 100%; min-width: 950px; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 14px; }
 .documents-table th:first-child { min-width: 220px; }
 .document-table-row { cursor: pointer; height: 36px; }
 .document-table-row td { border-bottom: 1px solid var(--border); transition: background-color 140ms ease; background: white; }
@@ -224,7 +223,6 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .document-table-status[data-status='ready'] { background: var(--accent-soft); color: var(--primary); }
 .document-table-status .upload-spinner { margin: 0; flex-shrink: 0; }
 .document-table-status[data-status='error'] { color: #b45309; }
-.document-table-row .document-delete { position: static; }
 .document-table-row:hover .document-delete { visibility: visible; opacity: 1; pointer-events: auto; }
 @media (max-width: 800px) {
   .sidebar-navigation { flex-direction: row; }
@@ -232,3 +230,5 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
   .documents-browser { min-height: 60dvh; flex: none; }
   .documents-toolbar { padding-inline: 8px; }
 }
+
+.document-table-row[data-openable='false'] { cursor: default; }

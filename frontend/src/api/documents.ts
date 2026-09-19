@@ -7,6 +7,10 @@ export interface Document {
   created_at: string
   status: 'queued' | 'processing' | 'ready' | 'error'
   pages: number
+  total_cost_usd: string | null
+  total_duration_ms: number | null
+  stage_metrics: { stage: StageId; cost_usd: string | null; duration_ms: number | null }[]
+  current_stages: StageId[]
   retry_attempts: number
   last_error: string | null
   next_retry_at: string | null

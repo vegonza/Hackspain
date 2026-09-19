@@ -31,6 +31,7 @@ export function useDocuments(initialDocuments: Document[]) {
   }, [])
 
   const selectDocument = useCallback(async (id: string): Promise<void> => {
+    if (id.startsWith('upload-')) return
     const request = ++selectionRequest.current
     activeId.current = id
     setSelectedId(id)
@@ -38,10 +39,6 @@ export function useDocuments(initialDocuments: Document[]) {
     setSelected(null)
     setPdfUrl(null)
     setPdfLoading(false)
-    if (id.startsWith('upload-')) {
-      setLoading(false)
-      return
-    }
     setLoading(true)
     setPdfLoading(true)
     await Promise.allSettled([
@@ -64,7 +61,7 @@ export function useDocuments(initialDocuments: Document[]) {
     let timer: ReturnType<typeof setTimeout>
     async function poll(): Promise<void> {
       try {
-        if (documentsRef.current.some(document => document.status === 'queued' || document.status === 'processing')) {
+        if (documentsRef.current.length > 0) {
           const revision = listRevision.current
           const next = await fetchDocuments()
           if (!active) return
@@ -88,7 +85,7 @@ export function useDocuments(initialDocuments: Document[]) {
         }
         const id = activeId.current
         const request = selectionRequest.current
-        if (id !== null && !id.startsWith('upload-')) {
+        if (id !== null) {
           const costs = await fetchStageCosts(id)
           if (active && request === selectionRequest.current) {
             setSelected(current => current === null ? null : {
@@ -100,7 +97,7 @@ export function useDocuments(initialDocuments: Document[]) {
       } catch {
         // The API client displays polling errors.
       } finally {
-        if (active) timer = setTimeout(() => void poll(), 2000)
+        if (active) timer = setTimeout(() => void poll(), 5000)
       }
     }
     void poll()
@@ -140,15 +137,8 @@ export function useDocuments(initialDocuments: Document[]) {
           const document = await uploadDocument(item.file)
           ++listRevision.current
           updateDocuments([document, ...documentsRef.current.filter(existing => existing.id !== document.id)])
-          if (activeId.current === item.id) {
-            void selectDocument(document.id)
-          }
         } catch {
-          if (activeId.current === item.id) {
-            activeId.current = null
-            setSelectedId(null)
-            setSelected(null)
-          }
+          // The API client displays upload errors.
         } finally {
           setUploads(current => current.filter(upload => upload.id !== item.id))
         }
@@ -197,17 +187,28 @@ export function useDocuments(initialDocuments: Document[]) {
     }
   }
 
+  const formatCost = (cost: string | null): string => cost === null ? '—' : `$${Number(cost).toFixed(4)}`
+  const formatDuration = (duration: number | null): string => duration === null ? '—'
+    : duration < 1000 ? t('pipeline.durationMilliseconds', { value: duration })
+    : duration < 60000 ? t('pipeline.durationSeconds', { value: (duration / 1000).toFixed(1) })
+    : t('pipeline.durationMinutes', { minutes: Math.floor(duration / 60000), seconds: Math.floor(duration % 60000 / 1000) })
   const rows = [
-    ...uploads.map(upload => ({ ...upload, status: 'uploading' as const })),
+    ...uploads.map(upload => ({ ...upload, status: 'uploading' as const, total_cost_usd: null, total_duration_ms: null, stage_metrics: [], current_stages: [] })),
     ...documents,
   ].map(document => ({
     ...document,
-    pending: document.status === 'uploading' || document.status === 'queued' || document.status === 'processing',
+    costLabel: formatCost(document.total_cost_usd),
+    durationLabel: formatDuration(document.total_duration_ms),
+    costBreakdown: document.stage_metrics.map(metric => ({ label: t(`pipeline.stages.${metric.stage}`), value: formatCost(metric.cost_usd) })),
+    durationBreakdown: document.stage_metrics.map(metric => ({ label: t(`pipeline.stages.${metric.stage}`), value: formatDuration(metric.duration_ms) })),
+    canOpen: document.status !== 'uploading',
+    canDelete: (document.status === 'ready' || document.status === 'error'),
+    statusIcon: document.status === 'uploading' || document.status === 'processing' ? 'spinner'
+      : document.status === 'queued' ? 'clock' : document.status === 'error' ? 'error' : null,
     statusLabel: document.status !== 'uploading' && document.next_retry_at !== null
       ? t('documents.retryQueued') : t(`documents.${document.status}`),
     deleteConfirmation: t('documents.deleteConfirmation', { name: document.name }),
     dateLabel: document.status === 'uploading' ? '—' : formatDateLong(document.created_at, 'es-ES'),
-    pagesLabel: document.status === 'uploading' || document.pages === 0 ? '—' : String(document.pages),
     errorMessage: document.status === 'error' ? t('documents.error') : '',
   }))
 
@@ -243,23 +244,21 @@ export function useDocuments(initialDocuments: Document[]) {
 
   return {
     stages, activeStage, totalCost, erpRows,
-    documents: rows,
     filteredDocuments: rows.filter(document => document.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())),
     search, onSearch: setSearch, onBack,
     selected,
-    selectedId, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments,
+    loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments,
     onRetry, retrying,
     selectedRow: rows.find(document => document.id === selectedId),
     view, onUsage: () => { onBack(); setView('usage') },
     onUpload, onDelete, onSelect: (id: string) => { setView('documents'); return selectDocument(id) }, onSourceTab: setSourceTab,
     labels: {
-      erp: t('erp.title'),
+      erp: t('erp.title'), totalTime: t('documents.totalTime'),
       totalCost: t('usage.totalCost'), pipeline: t('pipeline.title'), waiting: t('pipeline.waiting'), appName: t('app.name'), upload: t('documents.upload'),
       library: t('documents.library'), search: t('documents.search'), back: t('documents.back'),
-      errorStatus: t('pipeline.status.error'), status: t('documents.status'), pages: t('documents.pages'), created: t('documents.created'), noResults: t('documents.noResults'),
-      emptyList: t('documents.emptyList'), emptyTitle: t('documents.emptyTitle'),
-      emptyDescription: t('documents.emptyDescription'), pdf: t('documents.pdf'),
-      markdown: t('documents.markdown'), noMarkdown: t('documents.noMarkdown'),
+      errorStatus: t('pipeline.status.error'), status: t('documents.status'), created: t('documents.created'), noResults: t('documents.noResults'),
+      emptyList: t('documents.emptyList'), pdf: t('documents.pdf'),
+      markdown: t('documents.markdown'),
       features: t('documents.features'), noFeatures: t('documents.noFeatures'),
       error: t('documents.error'), loading: t('documents.loading'),
       delete: t('documents.delete'),
