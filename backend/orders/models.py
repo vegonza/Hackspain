@@ -3,6 +3,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from shared.identifiers import compact_identifier, order_key
+
 
 class OrderInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
@@ -17,8 +19,13 @@ class OrderInput(BaseModel):
     def normalize_tax_id(cls, value: str | None) -> str | None:
         if value is None:
             return None
-        return ''.join(value.split()).upper() or None
+        return compact_identifier(value) or None
 
 
 class Order(OrderInput):
     order_id: str = Field(min_length=1)
+
+    @field_validator('order_id')
+    @classmethod
+    def normalize_order_id(cls, value: str) -> str:
+        return order_key(value)

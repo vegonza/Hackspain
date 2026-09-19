@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from postgrest.exceptions import APIError
 
 from shared.logger import get_logger
+from shared.identifiers import order_key
 from shared.storage import get_client
 from orders.models import Order, OrderInput
 
@@ -29,7 +30,7 @@ def create_order(order: Order) -> Order:
 
 def update_order(order_id: str, order: OrderInput) -> Order:
     try:
-        rows = get_client().table('orders').update(order.model_dump(mode='json')).eq('order_id', order_id).execute().data
+        rows = get_client().table('orders').update(order.model_dump(mode='json')).eq('order_id', order_key(order_id)).execute().data
     except APIError as error:
         if error.code == '23503':
             raise HTTPException(status_code=422, detail='order_supplier_not_found') from None
@@ -42,7 +43,7 @@ def update_order(order_id: str, order: OrderInput) -> Order:
 
 
 def delete_order(order_id: str) -> None:
-    rows = get_client().table('orders').delete().eq('order_id', order_id).execute().data
+    rows = get_client().table('orders').delete().eq('order_id', order_key(order_id)).execute().data
     if not rows:
         raise HTTPException(status_code=404, detail='order_not_found')
     logger.info('[ORDERS] Deleted %s', order_id)

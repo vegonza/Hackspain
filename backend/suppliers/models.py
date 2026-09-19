@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from shared.identifiers import compact_identifier
+
 
 class SupplierInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
@@ -12,7 +14,7 @@ class SupplierInput(BaseModel):
     @field_validator('tax_id', 'iban')
     @classmethod
     def normalize_identifier(cls, value: str) -> str:
-        return ''.join(value.split()).upper()
+        return compact_identifier(value)
 
 
 class Supplier(SupplierInput):

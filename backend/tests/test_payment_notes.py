@@ -1,13 +1,13 @@
 import unittest
-import tempfile
 from datetime import date
 from decimal import Decimal
-from pathlib import Path
+from uuid import UUID
 from unittest.mock import patch
 
-import openpyxl
-
-from documents.classification import PaymentRules
+from documents.classification import classify_document
+from rules.models import ResolvedReferences
+from suppliers.models import Supplier
+from orders.models import Order
 from erp import ErpEntry
 from pipeline.extraction_3.extraction import InvoiceExtraction, InvoiceLine
 from documents.payment_notes import PaymentConcern, PaymentNotesReview, SourcedPaymentConcern, SourcedPaymentNotesReview, review_payment_notes
@@ -48,29 +48,26 @@ class PaymentPolicyTests(unittest.TestCase):
         entry = ErpEntry(entry_id="AS-1", order_id=invoice.purchase_order, supplier_id="P1", tax_id=invoice.supplier_nif,
                          raw_amount="121,00", amount=Decimal("121"), status="PENDIENTE", raw_date="01/01/2026")
         review = PaymentNotesReview(concerns=[PaymentConcern(evidence="Pedido anulado.", reason="Anulación")])
-        with tempfile.TemporaryDirectory() as temporary:
-            path = Path(temporary) / "rules.xlsx"
-            book = openpyxl.Workbook()
-            suppliers = book.create_sheet("Proveedores")
-            suppliers.append(["id", "name", "nif", "iban"])
-            suppliers.append(["P1", "Proveedor", invoice.supplier_nif, invoice.iban])
-            orders = book.create_sheet("Pedidos_2026")
-            orders.append(["id", "supplier", "nif", "total"])
-            orders.append([invoice.purchase_order, "P1", invoice.supplier_nif, 121])
-            book.create_sheet("pendiente_revisar")
-            book.save(path)
-            book.close()
-            rules = PaymentRules(path, [entry], date(2026, 9, 19))
-            with patch("documents.classification.review_payment_notes", return_value=review) as assess:
-                decision = rules.classify(invoice)
-                self.assertEqual(decision.classification, "ESCALAR")
-                self.assertFalse(decision.checks["payment_notes"])
-                self.assertTrue(all(passed for name, passed in decision.checks.items() if name != "payment_notes"))
-                self.assertIn("Pedido anulado.", decision.reasons[0])
-                assess.reset_mock()
-                entry.status = "PAGADA"
-                self.assertEqual(rules.classify(invoice).classification, "NO_PAGAR")
-                assess.assert_not_called()
+        references = ResolvedReferences(
+            supplier=Supplier(supplier_id='P1', legal_name='Proveedor', tax_id=invoice.supplier_nif,
+                              iban=invoice.iban, city='Málaga', payment_terms_days=30),
+            order=Order(order_id=invoice.purchase_order, supplier_id='P1', tax_id=invoice.supplier_nif,
+                        amount=Decimal('121'), status='ABIERTO', date=date(2026, 1, 1)),
+            entries=[entry],
+        )
+        document_id = UUID('00000000-0000-0000-0000-000000000001')
+        with patch('documents.classification.resolve_references', return_value=references), \
+                patch('documents.classification.review_payment_notes', return_value=review) as assess:
+            decision = classify_document(document_id, invoice, date(2026, 9, 19), pending_review=set(), duplicate_order=False)
+            self.assertEqual(decision.classification, 'ESCALAR')
+            self.assertFalse(decision.checks['payment_notes'])
+            self.assertTrue(all(passed for name, passed in decision.checks.items() if name != 'payment_notes'))
+            self.assertIn('Pedido anulado.', decision.reasons[0])
+            assess.reset_mock()
+            entry.status = 'PAGADA'
+            decision = classify_document(document_id, invoice, date(2026, 9, 19), pending_review=set(), duplicate_order=False)
+            self.assertEqual(decision.classification, 'NO_PAGAR')
+            assess.assert_not_called()
 
 
 if __name__ == "__main__":
