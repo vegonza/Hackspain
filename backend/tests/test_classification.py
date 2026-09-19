@@ -28,7 +28,6 @@ class ClassificationTests(unittest.TestCase):
         resolver = patch('documents.classification.resolve_references', return_value=self.references)
         self.resolver = resolver.start()
         self.addCleanup(resolver.stop)
-        self.pending_review: set[str] = set()
         self.invoice = InvoiceExtraction(
             invoice_number="NEW-1", supplier_name="Proveedor Nuevo", supplier_nif="B12345678",
             iban="ES001234", invoice_date="2026-09-01", purchase_order="PO-2026-9999",
@@ -42,7 +41,7 @@ class ClassificationTests(unittest.TestCase):
 
     def classify(self, invoice: InvoiceExtraction, duplicate_order: bool = False) -> Decision:
         return classify_document(self.document_id, invoice, date(2026, 9, 19),
-                                 pending_review=self.pending_review, duplicate_order=duplicate_order)
+                                 duplicate_order=duplicate_order)
 
     def test_loads_supabase_references_for_document(self) -> None:
         self.classify(self.invoice)
@@ -76,7 +75,7 @@ class ClassificationTests(unittest.TestCase):
 
     def test_pending_review_and_duplicate_orders_escalate(self) -> None:
         self.assertEqual(self.classify(self.invoice, duplicate_order=True).classification, "ESCALAR")
-        self.pending_review.add(self.invoice.purchase_order)
+        self.references.order.review_required = True
         self.assertEqual(self.classify(self.invoice).classification, "ESCALAR")
 
     def test_paid_prevents_payment_even_with_other_anomalies(self) -> None:

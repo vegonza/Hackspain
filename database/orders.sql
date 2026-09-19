@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS public.orders (
     tax_id TEXT,
     amount NUMERIC(18, 2) NOT NULL,
     status TEXT NOT NULL CHECK (length(btrim(status)) > 0),
-    date DATE NOT NULL
+    date DATE NOT NULL,
+    review_required BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE INDEX IF NOT EXISTS orders_supplier_id_idx ON public.orders (supplier_id);

@@ -58,14 +58,14 @@ class PaymentPolicyTests(unittest.TestCase):
         document_id = UUID('00000000-0000-0000-0000-000000000001')
         with patch('documents.classification.resolve_references', return_value=references), \
                 patch('documents.classification.review_payment_notes', return_value=review) as assess:
-            decision = classify_document(document_id, invoice, date(2026, 9, 19), pending_review=set(), duplicate_order=False)
+            decision = classify_document(document_id, invoice, date(2026, 9, 19), duplicate_order=False)
             self.assertEqual(decision.classification, 'ESCALAR')
             self.assertFalse(decision.checks['payment_notes'])
             self.assertTrue(all(passed for name, passed in decision.checks.items() if name != 'payment_notes'))
             self.assertIn('Pedido anulado.', decision.reasons[0])
             assess.reset_mock()
             entry.status = 'PAGADA'
-            decision = classify_document(document_id, invoice, date(2026, 9, 19), pending_review=set(), duplicate_order=False)
+            decision = classify_document(document_id, invoice, date(2026, 9, 19), duplicate_order=False)
             self.assertEqual(decision.classification, 'NO_PAGAR')
             assess.assert_not_called()
 

@@ -34,6 +34,12 @@ class RulesTests(unittest.TestCase):
     def test_valid_invoice_passes_without_external_services(self) -> None:
         self.assertEqual(self.classification(), 'PAGAR')
 
+    def test_order_pending_review_escalates(self) -> None:
+        self.context.order.review_required = True
+        self.assertEqual(self.classification(), 'ESCALAR')
+        self.context.entries[0].status = 'PAGADA'
+        self.assertEqual(self.classification(), 'NO_PAGAR')
+
     def test_missing_order_nif_uses_supplier_relationship(self) -> None:
         self.context.order.tax_id = None
         self.assertEqual(self.classification(), 'PAGAR')

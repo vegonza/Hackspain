@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from erp import ErpEntry
 from orders.models import Order
@@ -19,7 +19,6 @@ class ResolvedReferences(BaseModel):
 class RuleContext(ResolvedReferences):
     invoice: InvoiceExtraction
     evaluation_date: date
-    pending_review: set[str] = Field(default_factory=set)
     duplicate_order: bool = False
 
 

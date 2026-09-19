@@ -12,11 +12,11 @@ logger = get_logger()
 
 
 def classify_document(document_id: UUID, invoice: InvoiceExtraction, evaluation_date: date,
-                      *, pending_review: set[str], duplicate_order: bool) -> Decision:
+                      *, duplicate_order: bool) -> Decision:
     """Classify an extracted invoice against its Supabase master data and pinned ERP snapshot."""
     references = resolve_references(document_id, invoice.purchase_order)
     context = RuleContext(invoice=invoice, **references.model_dump(), evaluation_date=evaluation_date,
-                          pending_review=pending_review, duplicate_order=duplicate_order)
+                          duplicate_order=duplicate_order)
     results = evaluate_rules(context)
     if any(result.rule == 'not_paid' and not result.passed for result in results):
         decision = payment_decision(results, invoice.notes, reviewed_note_reasons=None)

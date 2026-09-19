@@ -24,6 +24,7 @@ class OrderInput(BaseModel):
 
 class Order(OrderInput):
     order_id: str = Field(min_length=1)
+    review_required: bool = False
 
     @field_validator('order_id')
     @classmethod

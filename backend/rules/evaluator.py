@@ -1,7 +1,5 @@
 from datetime import date
 
-from shared.identifiers import order_key
-
 from rules.amounts import amount_rules
 from rules.identity import identity_rules
 from rules.models import Decision, RuleContext, RuleResult
@@ -16,8 +14,8 @@ def evaluate_rules(context: RuleContext) -> list[RuleResult]:
         valid_date = False
     results.extend([
         RuleResult(rule='date', passed=valid_date, reason='La fecha de factura es inválida, ilegible o futura.'),
-        RuleResult(rule='pending_review', passed=order_key(context.invoice.purchase_order) not in {order_key(value) for value in context.pending_review},
-                   reason='El pedido tiene una revisión pendiente.'),
+        RuleResult(rule='pending_review', passed=context.order is not None and not context.order.review_required,
+                   reason='El pedido tiene una revisión pendiente o no se puede verificar.'),
         RuleResult(rule='duplicate_order', passed=not context.duplicate_order,
                    reason='Varias facturas reclaman el mismo pedido.'),
         RuleResult(rule='extraction_certain', passed=not context.invoice.uncertainties,
