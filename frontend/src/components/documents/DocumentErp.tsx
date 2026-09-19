@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
 
 type Props = {
-  title: string
+  title?: string
   loading: boolean
   rows: { label: string; value: string }[]
 }
@@ -10,7 +10,7 @@ type Props = {
 export function DocumentErp({ title, loading, rows }: Props) {
   return (
     <section className="document-data" aria-label={title} aria-busy={loading}>
-      <header className="review-header"><h2>{title}</h2></header>
+      {title !== undefined && <header className="review-header"><h2>{title}</h2></header>}
       <div className="extraction-view">
         <dl className="extraction-grid">
           {rows.map(row => <div key={row.label}>

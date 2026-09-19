@@ -8,6 +8,7 @@ from typing import Literal
 from fastapi import FastAPI
 from pydantic import BaseModel
 from documents.router import router as documents_router
+from erp.router import router as erp_router
 from usage.router import router as usage_router
 from orders.router import router as orders_router
 from suppliers.router import router as suppliers_router
@@ -42,6 +43,7 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
 )
 app.include_router(documents_router)
+app.include_router(erp_router)
 app.include_router(usage_router)
 app.include_router(suppliers_router)
 app.include_router(orders_router)

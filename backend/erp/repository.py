@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from erp.models import ErpSnapshot
+from erp.models import ErpEntryDetail, ErpSnapshot, SavedErpSnapshot
 from shared.logger import get_logger
 from shared.storage import get_client
 
@@ -19,3 +19,15 @@ def save_snapshot(snapshot: ErpSnapshot) -> UUID:
     logger.info('[ERP] Saved snapshot %s: %s entries, version %s',
                 snapshot_id, len(snapshot.entries), snapshot.status_after.version)
     return snapshot_id
+
+
+def read_latest_snapshot() -> SavedErpSnapshot | None:
+    """Read the complete latest snapshot in one database request."""
+    data = get_client().rpc('get_erp_snapshot', {}).execute().data
+    return None if data is None else SavedErpSnapshot.model_validate(data)
+
+
+def read_entry(entry_id: UUID) -> ErpEntryDetail | None:
+    """Resolve a saved entry independently of newer snapshots."""
+    data = get_client().rpc('get_erp_entry', {'p_entry_id': str(entry_id)}).execute().data
+    return None if data is None else ErpEntryDetail.model_validate(data)

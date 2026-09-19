@@ -34,6 +34,9 @@ CREATE INDEX IF NOT EXISTS idx_documents_active_created_at
 CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_active_sha256
     ON public.documents (sha256) WHERE deleted_at IS NULL;
 
+CREATE INDEX IF NOT EXISTS idx_documents_active_erp_entry
+    ON public.documents (erp_entry_id, name, id) WHERE deleted_at IS NULL;
+
 ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.documents FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.documents TO service_role;
