@@ -4,6 +4,7 @@ import { useErpSnapshot } from '@/hooks/useErpSnapshot'
 import { useOrders } from '@/hooks/useOrders'
 import { useSuppliers } from '@/hooks/useSuppliers'
 import { useUsage } from '@/hooks/useUsage'
+import { useTreasury } from '@/hooks/useTreasury'
 
 export function DocumentsPage() {
   const documents = useDocuments()
@@ -11,5 +12,6 @@ export function DocumentsPage() {
   const orders = useOrders()
   const suppliers = useSuppliers()
   const erp = useErpSnapshot()
-  return <DocumentsView {...documents} usage={usage} suppliers={suppliers} orders={orders} erp={erp} />
+  const treasury = useTreasury()
+  return <DocumentsView {...documents} usage={usage} suppliers={suppliers} orders={orders} erp={erp} treasury={treasury} />
 }

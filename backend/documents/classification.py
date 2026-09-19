@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, timedelta
+from decimal import Decimal, InvalidOperation
 from uuid import UUID
 
 from documents.payment_notes import review_payment_notes
@@ -10,6 +11,26 @@ from shared.logger import get_logger
 from shared.usage import UsageRecord
 
 logger = get_logger()
+
+
+def financial_fields(context: RuleContext, decision: Decision) -> Decision:
+    if decision.classification == 'NO_PAGAR':
+        return decision
+    try:
+        invoice_date = date.fromisoformat(context.invoice.invoice_date)
+    except ValueError:
+        invoice_date = None
+    try:
+        total = Decimal(context.invoice.total)
+        amount = total if total.is_finite() else None
+    except InvalidOperation:
+        amount = None
+    payment_days = context.supplier.payment_terms_days if context.supplier is not None else 30
+    return decision.model_copy(update={
+        'due_date': invoice_date + timedelta(days=payment_days) if invoice_date is not None else None,
+        'supplier_name': context.supplier.legal_name if context.supplier is not None else None,
+        'amount': amount,
+    })
 
 
 def classify_document(document_id: UUID, invoice: InvoiceExtraction, evaluation_date: date,
@@ -27,6 +48,7 @@ def classify_document(document_id: UUID, invoice: InvoiceExtraction, evaluation_
         decision = payment_decision(results, invoice.notes, reviewed_note_reasons=[
             f'{concern.reason} Evidencia: {concern.evidence}' for concern in review.concerns
         ])
+    decision = financial_fields(context, decision)
     decision.claimed_by_document_id = owner
     logger.info('[RULES] Classified invoice %s (%s): %s', invoice.invoice_number, document_id, decision.classification)
     return decision

@@ -1,4 +1,4 @@
-import { FileText, DollarSign, Building2, Landmark, ShoppingCart } from 'lucide-react'
+import { FileText, DollarSign, Building2, Landmark, ShoppingCart, Wallet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DocumentsTable } from '@/components/documents/DocumentsTable'
 import { DocumentDetails } from '@/components/documents/DocumentDetails'
@@ -11,11 +11,13 @@ import type { useErpSnapshot } from '@/hooks/useErpSnapshot'
 import type { useSuppliers } from '@/hooks/useSuppliers'
 import type { useUsage } from '@/hooks/useUsage'
 import type { useDocuments } from '@/hooks/useDocuments'
+import { TreasuryView } from '@/components/treasury/TreasuryView'
+import type { useTreasury } from '@/hooks/useTreasury'
 import logo from '@/assets/logo.svg'
 
-type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsage>; suppliers: ReturnType<typeof useSuppliers>; orders: ReturnType<typeof useOrders>; erp: ReturnType<typeof useErpSnapshot> }
+type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsage>; suppliers: ReturnType<typeof useSuppliers>; orders: ReturnType<typeof useOrders>; erp: ReturnType<typeof useErpSnapshot>; treasury: ReturnType<typeof useTreasury> }
 
-export function DocumentsView({ watchDocuments, labels, view, onNavigate, usage, suppliers, orders, erp, selectedId,
+export function DocumentsView({ watchDocuments, labels, view, onNavigate, usage, suppliers, orders, erp, treasury, selectedId,
   sortColumn, sortDirection, onToggleSort, onUpload, filteredDocuments, documentsLoading, search, onSearch, onSelect,
   onDocumentLink, onDelete, deleting, mountDetail, documentName, selected, loading, extractionLoading,
   pdfUrl, pdfLoading, sourceTab, activeStage, emptyMessage, extractionLabels, canRetry, onRetrySelected,
@@ -42,9 +44,13 @@ export function DocumentsView({ watchDocuments, labels, view, onNavigate, usage,
             <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'usage' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
               <a href="/cost" onClick={onNavigate} aria-current={view === 'usage' ? 'page' : undefined}><DollarSign /><span>{labels.usage}</span></a>
             </Button>
+            <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'treasury' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
+              <a href="/treasury" onClick={onNavigate} aria-current={view === 'treasury' ? 'page' : undefined}><Wallet /><span>{treasury.labels.title}</span></a>
+            </Button>
           </nav>
         </aside>
         {view === 'usage' ? <UsageView {...usage} />
+          : view === 'treasury' ? <TreasuryView {...treasury} />
           : view === 'orders' ? <OrdersView {...orders} />
           : view === 'suppliers' ? <SuppliersView {...suppliers} />
           : view === 'erp' ? <ErpView {...erp} />

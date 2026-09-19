@@ -19,7 +19,7 @@ class ClassificationTests(unittest.TestCase):
         self.document_id = UUID('00000000-0000-0000-0000-000000000001')
         self.references = ResolvedReferences(
             supplier=Supplier(supplier_id='NEW', legal_name='Proveedor Nuevo', tax_id='B12345678',
-                              iban='ES001234', city='Málaga', payment_terms_days=30),
+                              iban='ES001234', city='Málaga', payment_terms_days=45),
             order=Order(order_id='PO-2026-9999', supplier_id='NEW', tax_id='B12345678',
                         amount=Decimal('121'), status='ABIERTO', date=date(2026, 9, 1)),
             entries=[ErpEntry(entry_id='AS-NEW', order_id='PO-2026-9999', supplier_id='NEW', tax_id='B12345678',
@@ -55,8 +55,21 @@ class ClassificationTests(unittest.TestCase):
             self.classify(self.invoice)
         self.review.assert_not_called()
 
-    def test_new_supplier_and_order_pay_without_dataset_identifiers(self) -> None:
-        self.assertEqual(self.classify(self.invoice).classification, "PAGAR")
+    def test_new_supplier_and_order_pay_with_financial_fields(self) -> None:
+        decision = self.classify(self.invoice)
+        self.assertEqual(decision.classification, "PAGAR")
+        self.assertEqual(decision.due_date, date(2026, 10, 16))
+        self.assertEqual(decision.supplier_name, "Proveedor Nuevo")
+        self.assertEqual(decision.amount, Decimal("121.00"))
+        self.assertEqual(decision.claimed_by_document_id, self.document_id)
+
+    def test_missing_supplier_uses_thirty_days_for_review_forecast(self) -> None:
+        self.references.supplier = None
+        decision = self.classify(self.invoice)
+        self.assertEqual(decision.classification, "ESCALAR")
+        self.assertEqual(decision.due_date, date(2026, 10, 1))
+        self.assertIsNone(decision.supplier_name)
+        self.assertEqual(decision.claimed_by_document_id, self.document_id)
 
     def test_invalid_fields_escalate(self) -> None:
         cases = [
@@ -82,10 +95,15 @@ class ClassificationTests(unittest.TestCase):
         self.references.order.review_required = True
         self.assertEqual(self.classify(self.invoice).classification, "ESCALAR")
 
-    def test_paid_prevents_payment_even_with_other_anomalies(self) -> None:
+    def test_paid_prevents_payment_and_financial_commitment(self) -> None:
         self.references.entries[0].status = "PAGADA"
         invoice = self.invoice.model_copy(update={"iban": "WRONG"})
-        self.assertEqual(self.classify(invoice).classification, "NO_PAGAR")
+        decision = self.classify(invoice)
+        self.assertEqual(decision.classification, "NO_PAGAR")
+        self.assertIsNone(decision.due_date)
+        self.assertIsNone(decision.supplier_name)
+        self.assertIsNone(decision.amount)
+        self.assertEqual(decision.claimed_by_document_id, self.document_id)
         self.review.assert_not_called()
 
     def test_erp_and_order_supplier_checks(self) -> None:

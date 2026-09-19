@@ -187,5 +187,38 @@
     "exists": "Ya existe un pedido con ese código.",
     "notFound": "El pedido ya no está disponible.",
     "supplierNotFound": "No existe un proveedor con ese código."
+  },
+  "treasury": {
+    "title": "Tesorería",
+    "next7Days": "Próximos 7 días",
+    "next7DaysSubtitle": "Efectivo necesario a corto plazo",
+    "next30Days": "Próximos 30 días",
+    "next30DaysSubtitle": "Previsión a mes vencido",
+    "blocked": "Bloqueado en revisión",
+    "blockedSubtitle": "Riesgo potencial por resolver",
+    "supplier": "Proveedor",
+    "approvedInvoices": "Facturas aprobadas",
+    "committedAmount": "Importe comprometido",
+    "nextDueDate": "Próximo vencimiento",
+    "empty": "No hay pagos aprobados que mostrar.",
+    "retry": "Reintentar",
+    "calendar": {
+      "title": "Calendario de pagos",
+      "paymentLimit": "Fechas límite de las facturas aprobadas",
+      "previousMonth": "Mes anterior",
+      "nextMonth": "Mes siguiente",
+      "monday": "Lun",
+      "tuesday": "Mar",
+      "wednesday": "Mié",
+      "thursday": "Jue",
+      "friday": "Vie",
+      "saturday": "Sáb",
+      "sunday": "Dom",
+      "dayLabel": "{{date}}: {{count}} facturas pendientes",
+      "noPaymentsThisMonth": "No hay fechas límite de pago durante este mes.",
+      "selectPaymentDate": "Selecciona una fecha marcada para ver las facturas que hay que pagar.",
+      "selectedDateTitle": "Facturas con límite de pago el {{date}}",
+      "openInvoice": "Abrir factura"
+    }
   }
 }

@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
@@ -34,4 +35,7 @@ class Decision(BaseModel):
     classification: Literal['PAGAR', 'NO_PAGAR', 'ESCALAR']
     reasons: list[str]
     checks: dict[str, bool]
+    due_date: date | None = None
+    supplier_name: str | None = None
+    amount: Decimal | None = None
     claimed_by_document_id: UUID | None = None
