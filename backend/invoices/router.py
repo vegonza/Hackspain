@@ -94,6 +94,7 @@ def delete_invoice(invoice_id: UUID) -> dict[str, bool]:
     invoice_record = read_invoice(invoice_id)
     if invoice_record.status in ("queued", "processing"):
         raise HTTPException(status_code=409, detail="invoice_processing")
+    delete_file(f"{invoice_id}/original.pdf")
     invalidate_invoice_urls(str(invoice_id))
     archive_invoice(invoice_id)
     with get_redis() as redis:
