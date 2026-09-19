@@ -95,6 +95,6 @@ export function usePdfViewer(url: string) {
   return {
     containerRef, setInner, file: url, pageWidth, pages, pageCount, currentPage, failed,
     zoom, zoomIn, zoomOut, zoomMin: ZOOM_MIN, zoomMax: ZOOM_MAX, onLoadSuccess, onPageLoad, onError,
-    labels: { error: t('documents.pdfError'), zoomIn: t('documents.zoomIn'), zoomOut: t('documents.zoomOut') },
+    labels: { loading: t('documents.loading'), error: t('documents.pdfError'), zoomIn: t('documents.zoomIn'), zoomOut: t('documents.zoomOut') },
   }
 }

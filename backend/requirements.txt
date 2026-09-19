@@ -7,3 +7,5 @@ python-dotenv>=1.2,<2
 supabase>=2.28,<3
 redis>=6,<7
 httpx>=0.28,<1
+openpyxl>=3.1,<4
+openai>=3.3,<4

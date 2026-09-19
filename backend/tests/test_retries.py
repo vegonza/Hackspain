@@ -15,13 +15,13 @@ from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 from fastapi import HTTPException
 
-from documents import processor, queue, worker
+from documents import queue, worker
+from pipeline import ocr_2 as ocr_phase
 from documents import router as document_router
 from documents.repository import Document
 from shared.retries import RetryState, read_retry, record_failure, retry_delay, retryable
 from shared.usage import UsageEntry, UsageRecord
 from usage import worker as usage_worker
-
 
 class RetryTests(unittest.TestCase):
     """Use isolated Redis keys and mocked providers/Storage/Supabase."""
@@ -121,17 +121,17 @@ class RetryTests(unittest.TestCase):
         client = MagicMock()
         client.__enter__.return_value = client
         client.ocr.process.return_value = response
-        with patch.object(processor, 'Mistral', return_value=client), patch.object(processor, 'get_redis', return_value=self.redis), patch('shared.usage.get_redis', return_value=self.redis), patch('shared.usage.USAGE_OUTBOX', outbox):
-            processor.request_ocr(b'%PDF-test', 'test', 'test.pdf', checkpoint)
+        with patch.object(ocr_phase, 'Mistral', return_value=client), patch.object(ocr_phase, 'get_redis', return_value=self.redis), patch('shared.usage.get_redis', return_value=self.redis), patch('shared.usage.USAGE_OUTBOX', outbox):
+            ocr_phase.request_ocr(b'%PDF-test', 'test', 'test.pdf', checkpoint)
         saved = json.loads(self.redis.get(checkpoint))
         identifier = saved['usage']['id']
         cache = MagicMock()
         cache.__enter__.return_value = cache
         cache.get.return_value = json.dumps(saved)
-        with patch.object(processor, 'get_redis', return_value=cache), patch.object(processor, 'request_ocr') as ocr, patch.object(processor, 'upload_file', side_effect=[httpx.ConnectTimeout('storage'), None]):
+        with patch.object(ocr_phase, 'get_redis', return_value=cache), patch.object(ocr_phase, 'request_ocr') as ocr, patch.object(ocr_phase, 'upload_file', side_effect=[httpx.ConnectTimeout('storage'), None, None, None]):
             with self.assertRaises(httpx.ConnectTimeout):
-                processor.extract_markdown(b'%PDF-test', 'test', 'test.pdf')
-            markdown, pages = processor.extract_markdown(b'%PDF-test', 'test', 'test.pdf')
+                ocr_phase.extract_markdown(b'%PDF-test', 'test', 'test.pdf')
+            markdown, pages = ocr_phase.extract_markdown(b'%PDF-test', 'test', 'test.pdf')
             ocr.assert_not_called()
             self.assertEqual(pages, 1)
             self.assertIn('/api/documents/test/images/', markdown)

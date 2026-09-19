@@ -27,7 +27,7 @@ export function UsageLogTable({ loading, records, page, pages, setPage, labels, 
           <TableCell className="usage-date">{record.date}</TableCell>
           <TableCell><span className="flex items-center gap-2 text-xs"><img src={`/providers/${record.provider}.svg`} alt="" className="size-5 shrink-0" /><span>{record.providerName}</span></span></TableCell>
           <TableCell><Tooltip text={record.model} onlyWhenTruncated asChild><span className="usage-cell-text usage-model">{record.model}</span></Tooltip></TableCell>
-          <TableCell><Badge variant="outline">{record.operation}</Badge></TableCell>
+          <TableCell><Badge variant="outline"><span className="size-2 rounded-full" style={{ backgroundColor: record.color }} aria-hidden="true" />{record.operation}</Badge></TableCell>
           <TableCell><Tooltip text={record.document_name} onlyWhenTruncated asChild><span className="usage-cell-text">{record.document_name}</span></Tooltip></TableCell>
           <TableCell><Tooltip text={<UsageCostBreakdown entries={record.breakdown} total={record.cost} totalLabel={labels.totalCost} />} asChild><span className="usage-detail tabular-nums">{record.cost}</span></Tooltip></TableCell>
         </TableRow>)}

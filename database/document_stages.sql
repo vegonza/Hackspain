@@ -20,7 +20,8 @@ CREATE OR REPLACE FUNCTION public.initialize_document_stages()
 RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
     INSERT INTO public.document_stages (document_id, stage, status)
-    VALUES (NEW.id, 'ocr', 'queued'), (NEW.id, 'text', 'unavailable'), (NEW.id, 'merge', 'unavailable'), (NEW.id, 'extraction', 'unavailable');
+    VALUES (NEW.id, 'ocr', 'queued'), (NEW.id, 'text', 'unavailable'), (NEW.id, 'merge', 'unavailable'),
+        (NEW.id, 'extraction', 'unavailable');
     RETURN NEW;
 END;
 $$;

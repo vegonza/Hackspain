@@ -6,6 +6,8 @@
     "cancel": "Cancelar"
   },
   "documents": {
+    "unavailable": "El documento no está disponible.",
+    "pageNotFound": "Página no encontrada",
     "library": "Documentos",
     "search": "Buscar documentos…",
     "back": "Volver a documentos",
@@ -37,6 +39,7 @@
     "invalidPdf": "Selecciona un archivo PDF válido.",
     "duplicatePdf": "Este PDF ya está subido.",
     "ocrFailed": "El PDF se ha guardado, pero ha fallado el OCR. Comprueba la clave de Mistral y la conexión.",
+    "extractionFailed": "El PDF y el Markdown se han guardado, pero no se pudieron extraer los datos de la factura.",
     "requestFailed": "No se ha podido completar la solicitud. Comprueba la conexión con el servidor."
   },
   "usage": {
@@ -50,6 +53,7 @@
     "empty": "No hay llamadas registradas.", "previous": "Anterior", "next": "Siguiente"
   },
   "features": {
+    "unavailable": "No disponible",
     "invoiceNumber": "Número de factura",
     "invoiceDate": "Fecha",
     "purchaseOrder": "Pedido",
@@ -60,10 +64,35 @@
     "taxBase": "Base imponible",
     "vatRate": "IVA",
     "vatAmount": "Cuota de IVA",
-    "total": "Total"
+    "total": "Total",
+    "diffChanges": "Cambios respecto al OCR",
+    "diffUnchanged": "Sin cambios respecto al OCR",
+    "notes": "Notas",
+    "uncertainties": "Aspectos por revisar"
   },
   "erp": {
+    "notLinked": "Sin asiento vinculado",
+    "rawAmount": "Importe original",
+    "rawDate": "Fecha original",
+    "warningsLabel": "Avisos del ERP",
+    "warnings": {
+      "missing_entry_id": "Falta el identificador del asiento",
+      "missing_supplier_id": "Falta el proveedor",
+      "missing_tax_id": "Falta el NIF",
+      "missing_order_id": "Falta el pedido",
+      "missing_status": "Falta el estado",
+      "missing_date": "Falta la fecha",
+      "missing_amount": "Falta el importe",
+      "invalid_date": "Fecha no válida",
+      "date_out_of_range": "Fecha fuera del intervalo permitido",
+      "invalid_amount": "Importe no válido",
+      "iso_date_format": "Fecha recibida en formato ISO",
+      "english_amount_format": "Importe recibido en formato inglés",
+      "unknown_status": "Estado desconocido",
+      "possible_character_loss": "Posible pérdida de caracteres"
+    },
     "title": "ERP",
+    "dataTitle": "Datos en el ERP",
     "status": "Estado",
     "expectedAmount": "Importe esperado",
     "difference": "Diferencia",
@@ -75,11 +104,11 @@
     "states": { "PENDIENTE": "Pendiente", "PAGADA": "Pagada" }
   },
   "pipeline": {
-    "total": "Total",
-    "durationMilliseconds": "{{value}} ms",
+    "diffChanges": "Cambios respecto al OCR",
+    "diffUnchanged": "No hay cambios.",
+    "noText": "No hay texto.",
     "durationSeconds": "{{value}} s",
     "durationMinutes": "{{minutes}} min {{seconds}} s",
-    "title": "Proceso",
     "waiting": "El resultado aparecerá al completar esta etapa.",
     "stages": {
       "ocr": "OCR",

@@ -1,3 +1,6 @@
+import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Literal
@@ -49,3 +52,19 @@ def fail_stage(document_id: UUID, name: str, stage: StageId, duration_ms: int) -
         "status": "error", "finished_at": datetime.now(timezone.utc).isoformat(), "duration_ms": duration_ms,
     }).eq("document_id", str(document_id)).eq("stage", stage).execute()
     logger.info("[PIPELINE] Failed %s for %s after %s ms", stage, name, duration_ms)
+
+
+@contextmanager
+def stage_attempt(document_id: UUID, name: str, stage: StageId,
+                  result_path: str) -> Iterator[None]:
+    start_stage(document_id, name, stage)
+    started = time.perf_counter()
+    try:
+        yield
+        finish_stage(document_id, name, stage, round((time.perf_counter() - started) * 1000), result_path)
+    except Exception:
+        try:
+            fail_stage(document_id, name, stage, round((time.perf_counter() - started) * 1000))
+        except Exception:
+            logger.exception("[PIPELINE] Could not save failed %s stage for %s", stage, name)
+        raise

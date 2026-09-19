@@ -5,10 +5,10 @@ export interface Document {
   name: string
   sha256: string
   created_at: string
+  finished_at: string | null
   status: 'queued' | 'processing' | 'ready' | 'error'
   pages: number
   total_cost_usd: string | null
-  total_duration_ms: number | null
   stage_metrics: { stage: StageId; cost_usd: string | null; duration_ms: number | null }[]
   current_stages: StageId[]
   retry_attempts: number
@@ -24,33 +24,42 @@ export interface DiffLine {
   text: string
   before: number | null
   after: number | null
+  spans: { text: string; changed: boolean }[]
 }
 
 export interface DocumentStage {
   id: StageId
   status: StageStatus
   depends_on: StageId[]
-  format: 'markdown' | 'text'
+  format: 'markdown' | 'text' | 'json'
   duration_ms: number | null
   cost_usd: string | null
   content: string | null
   diff: DiffLine[] | null
 }
 
+export type ErpWarning = 'missing_entry_id' | 'missing_supplier_id' | 'missing_tax_id' | 'missing_order_id'
+  | 'missing_status' | 'missing_date' | 'missing_amount' | 'invalid_date' | 'date_out_of_range'
+  | 'invalid_amount' | 'iso_date_format' | 'english_amount_format' | 'unknown_status' | 'possible_character_loss'
+
 export interface DocumentErpEntry {
   entry_id: string
-  registered_at: string
+  date: string | null
   supplier_id: string
-  nif: string
-  purchase_order: string
-  expected_amount: string
-  status: 'PENDIENTE' | 'PAGADA'
+  tax_id: string
+  order_id: string
+  amount: string | null
+  raw_date: string
+  raw_amount: string
+  warnings: ErpWarning[]
+  status: string
 }
 
 export interface DocumentDetail extends Document {
   stages: DocumentStage[]
   features: InvoiceFeatures | null
   erp: DocumentErpEntry | null
+  erp_snapshot_id: string | null
 }
 
 export interface InvoiceLine {
@@ -66,6 +75,8 @@ export interface InvoiceFeatures {
   invoice_date: string
   purchase_order: string
   line_items: InvoiceLine[]
+  notes: string[]
+  uncertainties: string[]
   tax_base: string
   vat_rate: string
   vat_amount: string

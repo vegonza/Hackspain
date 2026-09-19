@@ -3,14 +3,73 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException
+from fastapi.testclient import TestClient
 
+from pipeline.extraction_4.features import InvoiceFeatures
 from documents.repository import read_document_detail, save_document_features
-from documents.features import InvoiceFeatures
+from documents.router import router
 from shared.retries import RetryState
 
 
 class DocumentDetailTests(unittest.TestCase):
+    def test_open_document_preserves_all_existing_database_stages(self) -> None:
+        identifier = uuid4()
+        database, redis = MagicMock(), MagicMock()
+        database.rpc.return_value.execute.return_value.data = {
+            "id": str(identifier), "name": "invoice.pdf", "sha256": "a" * 64,
+            "created_at": datetime.now(timezone.utc).isoformat(), "status": "ready",
+            "erp_snapshot_id": str(uuid4()),
+            "erp": {"entry_id": "AS-REAL", "supplier_id": "P-REAL", "tax_id": "B12345678",
+                    "order_id": "PO-1", "status": "PAGADA", "raw_date": "12/01/2026",
+                    "raw_amount": "12,10", "date": "2026-01-12", "amount": "12.10", "warnings": []},
+            "stages": [
+                {"document_id": str(identifier), "stage": "ocr", "status": "ready",
+                 "result_path": "document.md", "duration_ms": 1200, "cost_usd": "0.004"},
+                {"document_id": str(identifier), "stage": "text", "status": "ready", "result_path": "native.txt"},
+                {"document_id": str(identifier), "stage": "merge", "status": "ready", "result_path": "merge/document.md"},
+                {"document_id": str(identifier), "stage": "extraction", "status": "ready",
+                 "result_path": "extraction/features.json", "duration_ms": 2400, "cost_usd": "0.002",
+                 "finished_at": "2026-09-19T10:00:20+00:00"},
+            ],
+        }
+        redis.__enter__.return_value.hget.return_value = None
+        features = InvoiceFeatures(
+            invoice_number="INV-1", supplier_name="Proveedor", supplier_nif="N-1", iban="Account",
+            invoice_date="2026-01-01", purchase_order="PO-1", line_items=[],
+            tax_base="10", vat_rate="21", vat_amount="2.10", total="12.10", notes=[], uncertainties=[],
+        )
+        artifacts = {"document.md": b"# Invoice", "native.txt": b"Invoice", "merge/document.md": b"# Invoice",
+                     "extraction/features.json": features.model_dump_json().encode("utf-8")}
+        app = FastAPI()
+        app.include_router(router)
+        with (
+            patch("documents.repository.get_client", return_value=database),
+            patch("documents.repository.get_redis", return_value=redis),
+            patch("pipeline.results.download_file", side_effect=artifacts.__getitem__),
+            patch("pipeline.extraction_4.features.create_extractor") as extract,
+            TestClient(app) as client,
+        ):
+            response = client.get(f"/api/documents/{identifier}")
+            repeated = client.get(f"/api/documents/{identifier}")
+            self.assertEqual(response.json(), repeated.json())
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["finished_at"], "2026-09-19T10:00:20Z")
+        self.assertEqual(response.json()["erp"]["status"], "PAGADA")
+        self.assertEqual(response.json()["erp"]["entry_id"], "AS-REAL")
+        database.table.assert_not_called()
+        stages = response.json()["stages"]
+        self.assertEqual([stage["id"] for stage in stages], ["ocr", "text", "merge", "extraction"])
+        self.assertEqual(stages[0]["cost_usd"], "0.004")
+        self.assertEqual(stages[2]["status"], "ready")
+        self.assertEqual(stages[2]["depends_on"], ["ocr", "text"])
+        self.assertEqual([line["kind"] for line in stages[2]["diff"]], ["equal"])
+        self.assertEqual(stages[2]["diff"][0]["text"], "# Invoice")
+        self.assertEqual(stages[3]["depends_on"], ["merge"])
+        self.assertEqual(stages[3]["cost_usd"], "0.002")
+        self.assertEqual(response.json()["features"], features.model_dump())
+        extract.assert_not_called()
+
     def test_single_rpc_with_redis_retry_overlay(self) -> None:
         identifier = uuid4()
         client, redis = MagicMock(), MagicMock()
@@ -44,22 +103,28 @@ class DocumentDetailTests(unittest.TestCase):
             iban="ES123", invoice_date="31/02/2026", purchase_order="PO-1",
             line_items=[], tax_base="123456789012345.12", vat_rate="21",
             vat_amount="25925925692592.4752", total="149382714704937.5952",
+            notes=["Nota impresa"], uncertainties=["Fecha imposible"],
         )
         identifier = uuid4()
-        client, redis = MagicMock(), MagicMock()
+        client = MagicMock()
         with patch("documents.repository.get_client", return_value=client):
             save_document_features(identifier, "invoice.pdf", features)
         payload = client.table.return_value.update.call_args.args[0]
         self.assertEqual(payload["invoice_date"], "31/02/2026")
         self.assertEqual(payload["total"], "149382714704937.5952")
-        self.assertNotIn("status", payload)
+        self.assertEqual(set(payload), set(InvoiceFeatures.model_fields) - {"notes", "uncertainties"})
         client.table.return_value.update.return_value.eq.assert_called_once_with("id", str(identifier))
-        client.rpc.return_value.execute.return_value.data = {
-            "id": str(identifier), "name": "invoice.pdf", "sha256": "a" * 64,
-            "created_at": datetime.now(timezone.utc).isoformat(), "status": "ready",
-            **payload, "stages": [],
-        }
-        redis.__enter__.return_value.hget.return_value = None
-        with patch("documents.repository.get_client", return_value=client), patch("documents.repository.get_redis", return_value=redis):
-            detail = read_document_detail(identifier)
-        self.assertEqual(detail.features, features)
+        self.assertEqual(InvoiceFeatures.model_validate_json(features.model_dump_json()), features)
+
+    def test_missing_amounts_are_stored_as_null_without_changing_the_artifact_fields(self) -> None:
+        features = InvoiceFeatures(
+            invoice_number="F-1", supplier_name="Proveedor", supplier_nif="B12345678",
+            iban="", invoice_date="", purchase_order="", line_items=[],
+            tax_base="", vat_rate="", vat_amount="", total="", notes=[], uncertainties=["Importes ilegibles"],
+        )
+        with patch("documents.repository.get_client") as client:
+            save_document_features(uuid4(), "invoice.pdf", features)
+        payload = client.return_value.table.return_value.update.call_args.args[0]
+        for field in ("tax_base", "vat_rate", "vat_amount", "total"):
+            self.assertIsNone(payload[field])
+            self.assertEqual(getattr(features, field), "")

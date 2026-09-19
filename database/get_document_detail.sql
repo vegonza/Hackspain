@@ -4,6 +4,9 @@ LANGUAGE sql STABLE
 SET search_path = public
 AS $$
     SELECT to_jsonb(d) - 'deleted_at' || jsonb_build_object(
+        'erp', CASE WHEN e.id IS NOT NULL
+            THEN to_jsonb(e) || jsonb_build_object('amount', e.amount::text)
+            ELSE NULL END,
         'stages', (
             SELECT COALESCE(jsonb_agg(
                 to_jsonb(s) || jsonb_build_object('cost_usd', costs.cost_usd)
@@ -21,6 +24,7 @@ AS $$
         )
     )
     FROM public.documents d
+    LEFT JOIN public.erp_entries e ON e.snapshot_id = d.erp_snapshot_id AND e.id = d.erp_entry_id
     WHERE d.id = p_document_id AND d.deleted_at IS NULL;
 $$;
 

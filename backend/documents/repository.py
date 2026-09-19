@@ -9,9 +9,10 @@ from shared.storage import get_client
 from shared.redis import get_redis
 from shared.retries import RetryState
 from documents.queue import RETRIES
-from documents.features import InvoiceFeatures
+from pipeline.extraction_4.features import InvoiceFeatures
 from shared.logger import get_logger
 from documents.stages import StageDetail, StageId
+from erp import ErpEntry
 
 
 class StageMetrics(BaseModel):
@@ -20,7 +21,7 @@ class StageMetrics(BaseModel):
     duration_ms: int | None = None
 
 
-DOCUMENT_VIRTUAL_FIELDS = {"retry_attempts", "last_error", "next_retry_at", "stage_metrics", "current_stages", "total_cost_usd", "total_duration_ms"}
+DOCUMENT_VIRTUAL_FIELDS = {"retry_attempts", "last_error", "next_retry_at", "stage_metrics", "current_stages", "total_cost_usd", "total_duration_ms", "finished_at"}
 
 
 class Document(BaseModel):
@@ -28,6 +29,7 @@ class Document(BaseModel):
     name: str
     sha256: str
     created_at: datetime
+    finished_at: datetime | None = None
     status: Literal["queued", "processing", "ready", "error"] = "queued"
     pages: int = 0
     total_cost_usd: Decimal | None = None
@@ -67,7 +69,11 @@ def list_documents() -> list[Document]:
         if rows:
             with get_redis() as redis:
                 states = redis.hmget(RETRIES, [row["id"] for row in rows])
-            documents.extend(with_retry_state(Document.model_validate(row), RetryState.model_validate_json(state) if state is not None else RetryState()) for row, state in zip(rows, states))
+            page = [with_retry_state(Document.model_validate(row), RetryState.model_validate_json(state) if state is not None else RetryState()) for row, state in zip(rows, states)]
+            for document in page:
+                if document.status not in ("ready", "error"):
+                    document.finished_at = None
+            documents.extend(page)
         if len(rows) < 1000:
             return documents
 
@@ -81,7 +87,8 @@ def create_document(document: Document) -> None:
 
 
 def write_document(document: Document) -> None:
-    get_client().table("documents").upsert(document.model_dump(mode="json", exclude=DOCUMENT_VIRTUAL_FIELDS)).execute()
+    fields = set(Document.model_fields) - DOCUMENT_VIRTUAL_FIELDS
+    get_client().table("documents").upsert(document.model_dump(mode="json", include=fields)).execute()
 
 
 def archive_document(document_id: UUID) -> None:
@@ -89,8 +96,9 @@ def archive_document(document_id: UUID) -> None:
 
 
 class DocumentSnapshot(Document):
-    features: InvoiceFeatures | None
     stages: list[StageDetail]
+    erp_snapshot_id: UUID | None = None
+    erp: ErpEntry | None = None
 
 
 def read_document_detail(document_id: UUID) -> DocumentSnapshot:
@@ -98,15 +106,20 @@ def read_document_detail(document_id: UUID) -> DocumentSnapshot:
     payload = get_client().rpc("get_document_detail", {"p_document_id": str(document_id)}).execute().data
     if payload is None:
         raise HTTPException(status_code=404, detail="document_not_found")
-    features = InvoiceFeatures.model_validate(payload) if payload["line_items"] is not None else None
-    document = DocumentSnapshot.model_validate({**payload, "features": features})
+    document = DocumentSnapshot.model_validate(payload)
     with get_redis() as redis:
         state = redis.hget(RETRIES, str(document_id))
     with_retry_state(document, RetryState.model_validate_json(state) if state is not None else RetryState())
+    if document.status in ("ready", "error"):
+        document.finished_at = max((stage.finished_at for stage in document.stages if stage.finished_at is not None), default=None)
     return document
 
 
 def save_document_features(document_id: UUID, name: str, features: InvoiceFeatures) -> None:
-    """Persist the pipeline's complete structured result without changing processing metadata."""
-    get_client().table("documents").update(features.model_dump(mode="json")).eq("id", str(document_id)).is_("deleted_at", "null").execute()
+    """Store searchable invoice fields; the stage artifact retains notes and uncertainties."""
+    fields = features.model_dump(mode="json", exclude={"notes", "uncertainties"})
+    for amount in ("tax_base", "vat_rate", "vat_amount", "total"):
+        if fields[amount] == "":
+            fields[amount] = None
+    get_client().table("documents").update(fields).eq("id", str(document_id)).is_("deleted_at", "null").execute()
     get_logger().info("[DOCUMENTS] Saved extracted data for %s", name)

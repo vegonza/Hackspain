@@ -9,7 +9,7 @@ type Props = {
 
 export function DocumentErp({ title, loading, rows }: Props) {
   return (
-    <section className="document-erp" aria-label={title} aria-busy={loading}>
+    <section className="document-data" aria-label={title} aria-busy={loading}>
       <header className="review-header"><h2>{title}</h2></header>
       <div className="features-view">
         <dl className="features-grid">

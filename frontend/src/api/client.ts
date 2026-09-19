@@ -14,6 +14,8 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
           ? i18n.t('documents.duplicatePdf')
         : error.detail === 'ocr_failed'
           ? i18n.t('documents.ocrFailed')
+          : error.detail === 'extraction_failed'
+            ? i18n.t('documents.extractionFailed')
           : i18n.t('documents.requestFailed')
       throw new Error(message)
     }

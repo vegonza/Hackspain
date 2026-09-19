@@ -1,37 +1,36 @@
-import { Check, Circle, CircleAlert, LoaderCircle } from 'lucide-react'
+import { FileText, Text, ScanText, Combine, ListChecks, Landmark } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { StageId } from '@/api/documents'
 import type { useDocuments } from '@/hooks/useDocuments'
 
-type Props = {
-  totalDuration: string
-  totalCost: string
-  totalLabel: string
-  title: string
-  stages: ReturnType<typeof useDocuments>['stages']
-  selected: 'pdf' | StageId
-  onSelect: (stage: StageId) => void
+const stageIcons = { text: Text, ocr: ScanText, merge: Combine, extraction: ListChecks } satisfies Record<StageId, typeof Text>
+
+type Props = Pick<ReturnType<typeof useDocuments>, 'stageNavigation' | 'metricsLoading' | 'sourceTab' | 'onSourceTab'> & {
+  label: string
+  pdfLabel: string
+  erpLabel: string
 }
 
-export function DocumentPipeline({ title, stages, selected, onSelect, totalCost, totalDuration, totalLabel }: Props) {
+export function DocumentPipeline({ stageNavigation, metricsLoading, sourceTab, onSourceTab, label, pdfLabel, erpLabel }: Props) {
   return (
-    <section className="document-pipeline" aria-label={title}>
-      <header className="review-header"><h2>{title}</h2></header>
-      <ol className="pipeline-stages">
-        {stages.map(stage => (
-          <li key={stage.id}>
-            <button className="pipeline-stage" aria-pressed={selected === stage.id} onClick={() => onSelect(stage.id)}>
-              <span className="pipeline-icon" data-status={stage.status}>
-                {stage.status === 'ready' ? <Check size={14} aria-label={stage.statusLabel} />
-                  : stage.status === 'processing' || stage.status === 'retrying' ? <LoaderCircle size={14} className="upload-spinner" />
-                  : stage.status === 'error' ? <CircleAlert size={14} /> : <Circle size={14} />}
-              </span>
-              <span className="pipeline-stage-copy"><strong>{stage.label}</strong></span>
-              <span className="pipeline-status" aria-live="polite">{stage.status !== 'ready' && stage.status !== 'unavailable' && <span>{stage.statusLabel}</span>}{stage.durationLabel !== null && <span className="pipeline-duration">{stage.durationLabel}</span>}{stage.costLabel !== null && <span className="pipeline-cost">{stage.costLabel}</span>}</span>
-            </button>
-          </li>
-        ))}
-      </ol>
-      <footer className="pipeline-total"><span>{totalLabel}</span><span className="pipeline-total-values" aria-live="polite"><strong>{totalDuration}</strong><strong>{totalCost}</strong></span></footer>
-    </section>
+    <nav className="sidebar-navigation document-navigation" aria-label={label}>
+      <Button variant="sidebar" size="sidebar" className={`sidebar-link ${sourceTab === 'pdf' ? 'bg-selected hover:bg-selected' : ''}`} aria-current={sourceTab === 'pdf' ? 'page' : undefined} onClick={() => onSourceTab('pdf')}>
+        <FileText /><span>{pdfLabel}</span>
+      </Button>
+      {stageNavigation.map(stage => {
+        const Icon = stageIcons[stage.id]
+        return <Button key={stage.id} variant="sidebar" size="sidebar" className={`sidebar-link ${sourceTab === stage.id ? 'bg-selected hover:bg-selected' : ''}`} aria-current={sourceTab === stage.id ? 'page' : undefined} onClick={() => onSourceTab(stage.id)}>
+          <Icon /><span>{stage.label}</span>
+          <span className="document-stage-metrics" aria-busy={metricsLoading}>
+            {metricsLoading ? <Skeleton className="h-3 w-10" /> : stage.durationLabel !== null && <span>{stage.durationLabel}</span>}
+            {metricsLoading ? <Skeleton className="h-3 w-12" /> : stage.costLabel !== null && <span>{stage.costLabel}</span>}
+          </span>
+        </Button>
+      })}
+      <Button variant="sidebar" size="sidebar" className={`sidebar-link ${sourceTab === 'erp' ? 'bg-selected hover:bg-selected' : ''}`} aria-current={sourceTab === 'erp' ? 'page' : undefined} onClick={() => onSourceTab('erp')}>
+        <Landmark /><span>{erpLabel}</span>
+      </Button>
+    </nav>
   )
 }

@@ -1,6 +1,12 @@
 # Local data
 /invoice_review.csv
+/notes.md
 /backend/data/
+/backend/audit_invoices.py
+/backend/rerun_invoices.py
+/backend/tests/test_audit_corrections.py
+/backend/tests/test_audit_verification.py
+/backend/tests/test_rerun.py
 /database/migration_*.sql
 
 # Environment files and credentials

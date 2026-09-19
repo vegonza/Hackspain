@@ -1,11 +1,11 @@
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Skeleton } from '@/components/ui/skeleton'
 import { UsageDailyTooltip } from '@/components/usage/UsageDailyTooltip'
 import type { useUsage } from '@/hooks/useUsage'
 
-type Props = Pick<ReturnType<typeof useUsage>, 'daily' | 'loading' | 'labels'>
+type Props = Pick<ReturnType<typeof useUsage>, 'daily' | 'phases' | 'loading' | 'labels'>
 
-export function UsageDailyChart({ daily, loading, labels }: Props) {
+export function UsageDailyChart({ daily, phases, loading, labels }: Props) {
   return <section className="usage-chart">
     <div className="usage-chart-canvas">
       {loading ? <Skeleton className="h-full w-full" /> : daily.length === 0 ? <p>{labels.empty}</p> : (
@@ -16,7 +16,9 @@ export function UsageDailyChart({ daily, loading, labels }: Props) {
               tickFormatter={date => new Date(`${date}T00:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} />
             <YAxis width="auto" tickLine={false} axisLine={false} tickMargin={8} />
             <Tooltip cursor={false} content={<UsageDailyTooltip costLabel={labels.totalCost} />} isAnimationActive={false} />
-            <Bar dataKey="cost" fill="var(--primary)" radius={0} maxBarSize={32} />
+            <Legend iconType="circle" iconSize={8} wrapperStyle={{ paddingTop: 12 }} />
+            {phases.map(phase => <Bar key={phase.id} dataKey={`operations.${phase.id}`} name={phase.label} stackId="cost"
+              fill={phase.color} radius={0} maxBarSize={32} />)}
           </BarChart>
         </ResponsiveContainer>
       )}

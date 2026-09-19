@@ -8,6 +8,7 @@
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "build": "bun run typecheck && vite build",
     "lint": "eslint .",
+    "test": "bun test",
     "preview": "vite preview"
   },
   "dependencies": {

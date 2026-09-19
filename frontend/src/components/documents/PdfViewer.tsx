@@ -1,5 +1,5 @@
 import { Document, Page, pdfjs } from 'react-pdf'
-import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { usePdfViewer } from '@/hooks/usePdfViewer'
 import { ZoomIn, ZoomOut } from 'lucide-react'
 
@@ -24,18 +24,18 @@ export function PdfViewer({ url }: { url: string }) {
     <div ref={containerRef} className="pdf-scroll">
       {failed ? <p className="markdown-error" role="alert">{labels.error}</p> : file && pageWidth !== undefined ? (
         <Document file={file} options={options} onLoadSuccess={onLoadSuccess} onLoadError={onError}
-          loading={<DocumentSkeleton />} error={<p className="markdown-error">{labels.error}</p>}>
+          loading={<LoadingSpinner label={labels.loading} />} error={<p className="markdown-error">{labels.error}</p>}>
           <div ref={setInner}>
             {pages.map(page => (
               <div key={page.number} ref={page.ref} className="pdf-page" style={{ width: pageWidth, minHeight: pageWidth * page.aspectRatio }}>
                 {page.shouldRender && <Page pageNumber={page.number} width={pageWidth} canvasBackground="white"
                   renderTextLayer={false} renderAnnotationLayer={false} onRenderError={onError} onLoadSuccess={onPageLoad}
-                  loading={<DocumentSkeleton />} />}
+                  loading={<LoadingSpinner label={labels.loading} />} />}
               </div>
             ))}
           </div>
         </Document>
-      ) : <DocumentSkeleton />}
+      ) : <LoadingSpinner label={labels.loading} />}
     </div>
     {pageCount > 0 && !failed && <div className="pdf-toolbar">
       <button type="button" onClick={zoomOut} disabled={zoom <= zoomMin} aria-label={labels.zoomOut} title={labels.zoomOut}><ZoomOut size={16} /></button>

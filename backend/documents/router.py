@@ -11,9 +11,9 @@ from documents.queue import enqueue, RETRIES, SCHEDULED, QUEUE
 from shared.redis import get_redis
 from documents.repository import DocumentSnapshot, read_document_detail, Document, archive_document, read_document, write_document, create_document, find_document_by_hash
 from documents.repository import list_documents as read_documents
-from documents.pipeline import DocumentStage, document_stages
-from documents.erp import DocumentErpEntry, preview_erp_entry
-from documents.features import InvoiceFeatures
+from pipeline.results import DocumentStage, document_stages
+from erp import ErpEntry
+from pipeline.extraction_4.features import InvoiceFeatures
 from shared.logger import get_logger
 from shared.storage import invalidate_document_urls, signed_url, upload_file, delete_file
 
@@ -24,13 +24,15 @@ router = APIRouter(prefix="/api/documents")
 class DocumentDetail(Document):
     stages: list[DocumentStage]
     features: InvoiceFeatures | None
-    erp: DocumentErpEntry | None
+    erp_snapshot_id: UUID | None
+    erp: ErpEntry | None
 
 
 def document_detail(document: DocumentSnapshot) -> DocumentDetail:
     stages = document_stages(document, document.stages)
-    features = document.features
-    return DocumentDetail(**document.model_dump(exclude={"stages", "features"}), stages=stages, features=features, erp=preview_erp_entry() if features is not None else None)
+    extraction = next(stage.content for stage in stages if stage.id == "extraction")
+    features = InvoiceFeatures.model_validate_json(extraction) if extraction is not None else None
+    return DocumentDetail(**document.model_dump(exclude={"stages"}), stages=stages, features=features)
 
 
 @router.get("")
