@@ -5,7 +5,7 @@ CREATE INDEX IF NOT EXISTS orders_claimed_document_idx ON public.orders (claimed
     WHERE claimed_by_document_id IS NOT NULL;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_approved_invoice_identity
-    ON public.documents ((upper(regexp_replace(COALESCE(supplier_nif, ''), '[[:space:]]', '', 'g'))), (upper(regexp_replace(COALESCE(invoice_number, ''), '^[[:space:]]+|[[:space:]]+$', '', 'g'))))
+    ON public.documents ((public.normalize_tax_id(COALESCE(supplier_nif, ''))), (upper(regexp_replace(COALESCE(invoice_number, ''), '^[[:space:]]+|[[:space:]]+$', '', 'g'))))
     WHERE deleted_at IS NULL AND payment_decision->>'classification' = 'PAGAR';
 
 CREATE OR REPLACE FUNCTION public.order_conflict_decision(p_decision JSONB)
@@ -95,7 +95,7 @@ BEGIN
     END IF;
 
     IF decision->>'classification' = 'PAGAR' THEN
-        IF regexp_replace(COALESCE(document.supplier_nif, ''), '[[:space:]]', '', 'g') = ''
+        IF public.normalize_tax_id(COALESCE(document.supplier_nif, '')) = ''
            OR regexp_replace(COALESCE(document.invoice_number, ''), '[[:space:]]', '', 'g') = '' THEN
             decision := decision || jsonb_build_object(
                 'classification', 'ESCALAR',

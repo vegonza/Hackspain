@@ -1,10 +1,10 @@
 from rules.models import RuleContext, RuleResult
-from shared.identifiers import compact_identifier, order_key
+from shared.identifiers import compact_identifier, normalize_tax_id, order_key
 
 
 def identity_rules(context: RuleContext) -> list[RuleResult]:
     invoice = context.invoice
-    nif = compact_identifier(invoice.supplier_nif)
+    nif = normalize_tax_id(invoice.supplier_nif)
     supplier, order, entries = context.supplier, context.order, context.entries
     results: list[RuleResult] = []
 
@@ -13,18 +13,18 @@ def identity_rules(context: RuleContext) -> list[RuleResult]:
 
     check('invoice_identity', bool(nif) and bool(invoice.invoice_number.strip()),
           'No se puede comprobar si la factura está duplicada: falta el NIF o el número de factura.')
-    check('supplier', supplier is not None and bool(nif) and supplier.tax_id == nif,
+    check('supplier', supplier is not None and bool(nif) and normalize_tax_id(supplier.tax_id) == nif,
           'No se encuentra el proveedor del pedido o su NIF no coincide con la factura.')
     check('iban', supplier is not None and bool(invoice.iban.strip()) and compact_identifier(invoice.iban) == supplier.iban,
           'El IBAN no coincide con el del proveedor del maestro o no se puede verificar.')
     check('order', order is not None and not context.order_ambiguous and order_key(order.order_id) == order_key(invoice.purchase_order),
           'El pedido no existe o su código es ambiguo en el maestro.')
     check('order_supplier', order is not None and supplier is not None and order.supplier_id == supplier.supplier_id
-          and (order.tax_id is None or order.tax_id == nif),
+          and (order.tax_id is None or normalize_tax_id(order.tax_id) == nif),
           'El proveedor o NIF registrado en el pedido no coincide con la factura.')
     check('erp_unique', len(entries) == 1, 'El pedido no tiene un asiento ERP único.')
     check('erp_supplier', len(entries) == 1 and supplier is not None and entries[0].supplier_id == supplier.supplier_id
-          and compact_identifier(entries[0].tax_id) == nif,
+          and normalize_tax_id(entries[0].tax_id) == nif,
           'El proveedor o NIF del ERP no coincide con la factura o no se puede verificar.')
     check('erp_pending', len(entries) == 1 and entries[0].status == 'PENDIENTE',
           'El pedido no tiene un único asiento PENDIENTE en el ERP.')

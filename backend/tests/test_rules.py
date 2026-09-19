@@ -49,6 +49,15 @@ class RulesTests(unittest.TestCase):
                     setattr(self.context.invoice, field, original)
         self.context.entries[0].status = 'PENDIENTE'
 
+    def test_tax_id_punctuation_does_not_change_identity(self) -> None:
+        self.context.supplier.tax_id = '12.345.678/0001-95'
+        self.context.order.tax_id = '12345678000195'
+        self.context.entries[0].tax_id = '12.345.678/0001-95'
+        self.context.invoice.supplier_nif = ' 12345678000195 '
+        self.assertEqual(self.classification(), 'PAGAR')
+        self.context.invoice.supplier_nif = '12345678000196'
+        self.assertEqual(self.classification(), 'ESCALAR')
+
     def test_order_claim_must_belong_to_this_invoice(self) -> None:
         for owner in (None, UUID('00000000-0000-0000-0000-000000000002')):
             with self.subTest(owner=owner):

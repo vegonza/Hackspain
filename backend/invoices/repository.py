@@ -7,6 +7,7 @@ from decimal import Decimal
 from pydantic import BaseModel
 from shared.storage import get_client
 from shared.redis import get_redis
+from shared.identifiers import normalize_tax_id
 from shared.retries import RetryState
 from invoices.queue import RETRIES
 from extractor.extraction import InvoiceExtraction
@@ -121,6 +122,7 @@ def read_invoice_detail(invoice_id: UUID) -> InvoiceDetails:
 def save_invoice_extraction(invoice_id: UUID, name: str, extraction: InvoiceExtraction) -> None:
     """Store searchable invoice fields; the extraction artifact retains notes and uncertainties."""
     fields = extraction.model_dump(mode="json", exclude={"notes", "uncertainties"})
+    fields["supplier_nif"] = normalize_tax_id(extraction.supplier_nif)
     for amount in ("tax_base", "vat_rate", "vat_amount", "total"):
         if fields[amount] == "":
             fields[amount] = None
