@@ -207,12 +207,26 @@ export function useDocuments(initialDocuments: Document[]) {
         ? t('pipeline.durationSeconds', { value: (stage.duration_ms / 1000).toFixed(1) })
         : t('pipeline.durationMinutes', { minutes: Math.floor(stage.duration_ms / 60000), seconds: Math.floor(stage.duration_ms % 60000 / 1000) }),
   }))
+  const erp = selected === null ? null : selected.erp
+  const erpMoney = (value: number) => `${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)} €`
+  const difference = erp !== null && selected !== null && selected.features !== null
+    ? Number(selected.features.total) - Number(erp.expected_amount) : null
+  const erpRows = [
+    { label: t('erp.status'), value: erp === null ? '—' : t(`erp.states.${erp.status}`) },
+    { label: t('erp.expectedAmount'), value: erp === null ? '—' : erpMoney(Number(erp.expected_amount)) },
+    { label: t('erp.difference'), value: difference === null ? '—' : erpMoney(difference) },
+    { label: t('erp.entry'), value: erp === null ? '—' : erp.entry_id },
+    { label: t('erp.purchaseOrder'), value: erp === null ? '—' : erp.purchase_order },
+    { label: t('erp.supplier'), value: erp === null ? '—' : erp.supplier_id },
+    { label: t('erp.nif'), value: erp === null ? '—' : erp.nif },
+    { label: t('erp.registeredAt'), value: erp === null ? '—' : new Date(`${erp.registered_at}T00:00:00`).toLocaleDateString('es-ES') },
+  ]
   const knownCosts = stages.filter(stage => stage.cost_usd !== null)
   const totalCost = knownCosts.length === 0 ? '—' : `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(knownCosts.reduce((sum, stage) => sum + Number(stage.cost_usd), 0))}`
   const activeStage = stages.find(stage => stage.id === sourceTab)
 
   return {
-    stages, activeStage, totalCost,
+    stages, activeStage, totalCost, erpRows,
     documents: rows,
     selected,
     selectedId, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments,
@@ -222,6 +236,7 @@ export function useDocuments(initialDocuments: Document[]) {
     view, onUsage: () => setView('usage'),
     onUpload, onDelete, onSelect: (id: string) => { setView('documents'); return selectDocument(id) }, onSourceTab: setSourceTab,
     labels: {
+      erp: t('erp.title'),
       diff: { title: t('pipeline.diff.title'), removed: t('pipeline.diff.removed'), added: t('pipeline.diff.added') },
       totalCost: t('usage.totalCost'), pipeline: t('pipeline.title'), waiting: t('pipeline.waiting'), appName: t('app.name'), upload: t('documents.upload'),
       library: t('documents.library'),

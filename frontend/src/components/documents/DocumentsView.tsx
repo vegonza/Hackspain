@@ -1,4 +1,5 @@
 import { MarkdownDiff } from '@/components/documents/MarkdownDiff'
+import { DocumentErp } from '@/components/documents/DocumentErp'
 import { DocumentPipeline } from '@/components/documents/DocumentPipeline'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DollarSign, LoaderCircle, Upload } from 'lucide-react'
@@ -18,14 +19,12 @@ import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
 
 type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsage> }
 
-export function DocumentsView({ stages, activeStage, totalCost, documents, selected, selectedId, selectedRow, loading, pdfUrl, pdfLoading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage, onRetry, retrying }: Props) {
+export function DocumentsView({ erpRows, stages, activeStage, totalCost, documents, selected, selectedId, selectedRow, loading, pdfUrl, pdfLoading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage, onRetry, retrying }: Props) {
   return (
     <div className="app-shell" ref={watchDocuments}>
       <header className="app-header">
         <img className="brand-logo" src={logo} alt={labels.appName} />
-        <span className="header-divider" />
-        <h1>{view === 'usage' ? labels.usage : labels.library}</h1>
-        <span className="document-count">{documents.length}</span>
+        {view === 'usage' && <h1>{labels.usage}</h1>}
         <label className="upload-button">
           <Upload size={15} />{labels.upload}
           <input type="file" accept="application/pdf,.pdf" multiple onChange={onUpload} aria-label={labels.upload} />
@@ -86,6 +85,7 @@ export function DocumentsView({ stages, activeStage, totalCost, documents, selec
                 {loading ? <InvoiceFeaturesSkeleton /> : selected && selected.features ?
                   <InvoiceFeatures features={selected.features} labels={featureLabels} />
                 : <p className="markdown-error">{labels.noFeatures}</p>}
+                <DocumentErp title={labels.erp} loading={loading} rows={erpRows} />
               </section>
             </div>
           ) : <div className="empty-review"><p>{labels.emptyDescription}</p></div>}

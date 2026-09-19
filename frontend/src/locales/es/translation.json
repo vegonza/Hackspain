@@ -59,6 +59,18 @@
     "vatAmount": "Cuota de IVA",
     "total": "Total"
   },
+  "erp": {
+    "title": "ERP",
+    "status": "Estado",
+    "expectedAmount": "Importe esperado",
+    "difference": "Diferencia",
+    "entry": "Asiento",
+    "purchaseOrder": "Pedido",
+    "supplier": "Proveedor",
+    "nif": "NIF",
+    "registeredAt": "Fecha de registro",
+    "states": { "PENDIENTE": "Pendiente", "PAGADA": "Pagada" }
+  },
   "pipeline": {
     "durationMilliseconds": "{{value}} ms",
     "durationSeconds": "{{value}} s",

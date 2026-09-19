@@ -14,6 +14,7 @@ from documents.repository import list_documents as read_documents
 from documents.pipeline import DocumentStage, document_stages
 from documents.stages import read_stage_costs
 from decimal import Decimal
+from documents.erp import DocumentErpEntry, preview_erp_entry
 from documents.features import InvoiceFeatures, extract_invoice_features
 from shared.logger import get_logger
 from shared.storage import invalidate_document_urls, signed_url, upload_file, delete_file
@@ -25,13 +26,14 @@ router = APIRouter(prefix="/api/documents")
 class DocumentDetail(Document):
     stages: list[DocumentStage]
     features: InvoiceFeatures | None
+    erp: DocumentErpEntry | None
 
 
 def document_detail(document: DocumentSnapshot) -> DocumentDetail:
     stages = document_stages(document, document.stages)
     markdown = stages[0].content
     features = extract_invoice_features(markdown) if markdown is not None else None
-    return DocumentDetail(**document.model_dump(exclude={"stages"}), stages=stages, features=features)
+    return DocumentDetail(**document.model_dump(exclude={"stages"}), stages=stages, features=features, erp=preview_erp_entry() if features is not None else None)
 
 
 @router.get("")

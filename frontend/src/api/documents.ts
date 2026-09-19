@@ -33,9 +33,20 @@ export interface DocumentStage {
   diff: DiffLine[] | null
 }
 
+export interface DocumentErpEntry {
+  entry_id: string
+  registered_at: string
+  supplier_id: string
+  nif: string
+  purchase_order: string
+  expected_amount: string
+  status: 'PENDIENTE' | 'PAGADA'
+}
+
 export interface DocumentDetail extends Document {
   stages: DocumentStage[]
   features: InvoiceFeatures | null
+  erp: DocumentErpEntry | null
 }
 
 export interface InvoiceLine {
