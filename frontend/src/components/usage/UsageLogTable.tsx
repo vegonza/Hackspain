@@ -25,7 +25,7 @@ export function UsageLogTable({ loading, records, page, pages, setPage, labels, 
       <TableBody>{loading ? Array.from({ length: 10 }, (_, row) => <TableRow key={row}>{Array.from({ length: 6 }, (_, cell) => <TableCell key={cell}><Skeleton className="h-4 w-20 max-w-full" /></TableCell>)}</TableRow>)
         : records.map(record => <TableRow key={record.id}>
           <TableCell className="usage-date">{record.date}</TableCell>
-          <TableCell><span className="flex items-center gap-2 text-xs"><img src={`/providers/${record.provider}.svg`} alt="" className="size-5 shrink-0" /><span>{record.providerName}</span></span></TableCell>
+          <TableCell><span className="flex items-center gap-2 text-xs"><img src={record.providerLogo} alt="" className="size-5 shrink-0" /><span>{record.providerName}</span></span></TableCell>
           <TableCell><Tooltip text={record.model} onlyWhenTruncated asChild><span className="usage-cell-text usage-model">{record.model}</span></Tooltip></TableCell>
           <TableCell><Badge variant="outline"><span className="size-2 rounded-full" style={{ backgroundColor: record.color }} aria-hidden="true" />{record.operation}</Badge></TableCell>
           <TableCell><Tooltip text={record.document_name} onlyWhenTruncated asChild><span className="usage-cell-text">{record.document_name}</span></Tooltip></TableCell>

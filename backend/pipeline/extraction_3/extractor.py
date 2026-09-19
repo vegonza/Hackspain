@@ -4,7 +4,7 @@ from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from decimal import Decimal
 from pathlib import Path
-from typing import TypeVar
+from typing import Any, TypeVar, cast
 
 from openai import OpenAI
 from openai.types.chat import ChatCompletionContentPartParam
@@ -61,8 +61,10 @@ class ExtractionManager:
         )
         if usage is not None:
             reported_usage = result.usage.model_dump()
+            provider = cast(dict[str, Any], result.model_extra)["provider"]
+            usage.provider = provider
             usage.usage.append(UsageEntry(
-                model=result.model, provider="openrouter",
+                model=result.model, provider=provider,
                 cost=Decimal(str(reported_usage["cost"])),
                 details={"response_id": result.id, "result_type": result_type.__name__, **reported_usage},
             ))

@@ -55,7 +55,6 @@
     "pendingError": "{{count}} registros de consumo pendientes de guardar tras un error.",
     "title": "Consumo", "cost": "Coste", "calls": "Llamadas", "pages": "Páginas procesadas",
     "totalCost": "Coste total", "documentCost": "Coste medio por documento",
-    "providers": { "mistral": "Mistral", "openrouter": "OpenRouter" },
     "breakdown": { "pages_processed": "Páginas", "prompt_tokens": "Tokens de entrada", "completion_tokens": "Tokens de salida", "total_tokens": "Tokens totales" },
     "history": "Registro de llamadas", "records_one": "{{count}} registro", "records_other": "{{count}} registros", "date": "Fecha", "document": "Documento", "model": "Modelo",
     "provider": "Proveedor", "operation": "Operación",

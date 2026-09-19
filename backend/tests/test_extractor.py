@@ -23,7 +23,7 @@ def tool_call(arguments: str, name: str = "ExtractedText") -> dict[str, object]:
 
 def response(calls: list[dict[str, object]]) -> dict[str, object]:
     return {
-        "id": "response-1", "model": MODEL, "created": 0, "object": "chat.completion",
+        "id": "response-1", "provider": "OpenAI", "model": MODEL, "created": 0, "object": "chat.completion",
         "usage": {"cost": "0.001", "prompt_tokens": 100, "completion_tokens": 10, "total_tokens": 110},
         "choices": [{"index": 0, "finish_reason": "tool_calls", "message": {
             "role": "assistant", "content": '{"text":"unused prose"}', "tool_calls": calls,
@@ -68,6 +68,8 @@ class RequiredOutputToolTests(unittest.TestCase):
         self.assertNotIn("strict", payload["tools"][0]["function"])
         self.assertEqual(payload["tools"][0]["function"]["parameters"], ExtractedText.model_json_schema())
         self.assertEqual(payload["messages"][1]["content"], [{"type": "text", "text": "Document text"}])
+        self.assertEqual(self.usage.provider, "OpenAI")
+        self.assertEqual(self.usage.usage[0].provider, "OpenAI")
         self.assertEqual(self.usage.usage[0].cost, Decimal("0.001"))
 
     def test_requires_exactly_one_call_without_using_message_content_or_making_another_request(self) -> None:

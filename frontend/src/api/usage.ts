@@ -5,7 +5,7 @@ export interface UsageRecord {
   created_at: string
   document_name: string
   document_id: string
-  provider: 'mistral' | 'openrouter'
+  provider: string
   model: string
   operation: string
   usage: { model: string; provider: string; cost: string; details: Record<string, unknown> }[]
