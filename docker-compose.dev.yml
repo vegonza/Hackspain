@@ -102,7 +102,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.dev
     environment:
-      VITE_API_URL: http://localhost:8766
+      VITE_API_URL: http://backend:8766
     ports:
       - "127.0.0.1:5173:5173"
     depends_on:

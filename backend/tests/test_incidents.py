@@ -56,6 +56,11 @@ class IncidentTests(unittest.TestCase):
         self.assertEqual(response.json()[0]["invoice_name"], "revisar.pdf")
         self.assertEqual(response.json()[0]["amount_eur"], "121.00")
 
+    def test_keeps_an_escalated_invoice_when_its_issued_date_is_invalid(self) -> None:
+        self.database.table.return_value.select.return_value.is_.return_value.execute.return_value.data[0]["invoice_date"] = "31/02/2026"
+        incident = list_incidents()[0]
+        self.assertIsNone(incident.invoice_date)
+
 
 if __name__ == "__main__":
     unittest.main()

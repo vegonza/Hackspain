@@ -48,6 +48,15 @@ class InvoiceIncident(BaseModel):
     reasons: list[str]
 
 
+def incident_date(value: str | None) -> date | None:
+    if value is None:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
+
+
 def with_retry_state(invoice_record: Invoice, state: RetryState) -> Invoice:
     invoice_record.retry_attempts = state.attempts
     invoice_record.last_error = state.last_error
@@ -100,7 +109,7 @@ def list_incidents() -> list[InvoiceIncident]:
         incidents.append(InvoiceIncident(
             invoice_id=row["id"],
             invoice_name=row["name"],
-            invoice_date=row["invoice_date"] or None,
+            invoice_date=incident_date(row["invoice_date"]),
             created_at=row["created_at"],
             due_date=decision.due_date,
             amount_eur=decision.amount_eur,
