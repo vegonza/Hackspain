@@ -164,9 +164,11 @@ class ExtractionWiringTests(unittest.TestCase):
             patch("pipeline.runner.process_text") as text,
             patch("pipeline.runner.process_ocr") as ocr,
             patch("pipeline.runner.process_extraction") as extraction,
+            patch("pipeline.runner.process_classification") as classification,
         ):
             run_pipeline(document)
         extraction.assert_called_once_with(document)
+        classification.assert_called_once_with(document)
         download.assert_not_called()
         text.assert_not_called()
         ocr.assert_not_called()

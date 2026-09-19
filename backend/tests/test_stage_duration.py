@@ -25,6 +25,7 @@ def queued_document() -> DocumentDetails:
 class StageDurationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.enterContext(patch("pipeline.runner.bind_snapshot"))
+        self.enterContext(patch("pipeline.runner.process_classification"))
 
     def test_stage_persistence_uses_existing_metadata_columns(self) -> None:
         document = queued_document()

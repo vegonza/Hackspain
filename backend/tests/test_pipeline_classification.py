@@ -56,3 +56,55 @@ class PipelineClassificationTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'Database unavailable'):
                 process(self.document)
         self.assertIsNone(self.document.payment_decision)
+
+    def test_rules_claim_lookup_and_publication_work_together(self) -> None:
+        from pipeline.extraction_3.extraction import InvoiceLine
+        from documents.payment_notes import PaymentNotesReview
+
+        self.invoice.purchase_order = 'PO-001'
+        self.invoice.line_items = [InvoiceLine(description='Servicio', amount='100')]
+        other_id = uuid4()
+        for owner, status, expected in (
+            (self.document.id, 'PENDIENTE', 'PAGAR'),
+            (other_id, 'PENDIENTE', 'ESCALAR'),
+            (other_id, 'PAGADA', 'NO_PAGAR'),
+        ):
+            with self.subTest(owner=owner, status=status):
+                self.document.payment_decision = None
+                client = MagicMock()
+
+                def rpc(name: str, args: dict[str, object]) -> MagicMock:
+                    response = MagicMock()
+                    if name == 'claim_invoice_order':
+                        response.execute.return_value.data = str(owner)
+                    elif name == 'get_rule_references':
+                        response.execute.return_value.data = {
+                            'supplier': {'supplier_id': 'P1', 'legal_name': 'Proveedor', 'tax_id': 'B12345678',
+                                         'iban': 'ES001234', 'city': 'Málaga', 'payment_terms_days': 30},
+                            'order': {'order_id': 'PO-001', 'supplier_id': 'P1', 'tax_id': 'B12345678',
+                                      'amount': '121', 'status': 'ABIERTO', 'date': '2026-01-01', 'review_required': False},
+                            'entries': [{'entry_id': 'AS-1', 'supplier_id': 'P1', 'tax_id': 'B12345678',
+                                         'order_id': 'PO-001', 'status': status, 'raw_date': '01/01/2026',
+                                         'raw_amount': '121,00', 'amount': '121'}],
+                        }
+                    elif name == 'publish_payment_decision':
+                        response.execute.return_value.data = args['p_decision']
+                    else:
+                        self.fail(f'Unexpected RPC: {name}')
+                    return response
+
+                client.rpc.side_effect = rpc
+                with (
+                    patch('pipeline.classification.download_file', return_value=self.invoice.model_dump_json().encode()),
+                    patch('pipeline.classification.track_usage', return_value=nullcontext(None)),
+                    patch('pipeline.classification.get_client', return_value=client),
+                    patch('rules.resolver.get_client', return_value=client),
+                    patch('documents.classification.review_payment_notes', return_value=PaymentNotesReview(concerns=[])) as notes,
+                ):
+                    process(self.document)
+                self.assertEqual(self.document.payment_decision.classification, expected)
+                self.assertEqual(self.document.payment_decision.claimed_by_document_id, owner)
+                self.assertEqual([call.args[0] for call in client.rpc.call_args_list],
+                                 ['claim_invoice_order', 'get_rule_references', 'publish_payment_decision'])
+                if status == 'PAGADA':
+                    notes.assert_not_called()
