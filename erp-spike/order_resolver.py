@@ -29,6 +29,7 @@ from enum import Enum
 from typing import Iterable, Mapping, Sequence
 
 __all__ = [
+    "BLOCKING_ANOMALIES",
     "Confidence",
     "Strategy",
     "Anomaly",
@@ -124,6 +125,7 @@ class Anomaly(str, Enum):
     ORDER_CODE_REPAIRED = "order_code_repaired"
     ORDER_CODE_UNKNOWN_TO_ERP = "order_code_unknown_to_erp"
     MULTIPLE_ORDER_CODES = "multiple_order_codes"
+    DUPLICATE_ORDER_IN_ERP = "duplicate_order_in_erp"
     SUPPLIER_TAX_ID_MISMATCH = "supplier_tax_id_mismatch"
     SUPPLIER_TAX_ID_MISSING = "supplier_tax_id_missing"
     ENTRY_TAX_ID_MISSING = "entry_tax_id_missing"
@@ -138,16 +140,36 @@ class Anomaly(str, Enum):
     ENTRY_HAS_WARNINGS = "entry_has_warnings"
 
 
+#: Anomalies that should stop a payment outright rather than merely annotate
+#: it. The rest are context a reviewer may reasonably wave through; these are
+#: not. Paying twice, paying the wrong supplier, or paying against an order the
+#: ledger cannot pin down are all unrecoverable once the money has moved.
+BLOCKING_ANOMALIES = frozenset({
+    Anomaly.ENTRY_ALREADY_PAID.value,
+    Anomaly.DUPLICATE_ORDER_IN_ERP.value,
+    Anomaly.SUPPLIER_TAX_ID_MISMATCH.value,
+    Anomaly.ORDER_CODE_UNKNOWN_TO_ERP.value,
+    Anomaly.INVOICE_DATE_IMPOSSIBLE.value,
+})
+
+
 # --------------------------------------------------------------------------
 # Normalisation
 # --------------------------------------------------------------------------
 
 def normalise_amount(raw) -> int | None:
-    """Return an amount in cents, or None if it cannot be read confidently.
+    """Return an amount in cents, or None if the input is not a bare amount.
 
     Handles both conventions seen in the corpus: Spanish ``1.250,00`` and
     English ``3400.00``. Working in integer cents keeps equality meaningful;
     comparing floats for money invites rounding bugs that look like fraud.
+
+    The input must be an amount and nothing else, aside from currency markers.
+    Anything carrying other text is rejected rather than mined for digits.
+    An earlier version stripped every non-digit character first, which turned
+    ``"IVA (21%): 295,97"`` into 21.295,97 and ``"30 dias fecha factura"``
+    into 30,00. A field that holds a sentence is a broken field, and saying so
+    is the only safe answer.
     """
     if raw is None:
         return None
@@ -156,17 +178,28 @@ def normalise_amount(raw) -> int | None:
     if isinstance(raw, float):
         return int(round(raw * 100))
 
-    text = str(raw).strip()
+    text = str(raw).replace("\u00a0", " ").replace("\u202f", " ").strip()
     if not text:
         return None
 
-    negative = text.startswith("-") or text.startswith("(") and text.endswith(")")
-    # Strip currency markers, thin spaces and anything that is not part of a number.
-    text = text.replace("\u00a0", " ").replace("\u202f", " ")
-    text = re.sub(r"(?i)\b(eur|euros?|usd)\b", " ", text)
-    text = text.replace("€", " ").replace("$", " ")
-    text = re.sub(r"[^\d.,]", "", text)
-    if not text:
+    negative = False
+    if text.startswith("(") and text.endswith(")"):
+        negative, text = True, text[1:-1].strip()
+
+    # Currency markers may sit on either side; nothing else may.
+    text = re.sub(r"(?i)^(eur|euros?|usd|€|\$)\s*", "", text)
+    text = re.sub(r"(?i)\s*(eur|euros?|usd|€|\$)$", "", text)
+    text = text.strip()
+
+    if text.startswith("-"):
+        negative, text = True, text[1:].strip()
+    elif text.startswith("+"):
+        text = text[1:].strip()
+
+    # No internal whitespace, no letters, no stray punctuation. The remainder
+    # has to be the number itself.
+    text = text.replace(" ", "")
+    if not text or not re.fullmatch(r"[\d.,]+", text):
         return None
 
     if _AMOUNT_ES_GROUPED.match(text):
@@ -391,12 +424,27 @@ class Resolution:
 
     @property
     def needs_review(self) -> bool:
-        """True when a human must look at it before any payment decision."""
+        """True when a human must look at it before any payment decision.
+
+        Note what this is not: it is not "did we find the entry". A perfectly
+        resolved invoice whose entry is already PAGADA is the most dangerous
+        document in the batch, and it resolves by exact order code with full
+        confidence. Any anomaly at all therefore forces review.
+
+        The only way through without review is an exact order code whose
+        corroboration came back completely clean.
+        """
         return (
             not self.resolved
-            or self.confidence in (Confidence.MEDIUM, Confidence.LOW)
+            or self.confidence is not Confidence.EXACT
             or self.strategy is not Strategy.ORDER_CODE
+            or bool(self.anomalies)
         )
+
+    @property
+    def blocking_anomalies(self) -> tuple[str, ...]:
+        """Anomalies that should stop a payment outright, not merely flag it."""
+        return tuple(a for a in self.anomalies if a in BLOCKING_ANOMALIES)
 
     def to_dict(self) -> dict:
         return {
@@ -407,7 +455,9 @@ class Resolution:
             "resolved": self.resolved,
             "needs_review": self.needs_review,
             "candidates": [c.order_id for c in self.candidates],
+            "candidate_entry_ids": [c.entry_id for c in self.candidates],
             "anomalies": list(self.anomalies),
+            "blocking_anomalies": list(self.blocking_anomalies),
             "notes": list(self.notes),
         }
 
@@ -425,26 +475,34 @@ class ErpIndex:
     """
 
     def __init__(self, entries: Iterable[Mapping | Entry]):
-        self._entries: list[Entry] = []
-        self.duplicate_order_ids: list[str] = []
+        grouped: dict[str, list[Entry]] = {}
+        self._all: list[Entry] = []
 
-        by_order: dict[str, Entry] = {}
         for item in entries:
             entry = item if isinstance(item, Entry) else Entry.from_dict(item)
             if not entry.order_id:
                 continue
-            if entry.order_id in by_order:
-                self.duplicate_order_ids.append(entry.order_id)
-            by_order[entry.order_id] = entry
-            self._entries.append(entry)
+            grouped.setdefault(entry.order_id, []).append(entry)
+            self._all.append(entry)
 
-        self._by_order = by_order
+        self._grouped = grouped
+        self.duplicate_order_ids = sorted(o for o, rows in grouped.items() if len(rows) > 1)
+        self._duplicated = frozenset(self.duplicate_order_ids)
+
+        # Only orders backed by exactly one row are directly addressable. A
+        # duplicated order is not a row we may choose between; it is a defect
+        # in the ledger, and choosing would hide it.
+        self._by_order = {o: rows[0] for o, rows in grouped.items() if len(rows) == 1}
+
         self._by_nif_date: dict[tuple[str, date], list[Entry]] = {}
         self._by_nif_amount: dict[tuple[str, int], list[Entry]] = {}
         self._by_amount: dict[int, list[Entry]] = {}
         self._by_nif: dict[str, list[Entry]] = {}
 
-        for entry in by_order.values():
+        # The secondary indexes span every row, duplicates included, so a
+        # fallback search surfaces them as competing candidates instead of
+        # quietly missing one.
+        for entry in self._all:
             if entry.tax_id:
                 self._by_nif.setdefault(entry.tax_id, []).append(entry)
                 if entry.date:
@@ -473,13 +531,31 @@ class ErpIndex:
         return cls(rows)
 
     def __len__(self) -> int:
-        return len(self._by_order)
+        """Number of distinct order ids, duplicated ones counted once."""
+        return len(self._grouped)
 
     @property
     def entries(self) -> Sequence[Entry]:
-        return tuple(self._by_order.values())
+        return tuple(self._all)
+
+    def is_duplicated(self, order_id: str) -> bool:
+        return order_id in self._duplicated
+
+    def known_order(self, order_id: str) -> bool:
+        """True if the ERP has the order at all, however many rows it has."""
+        return order_id in self._grouped
+
+    def rows_for_order(self, order_id: str) -> list[Entry]:
+        """Every row carrying this order id. More than one is a defect."""
+        return list(self._grouped.get(order_id, ()))
 
     def by_order(self, order_id: str) -> Entry | None:
+        """The single row for this order, or None if there is not exactly one.
+
+        Returns None for a duplicated order on purpose. Callers must consult
+        ``is_duplicated`` to tell "unknown" from "ambiguous"; conflating them
+        would report a ledger defect as a missing order.
+        """
         return self._by_order.get(order_id)
 
     def by_nif_and_date(self, tax_id: str, day: date, window_days: int = 0) -> list[Entry]:
@@ -558,6 +634,29 @@ class OrderResolver:
                 continue
             entry, strategy, confidence, candidates, extra = result
             anomalies.extend(a for a in extra if a not in anomalies)
+
+            if entry is not None and self.index.is_duplicated(entry.order_id):
+                # One choke point for every rung of the ladder. The ledger
+                # holds more than one row for this order, so there is no single
+                # entry to pay against. Picking one would be a coin flip with
+                # someone else's money; both rows go to a human instead.
+                rows = self.index.rows_for_order(entry.order_id)
+                for name in (Anomaly.DUPLICATE_ORDER_IN_ERP.value,
+                             Anomaly.AMBIGUOUS_CANDIDATES.value):
+                    if name not in anomalies:
+                        anomalies.append(name)
+                return Resolution(
+                    entry=None,
+                    strategy=strategy,
+                    confidence=Confidence.NONE,
+                    candidates=tuple(rows),
+                    anomalies=tuple(anomalies),
+                    notes=tuple(notes) + (
+                        f"{len(rows)} ERP rows share {entry.order_id}: "
+                        + ", ".join(row.entry_id for row in rows),
+                    ),
+                )
+
             if entry is not None:
                 anomalies.extend(
                     a for a in self._verify(entry, tax_id, invoice_date, total_cents)
@@ -596,14 +695,25 @@ class OrderResolver:
         extra: list[str] = []
         if len(codes) > 1:
             extra.append(Anomaly.MULTIPLE_ORDER_CODES.value)
-            known = [c for c in codes if self.index.by_order(c)]
+            known = [c for c in codes if self.index.known_order(c)]
             if len(known) != 1:
-                return (None, Strategy.ORDER_CODE, Confidence.NONE,
-                        [e for e in (self.index.by_order(c) for c in codes) if e],
+                candidates = [row for c in codes for row in self.index.rows_for_order(c)]
+                return (None, Strategy.ORDER_CODE, Confidence.NONE, candidates,
                         extra + [Anomaly.AMBIGUOUS_CANDIDATES.value])
             codes = known
 
-        entry = self.index.by_order(codes[0])
+        code = codes[0]
+
+        if self.index.is_duplicated(code):
+            # The ERP holds several rows for this order. Report it as the
+            # defect it is; the guard in resolve() would catch it anyway, but
+            # saying so here keeps the reason precise.
+            rows = self.index.rows_for_order(code)
+            return (None, Strategy.ORDER_CODE, Confidence.NONE, rows,
+                    extra + [Anomaly.DUPLICATE_ORDER_IN_ERP.value,
+                             Anomaly.AMBIGUOUS_CANDIDATES.value])
+
+        entry = self.index.by_order(code)
         if entry is None:
             # The document names an order the ERP has never heard of. That is a
             # finding in its own right, not a reason to go hunting for a

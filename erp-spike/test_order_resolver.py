@@ -382,6 +382,152 @@ class TestIndex:
         assert len(index) == 1
 
 
+class TestReportedDefects:
+    """Three defects found in review. Each one could have moved money."""
+
+    # -- 1. amounts mined out of prose ------------------------------------
+
+    @pytest.mark.parametrize("prose", [
+        "Importe base: 1.250,00 €",
+        "IVA (21%): 295,97",
+        "Base: 940,00  IVA: 197,40",
+        "TOTAL: 1.705,37",
+        "30 dias fecha factura",
+        "Condiciones de pago: 30 dias",
+        "Factura 2026/11604 por 1.250,00",
+    ])
+    def test_a_field_holding_a_sentence_is_not_an_amount(self, prose):
+        assert normalise_amount(prose) is None
+
+    def test_the_percentage_no_longer_glues_itself_to_the_amount(self):
+        # Stripping every non-digit turned this into 21.295,97.
+        assert normalise_amount("IVA (21%): 295,97") is None
+
+    def test_prose_containing_a_number_is_not_thirty_euros(self):
+        # "30 dias fecha factura" used to parse as 30,00.
+        assert normalise_amount("30 dias fecha factura") is None
+
+    @pytest.mark.parametrize("bare,cents", [
+        ("1.250,00", 125000),
+        ("1.250,00 €", 125000),
+        ("€ 1.250,00", 125000),
+        ("1.250,00 EUR", 125000),
+        ("EUR 1409.40", 140940),
+        ("-1.250,00", -125000),
+        ("(1.250,00)", -125000),
+    ])
+    def test_bare_amounts_with_currency_markers_still_parse(self, bare, cents):
+        assert normalise_amount(bare) == cents
+
+    # -- 2. needs_review ignored the anomalies ----------------------------
+
+    def test_an_exact_match_on_an_already_paid_entry_needs_review(self, resolver):
+        """Resolving perfectly is not the same as being safe to pay."""
+        result = resolver.resolve(InvoiceSignals(
+            purchase_order="PO-2026-0005", supplier_nif="B22222222",
+            invoice_date="05/03/2026", total="500,00"))
+        assert result.resolved
+        assert result.strategy is Strategy.ORDER_CODE
+        assert result.confidence is Confidence.EXACT
+        assert Anomaly.ENTRY_ALREADY_PAID.value in result.anomalies
+        assert result.needs_review is True
+        assert Anomaly.ENTRY_ALREADY_PAID.value in result.blocking_anomalies
+
+    def test_an_exact_match_with_a_wrong_amount_needs_review(self, resolver):
+        result = resolver.resolve(InvoiceSignals(
+            purchase_order="PO-2026-0001", supplier_nif="B11111111",
+            invoice_date="01/03/2026", total="150,00"))
+        assert result.resolved
+        assert result.needs_review is True
+
+    def test_only_a_clean_exact_match_skips_review(self, resolver):
+        result = resolver.resolve(InvoiceSignals(
+            purchase_order="PO-2026-0001", supplier_nif="B11111111",
+            invoice_date="01/03/2026", total="100,00"))
+        assert result.anomalies == ()
+        assert result.needs_review is False
+
+    def test_needs_review_is_never_false_while_anomalies_exist(self, resolver):
+        """The invariant the rules engine is allowed to rely on."""
+        probes = [
+            InvoiceSignals(purchase_order="PO-2026-0001", supplier_nif="B99999999",
+                           invoice_date="01/03/2026", total="100,00"),
+            InvoiceSignals(purchase_order="PO-2026-0006", supplier_nif="B33333333",
+                           invoice_date="06/03/2026", total="600,00"),
+            InvoiceSignals(purchase_order="PO-2026-0001", supplier_nif="B11111111",
+                           invoice_date="31/02/2026", total="100,00"),
+            InvoiceSignals(supplier_nif="B11111111",
+                           invoice_date="01/03/2026", total="100,00"),
+        ]
+        for signals in probes:
+            result = resolver.resolve(signals)
+            if result.anomalies:
+                assert result.needs_review is True, result.anomalies
+
+    # -- 3. duplicated order silently collapsed ---------------------------
+
+    @pytest.fixture
+    def duplicated(self):
+        return ErpIndex([
+            make_entry("PO-2026-0009", entry_id="AS-1", nif="B11111111",
+                       day="2026-03-09", amount="100.00"),
+            make_entry("PO-2026-0009", entry_id="AS-2", nif="B11111111",
+                       day="2026-03-09", amount="999.00", status="PAGADA"),
+        ])
+
+    def test_the_index_keeps_both_rows(self, duplicated):
+        assert duplicated.duplicate_order_ids == ["PO-2026-0009"]
+        assert duplicated.is_duplicated("PO-2026-0009")
+        assert duplicated.known_order("PO-2026-0009")
+        assert [e.entry_id for e in duplicated.rows_for_order("PO-2026-0009")] == ["AS-1", "AS-2"]
+        assert len(duplicated) == 1          # one order id
+        assert len(duplicated.entries) == 2  # two rows
+
+    def test_by_order_refuses_to_pick_one(self, duplicated):
+        assert duplicated.by_order("PO-2026-0009") is None
+
+    def test_an_exact_code_on_a_duplicated_order_escalates(self, duplicated):
+        result = OrderResolver(duplicated).resolve(InvoiceSignals(
+            purchase_order="PO-2026-0009", supplier_nif="B11111111",
+            invoice_date="09/03/2026", total="100,00"))
+        assert result.resolved is False
+        assert result.order_id is None
+        assert Anomaly.DUPLICATE_ORDER_IN_ERP.value in result.anomalies
+        assert Anomaly.DUPLICATE_ORDER_IN_ERP.value in result.blocking_anomalies
+        assert {c.entry_id for c in result.candidates} == {"AS-1", "AS-2"}
+
+    def test_a_duplicated_order_is_not_reported_as_unknown(self, duplicated):
+        """Two rows is a ledger defect; zero rows is a missing order."""
+        result = OrderResolver(duplicated).resolve(InvoiceSignals(
+            purchase_order="PO-2026-0009", supplier_nif="B11111111",
+            invoice_date="09/03/2026", total="100,00"))
+        assert Anomaly.ORDER_CODE_UNKNOWN_TO_ERP.value not in result.anomalies
+
+    def test_the_fallback_cannot_sneak_past_the_duplicate(self, duplicated):
+        """No order code, exact amount on one row: still must not choose."""
+        result = OrderResolver(duplicated).resolve(InvoiceSignals(
+            supplier_nif="B11111111", invoice_date="09/03/2026", total="100,00"))
+        assert result.resolved is False
+        assert Anomaly.DUPLICATE_ORDER_IN_ERP.value in result.anomalies
+
+    def test_the_note_names_the_competing_rows(self, duplicated):
+        result = OrderResolver(duplicated).resolve(InvoiceSignals(
+            supplier_nif="B11111111", invoice_date="09/03/2026", total="100,00"))
+        assert any("AS-1" in note and "AS-2" in note for note in result.notes)
+
+    def test_other_orders_are_unaffected_by_a_duplicate_elsewhere(self):
+        index = ErpIndex([
+            make_entry("PO-2026-0009", entry_id="AS-1", day="2026-03-09", amount="100.00"),
+            make_entry("PO-2026-0009", entry_id="AS-2", day="2026-03-09", amount="999.00"),
+            make_entry("PO-2026-0010", entry_id="AS-3", day="2026-03-10", amount="200.00"),
+        ])
+        result = OrderResolver(index).resolve(InvoiceSignals(
+            purchase_order="PO-2026-0010", supplier_nif="B11111111",
+            invoice_date="10/03/2026", total="200,00"))
+        assert result.order_id == "PO-2026-0010"
+        assert result.needs_review is False
+
+
 # --------------------------------------------------------------------------
 # Regression against the real data
 # --------------------------------------------------------------------------

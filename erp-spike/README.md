@@ -111,10 +111,21 @@ relative importance has shifted:
 > extraction error. The resolver distinguishes `invoice_date_impossible` from
 > `invoice_date_unparseable` and both are lost if the date is silently fixed.
 
-Amounts are parsed in both conventions found in the corpus: Spanish
-`1.250,00` and English `3400.00`. Ambiguous shapes such as `1,234` are refused
-rather than guessed, because getting the order of magnitude wrong is worse than
-returning nothing.
+> **`total` must be a bare amount, not a sentence.** `"1.250,00"`,
+> `"1.250,00 €"` and `"EUR 1409.40"` all parse. `"Importe base: 1.250,00 €"`
+> does not, and returns `None` with an `amount_unparseable` anomaly.
+>
+> This is deliberate and was tightened after review. An earlier version
+> stripped every non-digit character before parsing, which meant
+> `"IVA (21%): 295,97"` came back as **21.295,97** and `"30 dias fecha
+> factura"` came back as **30,00**. Mining digits out of prose invents money.
+> If the field holds a label the extraction is wrong, and the only safe answer
+> is to say so.
+
+Both conventions found in the corpus are supported: Spanish `1.250,00` and
+English `3400.00`. Genuinely ambiguous shapes such as `1,234` are refused
+rather than guessed, because getting the order of magnitude wrong is worse
+than returning nothing.
 
 ### What comes back
 
@@ -129,8 +140,51 @@ Resolution(
 )
 ```
 
-`resolution.needs_review` is `True` whenever the answer did not come from an
-exact order code. `resolution.to_dict()` is JSON-serialisable.
+`resolution.to_dict()` is JSON-serialisable.
+
+### `needs_review` and `blocking_anomalies`
+
+```python
+resolution.needs_review        # bool
+resolution.blocking_anomalies  # subset that should stop a payment outright
+```
+
+`needs_review` is `False` only for an exact order-code match whose
+corroboration came back **completely clean**. Any anomaly at all sets it.
+
+This too was tightened after review. Previously the flag looked only at the
+strategy and the confidence, so an invoice matching an entry that was already
+`PAGADA` resolved by exact code, with `EXACT` confidence, and reported
+`needs_review = False` — while carrying `entry_already_paid` in its anomalies.
+Anything downstream trusting the flag would have paid it twice. Resolving an
+invoice perfectly is not the same as it being safe to pay, and the flag now
+says so.
+
+On the current batch, 24 of the 468 exactly-matched invoices are flagged:
+9 already paid, 9 amount mismatches, 3 impossible dates, 2 supplier
+mismatches, 1 date mismatch.
+
+`BLOCKING_ANOMALIES` names the subset that should stop a payment rather than
+merely annotate it: already paid, duplicated order, supplier mismatch, order
+unknown to the ERP, impossible invoice date. The rest are context a reviewer
+may reasonably wave through.
+
+### Duplicated orders are never resolved
+
+If the ERP holds more than one row for the same `order_id`, the resolver
+**refuses to return either**. It escalates with `duplicate_order_in_erp`, every
+competing row in `candidates`, and a note naming their entry ids.
+
+The index used to keep whichever row it read last and carry on. It recorded the
+duplicate but still resolved against one of them, which in a payments context
+is a coin flip with someone else's money. `ErpIndex.by_order()` now returns
+`None` for a duplicated order, and a guard in `resolve()` catches it whichever
+rung of the cascade produced it, so the fallback cannot sneak past either.
+
+Use `index.known_order(id)` to ask whether the ERP has the order at all,
+`index.is_duplicated(id)` to tell a ledger defect from a missing order, and
+`index.rows_for_order(id)` to see the competing rows. The current snapshot has
+no duplicates; this is a guard, not a workaround.
 
 ### Anomalies, reported whether or not it resolved
 
