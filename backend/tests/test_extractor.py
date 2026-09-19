@@ -8,7 +8,7 @@ import httpx2
 from openai import InternalServerError, OpenAI
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from pipeline.extraction_3.extractor import MODEL, ExtractionManager, create_extractor
+from extractor.extractor import MODEL, ExtractionManager, create_extractor
 from shared.usage import UsageRecord
 
 
@@ -83,13 +83,13 @@ class RequiredOutputToolTests(unittest.TestCase):
 
     def test_page_images_and_text_are_sent_in_one_required_tool_request(self) -> None:
         images = [b"first jpeg", b"second jpeg"]
-        self.manager.run("Extract", "Native and OCR text", ExtractedText, usage=self.usage, page_images=images)
+        self.manager.run("Extract", "Native text", ExtractedText, usage=self.usage, page_images=images)
         self.assertEqual(len(self.requests), 1)
         payload = json.loads(self.requests[0].content)
         self.assertEqual(payload["tool_choice"], "required")
         self.assertFalse(payload["stream"])
         content = payload["messages"][1]["content"]
-        self.assertEqual(content[0], {"type": "text", "text": "Native and OCR text"})
+        self.assertEqual(content[0], {"type": "text", "text": "Native text"})
         for number, image in enumerate(images, start=1):
             self.assertEqual(content[number * 2 - 1], {"type": "text", "text": f"Invoice page {number}"})
             self.assertEqual(content[number * 2], {"type": "image_url", "image_url": {
@@ -121,7 +121,7 @@ class RequiredOutputToolTests(unittest.TestCase):
     def test_factory_injects_configured_sdk_client_and_closes_it_on_failure(self) -> None:
         with (
             patch.dict("os.environ", {"OPENROUTER_API_KEY": "test-key"}),
-            patch("pipeline.extraction_3.extractor.OpenAI") as client_factory,
+            patch("extractor.extractor.OpenAI") as client_factory,
         ):
             with self.assertRaisesRegex(ValueError, "failed run"):
                 with create_extractor() as manager:

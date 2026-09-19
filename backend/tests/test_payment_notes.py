@@ -9,7 +9,7 @@ from rules.models import ResolvedReferences
 from suppliers.models import Supplier
 from orders.models import Order
 from erp import ErpEntry
-from pipeline.extraction_3.extraction import InvoiceExtraction, InvoiceLine
+from extractor.extraction import InvoiceExtraction, InvoiceLine
 from invoices.payment_notes import PaymentConcern, PaymentNotesReview, SourcedPaymentConcern, SourcedPaymentNotesReview, review_payment_notes
 
 

@@ -28,7 +28,6 @@ interface Props {
 export function InvoiceExtraction({ title, extraction, amounts, labels }: Props) {
   return (
     <section className="invoice-data" aria-label={title}>
-      <header className="review-header"><h2>{title}</h2></header>
       <div className="extraction-view">
         <dl className="extraction-grid">
           <div><dt>{labels.supplierName}</dt><Tooltip text={extraction.supplier_name} onlyWhenTruncated asChild><dd>{extraction.supplier_name}</dd></Tooltip></div>

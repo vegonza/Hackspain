@@ -10,7 +10,7 @@ from redis.lock import Lock
 
 from invoices.queue import PROCESSING, QUEUE, RETRIES, SCHEDULED, promote_retries
 from invoices.repository import read_invoice_detail, write_invoice
-from pipeline.runner import run_pipeline
+from invoices.processing import process as process_invoice_record
 from shared.logger import setup_logger
 from shared.redis import get_redis
 from shared.retries import MAX_ATTEMPTS, read_retry, record_failure
@@ -37,13 +37,12 @@ def process_invoice(invoice_id: str) -> None:
     invoice_record.status = "processing"
     write_invoice(invoice_record)
     logger.info("[QUEUE] Processing %s", invoice_record.name)
-    run_pipeline(invoice_record)
+    process_invoice_record(invoice_record)
     invoice_record.status = "ready"
     write_invoice(invoice_record)
     logger.info("[QUEUE] Finished %s: %s", invoice_record.name, invoice_record.status)
     state.last_error = None
     with get_redis() as redis, redis.pipeline(transaction=True) as transaction:
-        transaction.delete(f"invoices:ocr:{invoice_id}")
         transaction.hset(RETRIES, invoice_id, state.model_dump_json())
         transaction.execute()
 

@@ -7,9 +7,7 @@ from fastapi.testclient import TestClient
 
 from erp.models import ErpEntryDetail
 from erp.router import router as erp_router
-from pipeline.results import invoice_stages
 from shared.usage import UsageRecord, save_usage
-from tests.test_stage_duration import queued_invoice
 
 
 class InvoiceContractTests(unittest.TestCase):
@@ -45,13 +43,3 @@ class InvoiceContractTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['invoices'], [linked])
         self.assertNotIn('documents', response.json())
-
-    def test_saved_markdown_images_use_the_invoice_api_when_served(self) -> None:
-        invoice = queued_invoice()
-        stage = next(stage for stage in invoice.stages if stage.stage == 'ocr')
-        stage.status = 'ready'
-        stage.result_path = f'{invoice.id}/document.md'
-        markdown = f'![image](/api/documents/{invoice.id}/images/page-0-image-0.jpg)'
-        with patch('pipeline.results.download_file', return_value=markdown.encode()):
-            result = next(stage for stage in invoice_stages(invoice, invoice.stages) if stage.id == 'ocr')
-        self.assertEqual(result.content, f'![image](/api/invoices/{invoice.id}/images/page-0-image-0.jpg)')

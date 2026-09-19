@@ -26,8 +26,6 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
           ? i18n.t('invoices.processingConflict')
         : error.detail === 'duplicate_pdf'
           ? i18n.t('invoices.duplicatePdf')
-        : error.detail === 'ocr_failed'
-          ? i18n.t('invoices.ocrFailed')
           : error.detail === 'extraction_failed'
             ? i18n.t('invoices.extractionFailed')
           : i18n.t('invoices.requestFailed')

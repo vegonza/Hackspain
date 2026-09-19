@@ -4,8 +4,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from pipeline.text_1 import extract_text
-from pipeline.extraction_3.extraction import InvoiceExtraction
+from extractor.text import extract_text
+from extractor.extraction import InvoiceExtraction
 from shared.logger import get_logger
 
 logger = get_logger()

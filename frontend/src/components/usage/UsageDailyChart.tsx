@@ -3,9 +3,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { UsageDailyTooltip } from '@/components/usage/UsageDailyTooltip'
 import type { useUsage } from '@/hooks/useUsage'
 
-type Props = Pick<ReturnType<typeof useUsage>, 'daily' | 'phases' | 'loading' | 'labels'>
+type Props = Pick<ReturnType<typeof useUsage>, 'daily' | 'operations' | 'loading' | 'labels'>
 
-export function UsageDailyChart({ daily, phases, loading, labels }: Props) {
+export function UsageDailyChart({ daily, operations, loading, labels }: Props) {
   return <section className="usage-chart">
     <div className="usage-chart-canvas">
       {loading ? <Skeleton className="h-full w-full" /> : daily.length === 0 ? <p>{labels.empty}</p> : (
@@ -17,8 +17,8 @@ export function UsageDailyChart({ daily, phases, loading, labels }: Props) {
             <YAxis width="auto" tickLine={false} axisLine={false} tickMargin={8} />
             <Tooltip cursor={false} content={<UsageDailyTooltip costLabel={labels.totalCost} />} isAnimationActive={false} />
             <Legend iconType="circle" iconSize={8} wrapperStyle={{ paddingTop: 12 }} />
-            {phases.map(phase => <Bar key={phase.id} dataKey={`operations.${phase.id}`} name={phase.label} stackId="cost"
-              fill={phase.color} radius={0} maxBarSize={32} />)}
+            {operations.map(operation => <Bar key={operation.id} dataKey={`operations.${operation.id}`} name={operation.label} stackId="cost"
+              fill={operation.color} radius={0} maxBarSize={32} />)}
           </BarChart>
         </ResponsiveContainer>
       )}

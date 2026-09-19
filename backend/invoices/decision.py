@@ -2,8 +2,8 @@ from datetime import datetime, timezone
 
 from invoices.classification import classify_invoice
 from invoices.repository import InvoiceDetails
-from pipeline.extraction_3.extraction import InvoiceExtraction
-from pipeline.extraction_3.extractor import MODEL
+from extractor.extraction import InvoiceExtraction
+from extractor.extractor import MODEL
 from rules.models import Decision
 from shared.identifiers import order_key
 from shared.logger import get_logger

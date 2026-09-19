@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from erp import ErpEntry
 from orders.models import Order
-from pipeline.extraction_3.extraction import InvoiceExtraction
+from extractor.extraction import InvoiceExtraction
 from suppliers.models import Supplier
 
 

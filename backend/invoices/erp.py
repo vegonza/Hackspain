@@ -26,7 +26,7 @@ def bind_snapshot(invoice_record: InvoiceDetails) -> None:
                 snapshot_id = sync_erp_snapshot()
     get_client().table("documents").update({"erp_snapshot_id": str(snapshot_id)}).eq("id", str(invoice_record.id)).execute()
     invoice_record.erp_snapshot_id = snapshot_id
-    logger.info("[PIPELINE] Linked ERP snapshot %s to %s", snapshot_id, invoice_record.name)
+    logger.info("[ERP] Linked ERP snapshot %s to %s", snapshot_id, invoice_record.name)
 
 
 def match_entry(invoice_record: InvoiceDetails, purchase_order: str) -> None:
@@ -35,4 +35,4 @@ def match_entry(invoice_record: InvoiceDetails, purchase_order: str) -> None:
     entries = get_client().table("erp_entries").select("id").eq("snapshot_id", str(invoice_record.erp_snapshot_id)).eq("order_id", purchase_order).limit(2).execute().data if purchase_order else []
     entry_id = entries[0]["id"] if len(entries) == 1 else None
     get_client().table("documents").update({"erp_entry_id": entry_id}).eq("id", str(invoice_record.id)).execute()
-    logger.info("[PIPELINE] ERP order match for %s: %s", invoice_record.name, "unique" if entry_id is not None else "missing or ambiguous")
+    logger.info("[ERP] ERP order match for %s: %s", invoice_record.name, "unique" if entry_id is not None else "missing or ambiguous")

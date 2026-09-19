@@ -6,6 +6,10 @@ CREATE TABLE IF NOT EXISTS public.documents (
     status TEXT NOT NULL DEFAULT 'queued'
         CHECK (status IN ('queued', 'processing', 'ready', 'error')),
     pages INTEGER NOT NULL DEFAULT 0 CHECK (pages >= 0),
+    started_at TIMESTAMPTZ,
+    finished_at TIMESTAMPTZ,
+    duration_ms BIGINT CHECK (duration_ms >= 0),
+    result_path TEXT,
     invoice_number TEXT,
     supplier_name TEXT,
     supplier_nif TEXT,

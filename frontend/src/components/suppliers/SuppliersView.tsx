@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+import { TablePagination } from '@/components/ui/table-pagination'
 import { Plus, Hash, Building2, IdCard, Landmark, MapPin, Clock } from 'lucide-react'
 import { RowActions } from '@/components/ui/row-actions'
 import { Button } from '@/components/ui/button'
@@ -12,17 +12,17 @@ import type { useSuppliers } from '@/hooks/useSuppliers'
 
 const columnIcons = { supplier_id: Hash, legal_name: Building2, tax_id: IdCard, iban: Landmark, city: MapPin, payment_terms_days: Clock }
 
-export function SuppliersView({ mount, loading, failed, rows, editing, saving, deleting, onDelete, draft, editingId, search,
+export function SuppliersView({ pagination, pageKey, mount, loading, failed, rows, editing, saving, deleting, onDelete, draft, editingId, search,
   sortColumn, sortDirection, onToggleSort, onSearch, onNew, onEdit, onChange, onSave, onCancel, onRetry, labels }: ReturnType<typeof useSuppliers>) {
   return <section className="invoices-browser" ref={mount} aria-label={labels.title}>
     <header className="invoices-toolbar">
       <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
-      {loading ? <Skeleton className="h-4 w-24 shrink-0" /> : !failed && <span className="shrink-0 text-sm text-muted-foreground">{labels.count}</span>}
+      <TablePagination pagination={pagination} loading={loading} />
       <Button size="sm" className="table-add-button" onClick={onNew} disabled={editing || loading || failed}><Plus size={15} />{labels.add}</Button>
     </header>
     {editing && <SupplierEditor {...{ draft, editingId, saving, onChange, onSave, onCancel, labels }} />}
     {failed ? <div role="alert" className="flex items-center gap-3 p-4 text-sm"><span>{labels.failed}</span><Button variant="outline" onClick={onRetry}>{labels.retry}</Button></div>
-      : <div className="invoices-table-scroll"><table className="invoices-table" aria-busy={loading}>
+      : <div className="invoices-table-scroll" key={pageKey}><table className="invoices-table" aria-busy={loading}>
         <colgroup><col style={{ width: 95 }} /><col /><col style={{ width: 125 }} /><col style={{ width: 270 }} /><col style={{ width: 140 }} /><col style={{ width: 165 }} /><col style={{ width: 48 }} /></colgroup>
         <TableHeader className="[&_tr]:border-b-0"><TableRow className="hover:bg-transparent">
           {(['supplier_id', 'legal_name', 'tax_id', 'iban', 'city', 'payment_terms_days'] as const).map(field => <SortableTableHead key={field} column={field} label={labels[field]} icon={columnIcons[field]}

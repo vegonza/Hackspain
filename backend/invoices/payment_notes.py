@@ -2,7 +2,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict
 
-from pipeline.extraction_3.extractor import create_extractor
+from extractor.extractor import create_extractor
 from shared.usage import UsageRecord
 
 

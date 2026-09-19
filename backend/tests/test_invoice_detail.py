@@ -6,32 +6,26 @@ from uuid import uuid4
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from pipeline.extraction_3.extraction import InvoiceExtraction
+from extractor.extraction import InvoiceExtraction
 from invoices.repository import read_invoice_detail, save_invoice_extraction
 from invoices.router import router
 from shared.retries import RetryState
 
 
 class InvoiceDetailTests(unittest.TestCase):
-    def test_open_invoice_preserves_all_existing_database_stages(self) -> None:
+    def test_open_document_reads_saved_result_without_running_extraction(self) -> None:
         identifier = uuid4()
         database, redis = MagicMock(), MagicMock()
         database.rpc.return_value.execute.return_value.data = {
             "id": str(identifier), "name": "invoice.pdf", "sha256": "a" * 64,
             "created_at": datetime.now(timezone.utc).isoformat(), "status": "ready",
-            "payment_decision": {"classification": "NO_PAGAR", "reasons": ["Ya pagada en el ERP"], "checks": {"not_paid": False}},
             "erp_snapshot_id": str(uuid4()),
             "erp": {"entry_id": "AS-REAL", "supplier_id": "P-REAL", "tax_id": "B12345678",
                     "order_id": "PO-1", "status": "PAGADA", "raw_date": "12/01/2026",
                     "raw_amount": "12,10", "date": "2026-01-12", "amount": "12.10", "warnings": []},
-            "stages": [
-                {"document_id": str(identifier), "stage": "ocr", "status": "ready",
-                 "result_path": "document.md", "duration_ms": 1200, "cost_usd": "0.004"},
-                {"document_id": str(identifier), "stage": "text", "status": "ready", "result_path": "native.txt"},
-                {"document_id": str(identifier), "stage": "extraction", "status": "ready",
-                 "result_path": "extraction/features.json", "duration_ms": 2400, "cost_usd": "0.002",
-                 "finished_at": "2026-09-19T10:00:20+00:00"},
-            ],
+            "result_path": "extraction/features.json",
+            "total_cost_usd": "0.002", "total_duration_ms": 2400,
+            "finished_at": "2026-09-19T10:00:20+00:00",
         }
         redis.__enter__.return_value.hget.return_value = None
         extraction = InvoiceExtraction(
@@ -39,15 +33,15 @@ class InvoiceDetailTests(unittest.TestCase):
             invoice_date="2026-01-01", purchase_order="PO-1", line_items=[],
             tax_base="10", vat_rate="21", vat_amount="2.10", total="12.10", notes=[], uncertainties=[],
         )
-        artifacts = {"document.md": b"# Invoice", "native.txt": b"Invoice",
+        artifacts = {f"{identifier}/native.txt": b"Invoice",
                      "extraction/features.json": extraction.model_dump_json().encode("utf-8")}
         app = FastAPI()
         app.include_router(router)
         with (
             patch("invoices.repository.get_client", return_value=database),
             patch("invoices.repository.get_redis", return_value=redis),
-            patch("pipeline.results.download_file", side_effect=artifacts.__getitem__),
-            patch("pipeline.extraction_3.extraction.create_extractor") as extract,
+            patch("invoices.router.download_file", side_effect=artifacts.__getitem__),
+            patch("extractor.extraction.create_extractor") as extract,
             TestClient(app) as client,
         ):
             response = client.get(f"/api/invoices/{identifier}")
@@ -57,15 +51,10 @@ class InvoiceDetailTests(unittest.TestCase):
         self.assertEqual(response.json()["finished_at"], "2026-09-19T10:00:20Z")
         self.assertEqual(response.json()["erp"]["status"], "PAGADA")
         self.assertEqual(response.json()["erp"]["entry_id"], "AS-REAL")
-        self.assertEqual(response.json()["payment_decision"]["classification"], "NO_PAGAR")
-        self.assertEqual(response.json()["payment_decision"]["reasons"], ["Ya pagada en el ERP"])
         database.table.assert_not_called()
-        stages = response.json()["stages"]
-        self.assertEqual([stage["id"] for stage in stages], ["ocr", "text", "extraction"])
-        self.assertEqual(stages[0]["cost_usd"], "0.004")
-        self.assertEqual(stages[2]["status"], "ready")
-        self.assertEqual(stages[2]["depends_on"], ["ocr", "text"])
-        self.assertEqual(stages[2]["cost_usd"], "0.002")
+        self.assertNotIn("stages", response.json())
+        self.assertEqual(response.json()["native_text"], "Invoice")
+        self.assertEqual(response.json()["total_cost_usd"], "0.002")
         self.assertEqual(response.json()["extraction"], extraction.model_dump())
         extract.assert_not_called()
 
@@ -76,7 +65,7 @@ class InvoiceDetailTests(unittest.TestCase):
             "id": str(identifier), "name": "invoice.pdf", "sha256": "a" * 64,
             "created_at": datetime.now(timezone.utc).isoformat(), "status": "processing",
             "line_items": None,
-            "stages": [{"document_id": str(identifier), "stage": "extraction", "status": "error", "cost_usd": "0.008"}],
+            "total_cost_usd": "0.008",
         }
         redis.__enter__.return_value.hget.return_value = RetryState(attempts=2, next_attempt=2000000000).model_dump_json()
         with patch("invoices.repository.get_client", return_value=client), patch("invoices.repository.get_redis", return_value=redis):
@@ -85,9 +74,9 @@ class InvoiceDetailTests(unittest.TestCase):
         client.table.assert_not_called()
         self.assertEqual(detail.status, "queued")
         self.assertEqual(detail.retry_attempts, 2)
-        self.assertEqual(str(detail.stages[0].cost_usd), "0.008")
+        self.assertEqual(str(detail.total_cost_usd), "0.008")
 
-    def test_missing_or_archived_invoice_returns_404_without_redis(self) -> None:
+    def test_missing_or_archived_document_returns_404_without_redis(self) -> None:
         client = MagicMock()
         client.rpc.return_value.execute.return_value.data = None
         with patch("invoices.repository.get_client", return_value=client), patch("invoices.repository.get_redis") as redis:

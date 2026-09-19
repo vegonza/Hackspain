@@ -4,25 +4,18 @@ from uuid import UUID
 
 from fastapi import HTTPException
 from decimal import Decimal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from shared.storage import get_client
 from shared.redis import get_redis
 from shared.retries import RetryState
 from invoices.queue import RETRIES
-from pipeline.extraction_3.extraction import InvoiceExtraction
+from extractor.extraction import InvoiceExtraction
 from shared.logger import get_logger
-from invoices.stages import StageDetail, StageId
 from erp import ErpEntry
 from rules.models import Decision
 
 
-class StageMetrics(BaseModel):
-    stage: StageId
-    cost_usd: Decimal | None = None
-    duration_ms: int | None = None
-
-
-INVOICE_VIRTUAL_FIELDS = {"payment_decision", "retry_attempts", "last_error", "next_retry_at", "stage_metrics", "current_stages", "total_cost_usd", "total_duration_ms", "finished_at"}
+INVOICE_VIRTUAL_FIELDS = {"payment_decision", "retry_attempts", "last_error", "next_retry_at", "total_cost_usd", "total_duration_ms", "finished_at"}
 
 
 class Invoice(BaseModel):
@@ -36,8 +29,6 @@ class Invoice(BaseModel):
     payment_decision: Decision | None = None
     total_cost_usd: Decimal | None = None
     total_duration_ms: int | None = None
-    stage_metrics: list[StageMetrics] = Field(default_factory=list)
-    current_stages: list[StageId] = Field(default_factory=list)
     retry_attempts: int = 0
     last_error: str | None = None
     next_retry_at: datetime | None = None
@@ -99,25 +90,22 @@ def archive_invoice(invoice_id: UUID) -> None:
 
 def reset_invoice(invoice_id: UUID, name: str) -> None:
     client = get_client()
-    client.table("document_stages").update({
-        "status": "unavailable", "started_at": None, "finished_at": None,
-        "duration_ms": None, "result_path": None,
-    }).eq("document_id", str(invoice_id)).execute()
     fields = {field: None for field in InvoiceExtraction.model_fields if field not in {"notes", "uncertainties"}}
     client.table("documents").update({
         **fields, "status": "queued", "pages": 0, "erp_entry_id": None, "payment_decision": None,
+        "started_at": None, "finished_at": None, "duration_ms": None, "result_path": None,
     }).eq("id", str(invoice_id)).is_("deleted_at", "null").execute()
     get_logger().info("[INVOICES] Reset processing results for %s", name)
 
 
 class InvoiceDetails(Invoice):
-    stages: list[StageDetail]
+    result_path: str | None = None
     erp_snapshot_id: UUID | None = None
     erp: ErpEntry | None = None
 
 
 def read_invoice_detail(invoice_id: UUID) -> InvoiceDetails:
-    """Read invoice metadata, stage results and aggregated costs in one DB call."""
+    """Read invoice metadata, extraction results and aggregated costs in one DB call."""
     payload = get_client().rpc("get_document_detail", {"p_document_id": str(invoice_id)}).execute().data
     if payload is None:
         raise HTTPException(status_code=404, detail="invoice_not_found")
@@ -125,16 +113,39 @@ def read_invoice_detail(invoice_id: UUID) -> InvoiceDetails:
     with get_redis() as redis:
         state = redis.hget(RETRIES, str(invoice_id))
     with_retry_state(invoice_record, RetryState.model_validate_json(state) if state is not None else RetryState())
-    if invoice_record.status in ("ready", "error"):
-        invoice_record.finished_at = max((stage.finished_at for stage in invoice_record.stages if stage.finished_at is not None), default=None)
+    if invoice_record.status not in ("ready", "error"):
+        invoice_record.finished_at = None
     return invoice_record
 
 
 def save_invoice_extraction(invoice_id: UUID, name: str, extraction: InvoiceExtraction) -> None:
-    """Store searchable invoice fields; the stage artifact retains notes and uncertainties."""
+    """Store searchable invoice fields; the extraction artifact retains notes and uncertainties."""
     fields = extraction.model_dump(mode="json", exclude={"notes", "uncertainties"})
     for amount in ("tax_base", "vat_rate", "vat_amount", "total"):
         if fields[amount] == "":
             fields[amount] = None
     get_client().table('documents').update({**fields, 'payment_decision': None}).eq('id', str(invoice_id)).is_('deleted_at', 'null').execute()
     get_logger().info("[INVOICES] Saved extracted data for %s", name)
+
+
+def start_extraction(document_id: UUID, name: str) -> None:
+    get_client().table("documents").update({
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "finished_at": None, "duration_ms": None, "result_path": None,
+    }).eq("id", str(document_id)).execute()
+    get_logger().info("[EXTRACTION] Started %s", name)
+
+
+def finish_extraction(document_id: UUID, name: str, duration_ms: int, result_path: str) -> None:
+    get_client().table("documents").update({
+        "finished_at": datetime.now(timezone.utc).isoformat(),
+        "duration_ms": duration_ms, "result_path": result_path,
+    }).eq("id", str(document_id)).execute()
+    get_logger().info("[EXTRACTION] Completed %s in %s ms", name, duration_ms)
+
+
+def fail_extraction(document_id: UUID, name: str, duration_ms: int) -> None:
+    get_client().table("documents").update({
+        "finished_at": datetime.now(timezone.utc).isoformat(), "duration_ms": duration_ms,
+    }).eq("id", str(document_id)).execute()
+    get_logger().info("[EXTRACTION] Failed %s after %s ms", name, duration_ms)

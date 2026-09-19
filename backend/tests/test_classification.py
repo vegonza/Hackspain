@@ -9,7 +9,7 @@ from invoices.classification import classify_invoice
 from rules.models import Decision, ResolvedReferences
 from suppliers.models import Supplier
 from orders.models import Order
-from pipeline.extraction_3.extraction import InvoiceExtraction, InvoiceLine
+from extractor.extraction import InvoiceExtraction, InvoiceLine
 from invoices.payment_notes import PaymentConcern, PaymentNotesReview
 from erp import ErpEntry
 

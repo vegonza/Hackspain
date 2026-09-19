@@ -13,8 +13,13 @@
     "decision": "Decisión",
     "justification": "Justificación",
     "decisionPending": "Sin decisión",
-    "decisions": { "PAGAR": "Pagar", "NO_PAGAR": "No pagar", "ESCALAR": "Escalar" },
-    "count_one": "{{count}} factura", "count_other": "{{count}} facturas",
+    "decisions": {
+      "PAGAR": "Pagar",
+      "NO_PAGAR": "No pagar",
+      "ESCALAR": "Escalar"
+    },
+    "count_one": "{{count}} factura",
+    "count_other": "{{count}} facturas",
     "redo": "Reprocesar",
     "redoConfirmation": "¿Reprocesar «{{name}}»?",
     "actions": "Acciones",
@@ -41,7 +46,6 @@
     "pdfError": "No se ha podido mostrar el PDF.",
     "zoomIn": "Ampliar",
     "zoomOut": "Reducir",
-    "markdown": "Markdown",
     "extraction": "Datos extraídos",
     "noExtraction": "No hay datos extraídos para esta factura.",
     "error": "Error al procesar la factura. Vuelve a reintentarlo",
@@ -51,19 +55,45 @@
     "deleteConfirmation": "¿Eliminar «{{name}}»?",
     "invalidPdf": "Selecciona un archivo PDF válido.",
     "duplicatePdf": "Este PDF ya está subido.",
-    "ocrFailed": "El PDF se ha guardado, pero ha fallado el OCR. Comprueba la clave de Mistral y la conexión.",
-    "extractionFailed": "El PDF y el Markdown se han guardado, pero no se pudieron extraer los datos de la factura.",
-    "requestFailed": "No se ha podido completar la solicitud. Comprueba la conexión con el servidor."
+    "extractionFailed": "El PDF se ha guardado, pero no se pudieron extraer los datos de la factura.",
+    "requestFailed": "No se ha podido completar la solicitud. Comprueba la conexión con el servidor.",
+    "text": "Texto",
+    "errorStatus": "Error",
+    "openrouterKeyLimit": "La clave de OpenRouter ha alcanzado su límite de gasto. Aumenta el límite o cambia la clave antes de reintentar.",
+    "providerAccessDenied": "El proveedor de IA ha rechazado la solicitud (403). Comprueba el límite de gasto y los permisos de la clave antes de reintentar."
   },
   "usage": {
-    "historicalMerge": "Combinado (histórico)",
     "pendingError": "{{count}} registros de consumo pendientes de guardar tras un error.",
-    "title": "Consumo", "cost": "Coste", "calls": "Llamadas", "pages": "Páginas procesadas",
-    "totalCost": "Coste total", "invoiceCost": "Coste medio por factura",
-    "breakdown": { "pages_processed": "Páginas", "prompt_tokens": "Tokens de entrada", "completion_tokens": "Tokens de salida", "total_tokens": "Tokens totales" },
-    "history": "Registro de llamadas", "records_one": "{{count}} registro", "records_other": "{{count}} registros", "date": "Fecha", "invoice": "Factura", "model": "Modelo",
-    "provider": "Proveedor", "operation": "Operación",
-    "empty": "No hay llamadas registradas.", "previous": "Anterior", "next": "Siguiente"
+    "title": "Consumo",
+    "cost": "Coste",
+    "calls": "Llamadas",
+    "pages": "Páginas procesadas",
+    "totalCost": "Coste total",
+    "invoiceCost": "Coste medio por factura",
+    "breakdown": {
+      "pages_processed": "Páginas",
+      "prompt_tokens": "Tokens de entrada",
+      "completion_tokens": "Tokens de salida",
+      "total_tokens": "Tokens totales"
+    },
+    "history": "Registro de llamadas",
+    "records_one": "{{count}} registro",
+    "records_other": "{{count}} registros",
+    "date": "Fecha",
+    "invoice": "Factura",
+    "model": "Modelo",
+    "provider": "Proveedor",
+    "operation": "Operación",
+    "empty": "No hay llamadas registradas.",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "operations": {
+      "text": "Texto (histórico)",
+      "extraction": "Extracción",
+      "ocr": "OCR (histórico)",
+      "merge": "Combinado (histórico)",
+      "classification": "Clasificación"
+    }
   },
   "extraction": {
     "unavailable": "No disponible",
@@ -112,7 +142,10 @@
     "supplier": "Proveedor",
     "nif": "NIF",
     "registeredAt": "Fecha de registro",
-    "states": { "PENDIENTE": "Pendiente", "PAGADA": "Pagada" },
+    "states": {
+      "PENDIENTE": "Pendiente",
+      "PAGADA": "Pagada"
+    },
     "refresh": "Actualizar ERP",
     "refreshing": "Actualizando…",
     "snapshotTitle": "Volcado del ERP",
@@ -123,37 +156,14 @@
     "back": "Volver al ERP",
     "noWarnings": "Sin avisos",
     "warningsColumn": "Avisos",
-    "entryCount_one": "{{count}} asiento", "entryCount_other": "{{count}} asientos",
+    "entryCount_one": "{{count}} asiento",
+    "entryCount_other": "{{count}} asientos",
     "linkedInvoices": "Facturas enlazadas",
     "noLinkedInvoices": "Ninguna factura está enlazada a este asiento."
   },
-  "pipeline": {
-    "noText": "No hay texto.",
-    "durationSeconds": "{{value}} s",
-    "durationMinutes": "{{minutes}} min {{seconds}} s",
-    "waiting": "El resultado aparecerá al completar esta etapa.",
-    "stages": {
-      "ocr": "OCR",
-      "text": "Texto",
-      "extraction": "Extracción",
-      "classification": "Clasificación"
-    },
-    "status": {
-      "queued": "En cola",
-      "processing": "Procesando",
-      "ready": "Completado",
-      "error": "Error",
-      "retrying": "Esperando reintento",
-      "unavailable": "Sin conectar"
-    },
-    "description": {
-      "ocr": "Markdown extraído con OCR",
-      "text": "Texto extraído del PDF sin IA",
-      "extraction": "Datos extraídos del texto, OCR e imágenes de la factura"
-    }
-  },
   "suppliers": {
-    "count_one": "{{count}} proveedor", "count_other": "{{count}} proveedores",
+    "count_one": "{{count}} proveedor",
+    "count_other": "{{count}} proveedores",
     "title": "Proveedores",
     "search": "Buscar proveedores…",
     "add": "Añadir proveedor",
@@ -176,7 +186,8 @@
     "notFound": "El proveedor ya no está disponible."
   },
   "orders": {
-    "count_one": "{{count}} pedido", "count_other": "{{count}} pedidos",
+    "count_one": "{{count}} pedido",
+    "count_other": "{{count}} pedidos",
     "title": "Pedidos",
     "search": "Buscar pedidos…",
     "add": "Añadir pedido",
@@ -196,5 +207,18 @@
     "exists": "Ya existe un pedido con ese código.",
     "notFound": "El pedido ya no está disponible.",
     "supplierNotFound": "No existe un proveedor con ese código."
+  },
+  "pagination": {
+    "label": "Paginación",
+    "previous": "Página anterior",
+    "next": "Página siguiente",
+    "range": "{{start}}–{{end}} de {{total}}",
+    "page": "{{page}} / {{pages}}"
+  },
+  "processing": {
+    "noText": "No hay texto.",
+    "durationSeconds": "{{value}} s",
+    "durationMinutes": "{{minutes}} min {{seconds}} s",
+    "waiting": "El resultado aparecerá al completar la extracción."
   }
 }

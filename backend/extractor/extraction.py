@@ -3,7 +3,7 @@ from collections.abc import Sequence
 
 from pydantic import BaseModel, ConfigDict
 
-from pipeline.extraction_3.extractor import create_extractor, load_prompt
+from extractor.extractor import create_extractor, load_prompt
 from shared.usage import UsageRecord
 
 
@@ -40,11 +40,11 @@ def normalize_decimal(value: str) -> str:
 
 
 def extract_invoice(
-    native_text: str, markdown: str, page_images: Sequence[bytes], usage: UsageRecord | None = None,
+    native_text: str, page_images: Sequence[bytes], usage: UsageRecord | None = None,
 ) -> InvoiceExtraction:
     instruction = load_prompt("extractor.md")
-    sources = json.dumps({"native_text": native_text, "ocr_markdown": markdown}, ensure_ascii=False)
-    content = f"Extract the invoice fields from these text sources and the attached page images: {sources}"
+    sources = json.dumps({"native_text": native_text}, ensure_ascii=False)
+    content = f"Extract the invoice fields from this raw PDF text and the attached page images: {sources}"
     with create_extractor() as extractor:
         extracted = extractor.run(instruction, content, InvoiceExtraction, usage=usage, page_images=page_images)
     items = [InvoiceLine(description=item.description, amount=normalize_decimal(item.amount)) for item in extracted.line_items]

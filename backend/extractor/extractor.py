@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from shared.logger import get_logger
 from shared.usage import UsageEntry, UsageRecord
 
-MODEL = "openai/gpt-5.6-luna"
+MODEL = "google/gemini-3.8-flash"
 PROMPTS_DIRECTORY = Path(__file__).parent / "prompts"
 Result = TypeVar("Result", bound=BaseModel)
 logger = get_logger()
@@ -20,6 +20,22 @@ logger = get_logger()
 
 def load_prompt(filename: str) -> str:
     return (PROMPTS_DIRECTORY / filename).read_text(encoding="utf-8").strip()
+
+
+def inline_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    definitions = schema.get("$defs", {})
+
+    def expand(value: Any) -> Any:
+        if isinstance(value, list):
+            return [expand(item) for item in value]
+        if isinstance(value, dict):
+            if "$ref" in value:
+                definition = definitions[value["$ref"].removeprefix("#/$defs/")]
+                return expand({**definition, **{key: item for key, item in value.items() if key != "$ref"}})
+            return {key: expand(item) for key, item in value.items() if key != "$defs"}
+        return value
+
+    return expand(schema)
 
 
 class ExtractionManager:
@@ -51,8 +67,8 @@ class ExtractionManager:
                 "type": "function",
                 "function": {
                     "name": result_type.__name__,
-                    "description": "Return the structured result for the supplied invoice content.",
-                    "parameters": result_type.model_json_schema(),
+                    "description": "Return the structured result for the supplied document content.",
+                    "parameters": inline_schema(result_type.model_json_schema()),
                 },
             }],
             tool_choice="required",

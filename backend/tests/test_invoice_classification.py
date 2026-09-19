@@ -5,15 +5,15 @@ from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 from invoices.repository import InvoiceDetails
-from pipeline.classification import process
-from pipeline.extraction_3.extraction import InvoiceExtraction
+from invoices.decision import process
+from extractor.extraction import InvoiceExtraction
 from rules.models import Decision
 
 
 class PipelineClassificationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.invoice_record = InvoiceDetails(id=uuid4(), name='Factura.pdf', sha256='a' * 64,
-                                        created_at=datetime.now(timezone.utc), stages=[])
+                                        created_at=datetime.now(timezone.utc), result_path="extraction/features.json")
         self.invoice = InvoiceExtraction(
             invoice_number='F1', supplier_name='Proveedor', supplier_nif='B12345678', iban='ES001234',
             invoice_date='2026-01-01', purchase_order=' po-001 ', line_items=[], tax_base='100', vat_rate='21',
@@ -25,10 +25,10 @@ class PipelineClassificationTests(unittest.TestCase):
         client = MagicMock()
         client.rpc.return_value.execute.return_value.data = self.candidate.model_dump(mode='json', by_alias=True)
         with (
-            patch('pipeline.classification.download_file', return_value=self.invoice.model_dump_json().encode()),
-            patch('pipeline.classification.classify_invoice', return_value=self.candidate),
-            patch('pipeline.classification.track_usage', return_value=nullcontext(None)),
-            patch('pipeline.classification.get_client', return_value=client),
+            patch('invoices.decision.download_file', return_value=self.invoice.model_dump_json().encode()),
+            patch('invoices.decision.classify_invoice', return_value=self.candidate),
+            patch('invoices.decision.track_usage', return_value=nullcontext(None)),
+            patch('invoices.decision.get_client', return_value=client),
         ):
             process(self.invoice_record)
         self.assertEqual(self.invoice_record.payment_decision, self.candidate)
@@ -46,17 +46,17 @@ class PipelineClassificationTests(unittest.TestCase):
                 client = MagicMock()
                 client.rpc.return_value.execute.return_value.data = saved.model_dump(mode='json', by_alias=True)
                 with (
-                    patch('pipeline.classification.download_file', return_value=self.invoice.model_dump_json().encode()),
-                    patch('pipeline.classification.classify_invoice', return_value=self.candidate),
-                    patch('pipeline.classification.track_usage', return_value=nullcontext(None)),
-                    patch('pipeline.classification.get_client', return_value=client),
+                    patch('invoices.decision.download_file', return_value=self.invoice.model_dump_json().encode()),
+                    patch('invoices.decision.classify_invoice', return_value=self.candidate),
+                    patch('invoices.decision.track_usage', return_value=nullcontext(None)),
+                    patch('invoices.decision.get_client', return_value=client),
                 ):
                     process(self.invoice_record)
                 self.assertEqual(self.invoice_record.payment_decision, saved)
 
     def test_retry_with_saved_decision_does_not_repeat_ai_call(self) -> None:
         self.invoice_record.payment_decision = self.candidate
-        with patch('pipeline.classification.classify_invoice') as classify, patch('pipeline.classification.get_client') as client:
+        with patch('invoices.decision.classify_invoice') as classify, patch('invoices.decision.get_client') as client:
             process(self.invoice_record)
         classify.assert_not_called()
         client.assert_not_called()
@@ -65,17 +65,17 @@ class PipelineClassificationTests(unittest.TestCase):
         client = MagicMock()
         client.rpc.return_value.execute.side_effect = RuntimeError('Database unavailable')
         with (
-            patch('pipeline.classification.download_file', return_value=self.invoice.model_dump_json().encode()),
-            patch('pipeline.classification.classify_invoice', return_value=self.candidate),
-            patch('pipeline.classification.track_usage', return_value=nullcontext(None)),
-            patch('pipeline.classification.get_client', return_value=client),
+            patch('invoices.decision.download_file', return_value=self.invoice.model_dump_json().encode()),
+            patch('invoices.decision.classify_invoice', return_value=self.candidate),
+            patch('invoices.decision.track_usage', return_value=nullcontext(None)),
+            patch('invoices.decision.get_client', return_value=client),
         ):
             with self.assertRaisesRegex(RuntimeError, 'Database unavailable'):
                 process(self.invoice_record)
         self.assertIsNone(self.invoice_record.payment_decision)
 
     def test_rules_claim_lookup_and_publication_work_together(self) -> None:
-        from pipeline.extraction_3.extraction import InvoiceLine
+        from extractor.extraction import InvoiceLine
         from invoices.payment_notes import PaymentNotesReview
 
         self.invoice.purchase_order = 'PO-001'
@@ -112,9 +112,9 @@ class PipelineClassificationTests(unittest.TestCase):
 
                 client.rpc.side_effect = rpc
                 with (
-                    patch('pipeline.classification.download_file', return_value=self.invoice.model_dump_json().encode()),
-                    patch('pipeline.classification.track_usage', return_value=nullcontext(None)),
-                    patch('pipeline.classification.get_client', return_value=client),
+                    patch('invoices.decision.download_file', return_value=self.invoice.model_dump_json().encode()),
+                    patch('invoices.decision.track_usage', return_value=nullcontext(None)),
+                    patch('invoices.decision.get_client', return_value=client),
                     patch('rules.resolver.get_client', return_value=client),
                     patch('invoices.classification.review_payment_notes', return_value=PaymentNotesReview(concerns=[])) as notes,
                 ):

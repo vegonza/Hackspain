@@ -3,7 +3,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 export function InvoiceExtractionSkeleton({ title }: { title: string }) {
   return (
     <section className="invoice-data" aria-label={title} aria-busy="true">
-      <header className="review-header"><h2>{title}</h2></header>
       <div className="extraction-view">
         <dl className="extraction-grid">
           {Array.from({ length: 11 }, (_, index) => (

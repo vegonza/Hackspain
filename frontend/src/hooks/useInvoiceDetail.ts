@@ -1,10 +1,12 @@
 import { useCallback, useRef, useState } from 'react'
-import { fetchInvoice, fetchPdfUrl, type Invoice, type InvoiceDetail, type StageId } from '@/api/invoices'
+import { fetchInvoice, fetchPdfUrl, type Invoice, type InvoiceDetail } from '@/api/invoices'
 
-export type InvoiceTab = 'pdf' | 'erp' | StageId
+export type InvoiceSourceTab = 'pdf' | 'text'
+export type InvoiceDataTab = 'extraction' | 'erp'
 
 export function useInvoiceDetail(invoiceId: string | null) {
-  const [sourceTab, setSourceTab] = useState<InvoiceTab>('pdf')
+  const [sourceTab, setSourceTab] = useState<InvoiceSourceTab>('pdf')
+  const [dataTab, setDataTab] = useState<InvoiceDataTab>('extraction')
   const [detail, setDetail] = useState<InvoiceDetail | null>(null)
   const [requestedId, setRequestedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -29,15 +31,11 @@ export function useInvoiceDetail(invoiceId: string | null) {
   const updateMetrics = useCallback((invoices: Invoice[]): void => {
     setDetail(current => {
       if (current === null) return null
-      const summary = invoices.find(invoice => invoice.id === current.id)
+      const summary = invoices.find(document => document.id === current.id)
       if (summary === undefined) return current
       return {
         ...current, total_cost_usd: summary.total_cost_usd, finished_at: summary.finished_at,
-        stage_metrics: summary.stage_metrics,
-        stages: current.stages.map(stage => {
-          const metric = summary.stage_metrics.find(item => item.stage === stage.id)
-          return metric === undefined ? stage : { ...stage, cost_usd: metric.cost_usd, duration_ms: metric.duration_ms }
-        }),
+        total_duration_ms: summary.total_duration_ms,
       }
     })
   }, [])
@@ -48,6 +46,7 @@ export function useInvoiceDetail(invoiceId: string | null) {
     mountedId.current = invoiceId
     setRequestedId(invoiceId)
     setSourceTab('pdf')
+    setDataTab('extraction')
     setDetail(null)
     setPdfUrl(null)
     setLoading(true)
@@ -67,8 +66,10 @@ export function useInvoiceDetail(invoiceId: string | null) {
   }, [invoiceId, refreshDetail])
 
   return {
-    sourceTab: requestedId === invoiceId ? sourceTab : 'pdf' as InvoiceTab,
-    onSourceTab: setSourceTab,
+    sourceTab: requestedId === invoiceId ? sourceTab : 'pdf' as InvoiceSourceTab,
+    dataTab: requestedId === invoiceId ? dataTab : 'extraction' as InvoiceDataTab,
+    onSourceTab: (value: string): void => { if (value !== '') setSourceTab(value as InvoiceSourceTab) },
+    onDataTab: (value: string): void => { if (value !== '') setDataTab(value as InvoiceDataTab) },
     selected: detail !== null && detail.id === invoiceId ? detail : null,
     loading: invoiceId !== null && (requestedId !== invoiceId || loading),
     pdfLoading: invoiceId !== null && (requestedId !== invoiceId || pdfLoading),

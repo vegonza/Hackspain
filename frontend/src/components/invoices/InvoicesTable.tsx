@@ -1,5 +1,6 @@
 import { InvoiceDecisionBadge } from '@/components/invoices/InvoiceDecisionBadge'
-import { StageMetricsTooltip } from '@/components/invoices/StageMetricsTooltip'
+import { TablePagination } from '@/components/ui/table-pagination'
+import type { useInvoiceTable } from '@/hooks/useInvoiceTable'
 import { InvoicesTableHead } from '@/components/invoices/InvoicesTableHead'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -11,24 +12,24 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { ConfirmButton } from '@/components/ui/confirm-button'
 import { Skeleton } from '@/components/ui/skeleton'
 
-type Props = Pick<ReturnType<typeof useInvoices>, 'invoicesLoading' | 'sortColumn' | 'sortDirection' | 'onToggleSort' | 'onUpload' | 'search' | 'onSearch' | 'onSelect' | 'onInvoiceLink' | 'onDelete' | 'deleting' | 'labels'> & {
-  rows: ReturnType<typeof useInvoices>['filteredInvoices']
+export type InvoicesTableProps = Pick<ReturnType<typeof useInvoices>, 'invoicesLoading' | 'sortColumn' | 'sortDirection' | 'onToggleSort' | 'onUpload' | 'search' | 'onSearch' | 'onSelect' | 'onInvoiceLink' | 'onDelete' | 'deleting' | 'labels'> & {
+  table: ReturnType<typeof useInvoiceTable>
   onRedo: ReturnType<typeof useInvoices>['onRedo']
   redoDisabled: boolean
 }
 
-export function InvoicesTable({ invoicesLoading, sortColumn, sortDirection, onToggleSort, onUpload, rows, search, onSearch, onSelect, onInvoiceLink, onDelete, deleting, labels, onRedo, redoDisabled }: Props) {
+export function InvoicesTable({ invoicesLoading, sortColumn, sortDirection, onToggleSort, onUpload, table: { rows, pagination, pageKey }, search, onSearch, onSelect, onInvoiceLink, onDelete, deleting, labels, onRedo, redoDisabled }: InvoicesTableProps) {
   return (
     <section className="invoices-browser" aria-label={labels.library}>
       <header className="invoices-toolbar">
         <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
-        {invoicesLoading ? <Skeleton className="h-4 w-24 shrink-0" /> : <span className="shrink-0 text-sm text-muted-foreground">{labels.count}</span>}
+        <TablePagination pagination={pagination} loading={invoicesLoading} />
         <Button asChild size="sm" className="table-add-button"><label className="upload-button">
           <Upload size={15} />{labels.upload}
           <input type="file" accept="application/pdf,.pdf" multiple onChange={onUpload} aria-label={labels.upload} />
         </label></Button>
       </header>
-      <div className="invoices-table-scroll">
+      <div className="invoices-table-scroll" key={pageKey}>
         <table className="invoices-table" aria-busy={invoicesLoading}>
           <colgroup><col /><col style={{ width: '180px' }} /><col style={{ width: '130px' }} /><col style={{ width: '130px' }} /><col style={{ width: '130px' }} /><col style={{ width: '210px' }} /><col style={{ width: '88px' }} /></colgroup>
           <TableHeader className="[&_tr]:border-b-0"><TableRow className="hover:bg-transparent">
@@ -41,8 +42,8 @@ export function InvoicesTable({ invoicesLoading, sortColumn, sortDirection, onTo
                 : <span className="invoice-table-name">{invoice.name}</span>}</Tooltip></TableCell>
               <TableCell><Tooltip text={invoice.errorMessage || invoice.statusLabel} asChild><Badge variant="secondary" className="invoice-table-status" data-status={invoice.status}>{invoice.statusIcon === 'spinner' && <LoaderCircle size={13} className="upload-spinner" />}{invoice.statusIcon === 'clock' && <Clock size={13} />}{invoice.statusIcon === 'error' && <CircleAlert size={13} />}{invoice.status === 'error' ? labels.errorStatus : invoice.statusLabel}</Badge></Tooltip></TableCell>
               <TableCell><InvoiceDecisionBadge classification={invoice.payment_decision === null ? null : invoice.payment_decision.classification} label={invoice.decisionLabel} /></TableCell>
-              <TableCell><Tooltip text={<StageMetricsTooltip rows={invoice.costBreakdown} total={invoice.costLabel} title={labels.totalCost} />} asChild><span className="usage-detail tabular-nums">{invoice.costLabel}</span></Tooltip></TableCell>
-              <TableCell><Tooltip text={<StageMetricsTooltip rows={invoice.durationBreakdown} total={invoice.durationLabel} title={labels.totalTime} />} asChild><span className="usage-detail tabular-nums">{invoice.durationLabel}</span></Tooltip></TableCell>
+              <TableCell><span className="usage-detail tabular-nums">{invoice.costLabel}</span></TableCell>
+              <TableCell><span className="usage-detail tabular-nums">{invoice.durationLabel}</span></TableCell>
               <TableCell className="text-muted-foreground">{invoice.dateLabel}</TableCell>
               <TableCell onClick={event => event.stopPropagation()}><div className="invoice-table-action">{invoice.canRedo && <ConfirmButton icon={RotateCcw} variant="redo" label={labels.redo} confirmation={invoice.redoConfirmation} disabled={redoDisabled} onConfirm={() => void onRedo(invoice.id)} />}{invoice.canDelete && <ConfirmButton icon={Trash2} variant="delete" label={labels.delete} confirmation={invoice.deleteConfirmation} disabled={deleting} onConfirm={() => void onDelete(invoice.id)} />}</div></TableCell>
             </TableRow>)}

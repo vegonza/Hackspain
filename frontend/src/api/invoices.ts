@@ -16,24 +16,10 @@ export interface Invoice {
   pages: number
   payment_decision: PaymentDecision | null
   total_cost_usd: string | null
-  stage_metrics: { stage: StageId; cost_usd: string | null; duration_ms: number | null }[]
-  current_stages: StageId[]
+  total_duration_ms: number | null
   retry_attempts: number
   last_error: string | null
   next_retry_at: string | null
-}
-
-export type StageId = 'ocr' | 'text' | 'extraction'
-export type StageStatus = 'queued' | 'processing' | 'ready' | 'error' | 'retrying' | 'unavailable'
-
-export interface InvoiceStage {
-  id: StageId
-  status: StageStatus
-  depends_on: StageId[]
-  format: 'markdown' | 'text' | 'json'
-  duration_ms: number | null
-  cost_usd: string | null
-  content: string | null
 }
 
 export type ErpWarning = 'missing_entry_id' | 'missing_supplier_id' | 'missing_tax_id' | 'missing_order_id'
@@ -54,7 +40,7 @@ export interface InvoiceErpEntry {
 }
 
 export interface InvoiceDetail extends Invoice {
-  stages: InvoiceStage[]
+  native_text: string | null
   extraction: InvoiceExtraction | null
   erp: InvoiceErpEntry | null
   erp_snapshot_id: string | null

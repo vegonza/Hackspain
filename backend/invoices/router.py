@@ -1,10 +1,8 @@
 from datetime import datetime, timezone
 from hashlib import sha256
-from pathlib import Path
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, UploadFile
-from fastapi.responses import RedirectResponse
 from postgrest.exceptions import APIError
 
 from invoices.queue import enqueue, RETRIES, SCHEDULED, QUEUE, PROCESSING
@@ -12,28 +10,29 @@ from shared.redis import get_redis
 from invoices.repository import InvoiceDetails, read_invoice_detail, Invoice, archive_invoice, read_invoice, write_invoice, create_invoice, find_invoice_by_hash
 from invoices.repository import list_invoices as read_invoices
 from invoices.repository import reset_invoice
-from pipeline.results import InvoiceStage, invoice_stages
 from erp import ErpEntry
-from pipeline.extraction_3.extraction import InvoiceExtraction
+from extractor.extraction import InvoiceExtraction
 from shared.logger import get_logger
-from shared.storage import invalidate_invoice_urls, signed_url, upload_file, delete_file
+from shared.storage import download_file, invalidate_invoice_urls, signed_url, upload_file, delete_file
 
 logger = get_logger()
 router = APIRouter(prefix="/api/invoices")
 
 
 class InvoiceDetail(Invoice):
-    stages: list[InvoiceStage]
+    native_text: str | None
     extraction: InvoiceExtraction | None
     erp_snapshot_id: UUID | None
     erp: ErpEntry | None
 
 
 def invoice_detail(invoice_record: InvoiceDetails) -> InvoiceDetail:
-    stages = invoice_stages(invoice_record, invoice_record.stages)
-    extraction_json = next(stage.content for stage in stages if stage.id == "extraction")
-    extraction = InvoiceExtraction.model_validate_json(extraction_json) if extraction_json is not None else None
-    return InvoiceDetail(**invoice_record.model_dump(exclude={"stages"}), stages=stages, extraction=extraction)
+    extraction = None
+    native_text = None
+    if invoice_record.result_path is not None:
+        extraction = InvoiceExtraction.model_validate_json(download_file(invoice_record.result_path))
+        native_text = download_file(f"{invoice_record.id}/native.txt").decode("utf-8")
+    return InvoiceDetail(**invoice_record.model_dump(exclude={"result_path"}), native_text=native_text, extraction=extraction)
 
 
 @router.get("")
@@ -87,7 +86,6 @@ def delete_invoice(invoice_id: UUID) -> dict[str, bool]:
     invalidate_invoice_urls(str(invoice_id))
     archive_invoice(invoice_id)
     with get_redis() as redis:
-        redis.delete(f"invoices:ocr:{invoice_id}")
         redis.hdel(RETRIES, str(invoice_id))
     logger.info("[INVOICES] Archived %s (%s)", invoice_record.name, invoice_id)
     return {"deleted": True}
@@ -119,7 +117,6 @@ def redo_invoice(invoice_id: UUID) -> Invoice:
             raise HTTPException(status_code=409, detail="invoice_processing")
         try:
             with redis.pipeline(transaction=True) as transaction:
-                transaction.delete(f"invoices:ocr:{invoice_id}")
                 transaction.hdel(RETRIES, str(invoice_id))
                 transaction.zrem(SCHEDULED, str(invoice_id))
                 transaction.lrem(QUEUE, 0, str(invoice_id))
@@ -139,11 +136,3 @@ def redo_invoice(invoice_id: UUID) -> Invoice:
 def get_pdf_url(invoice_id: UUID) -> dict[str, str]:
     read_invoice(invoice_id)
     return {"url": signed_url(f"{invoice_id}/original.pdf")}
-
-
-@router.get("/{invoice_id}/images/{filename}")
-def get_image(invoice_id: UUID, filename: str) -> RedirectResponse:
-    read_invoice(invoice_id)
-    if not filename.startswith("page-") or not filename.endswith(".jpg") or Path(filename).name != filename:
-        raise HTTPException(status_code=404, detail="image_not_found")
-    return RedirectResponse(signed_url(f"{invoice_id}/{filename}"), headers={"Cache-Control": "no-store"})

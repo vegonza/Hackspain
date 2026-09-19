@@ -2,7 +2,7 @@ from datetime import date
 from uuid import UUID
 
 from invoices.payment_notes import review_payment_notes
-from pipeline.extraction_3.extraction import InvoiceExtraction
+from extractor.extraction import InvoiceExtraction
 from rules.evaluator import evaluate_rules, payment_decision
 from rules.models import Decision, RuleContext
 from rules.resolver import claim_order, resolve_references

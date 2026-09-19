@@ -5,7 +5,7 @@ from uuid import UUID
 
 from erp import ErpEntry
 from orders.models import Order
-from pipeline.extraction_3.extraction import InvoiceExtraction, InvoiceLine
+from extractor.extraction import InvoiceExtraction, InvoiceLine
 from rules.evaluator import evaluate_rules, payment_decision
 from rules.models import RuleContext
 from suppliers.models import Supplier
