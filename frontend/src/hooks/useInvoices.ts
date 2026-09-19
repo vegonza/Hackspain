@@ -44,17 +44,30 @@ export function useInvoices() {
   const redoInFlight = useRef(false)
   const invoicesRef = useRef<Invoice[]>([])
   const listRevision = useRef(0)
+  const schedulePolling = useRef<(() => void) | null>(null)
 
   const updateInvoices = useCallback((next: Invoice[]) => {
     invoicesRef.current = next
     setInvoices(next)
+    if (schedulePolling.current !== null) schedulePolling.current()
   }, [])
 
   const watchInvoices = useCallback((node: HTMLDivElement | null) => {
     if (node === null || view !== 'invoices') return
     let active = true
-    let timer: ReturnType<typeof setTimeout>
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let fetching = false
+    function schedule(): void {
+      clearTimeout(timer)
+      timer = undefined
+      if (active && !fetching && invoicesRef.current.some(isProcessing)) {
+        timer = setTimeout(() => void poll(), 3000)
+      }
+    }
     async function poll(): Promise<void> {
+      if (!active || fetching) return
+      clearTimeout(timer)
+      fetching = true
       try {
         if (!document.hidden) {
           const revision = listRevision.current
@@ -83,13 +96,21 @@ export function useInvoices() {
       } catch {
         // The API client displays polling errors.
       } finally {
-        if (active) timer = setTimeout(() => void poll(), 3000)
+        fetching = false
+        schedule()
       }
     }
+    function onVisibilityChange(): void {
+      if (!document.hidden) void poll()
+    }
+    schedulePolling.current = schedule
+    document.addEventListener('visibilitychange', onVisibilityChange)
     void poll()
     return () => {
       active = false
       clearTimeout(timer)
+      schedulePolling.current = null
+      document.removeEventListener('visibilitychange', onVisibilityChange)
     }
   }, [t, updateInvoices, updateMetrics, view, selectedId, refreshDetail])
 

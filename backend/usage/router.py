@@ -1,6 +1,7 @@
 from decimal import Decimal
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 from shared.usage import UsageRecord
 from shared.storage import get_client
@@ -29,25 +30,17 @@ class UsageSummary(BaseModel):
 class UsageResponse(BaseModel):
     records: list[UsageRecord]
     total: int
+    page_size: int
     summary: UsageSummary
     daily: list[DailyUsage]
     failed_pending: int = 0
 
 
 @router.get("")
-def get_usage() -> UsageResponse:
+def get_usage(page: Annotated[int, Query(ge=0)] = 0) -> UsageResponse:
     client = get_client()
-    result = client.rpc("get_usage_dashboard", {"p_page": 0}).execute()
+    result = client.rpc("get_usage_dashboard", {"p_page": page}).execute()
     response = UsageResponse.model_validate(result.data)
-    while len(response.records) < response.total:
-        last = response.records[-1]
-        created_at = last.created_at.isoformat()
-        rows = client.table("usage_log").select("*").order("created_at", desc=True).order("id", desc=True).or_(
-            f"created_at.lt.{created_at},and(created_at.eq.{created_at},id.lt.{last.id})",
-        ).limit(min(1000, response.total - len(response.records))).execute().data
-        if not rows:
-            break
-        response.records.extend(UsageRecord.model_validate(row) for row in rows)
     with get_redis() as redis:
         response.failed_pending = sum(RetryState.model_validate_json(payload).failed for payload in redis.hvals(RETRIES))
     return response

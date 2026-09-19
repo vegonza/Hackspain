@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { fetchUsage, retryFailedUsage, type UsageResponse } from '@/api/usage'
 import { formatDateLong } from '@/lib/format'
 
-import { useTablePagination } from '@/hooks/useTablePagination'
 
 const money = (amount: string) => `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(Number(amount))}`
 const detailFields = ['pages_processed', 'prompt_tokens', 'completion_tokens', 'total_tokens'] as const
@@ -14,37 +13,41 @@ const operationColors = { extraction: '#7c3aed', classification: '#059669' } sat
 export function useUsage() {
   const { t } = useTranslation()
   const [data, setData] = useState<UsageResponse | null>(null)
-  const loaded = useRef(false)
+  const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [retrying, setRetrying] = useState(false)
+  const mounted = useRef(false)
+  const requestVersion = useRef(0)
+  const loadPage = useCallback(async (nextPage: number): Promise<void> => {
+    if (!mounted.current) return
+    const version = ++requestVersion.current
+    setLoading(true)
+    setFailed(false)
+    try {
+      const result = await fetchUsage(nextPage)
+      if (mounted.current && version === requestVersion.current) {
+        setData(result)
+        setPage(nextPage)
+      }
+    } catch {
+      if (mounted.current && version === requestVersion.current) setFailed(true)
+    } finally {
+      if (mounted.current && version === requestVersion.current) setLoading(false)
+    }
+  }, [])
   const mount = useCallback((node: HTMLElement | null) => {
     if (node === null) return
-    let active = true
-    let timer: ReturnType<typeof setTimeout>
-    setLoading(!loaded.current)
-    async function refresh(): Promise<void> {
-      try {
-        const result = await fetchUsage()
-        if (active) { setData(result); loaded.current = true; setFailed(false) }
-      } catch {
-        if (active) setFailed(true)
-      } finally {
-        if (active) {
-          setLoading(false)
-          timer = setTimeout(() => void refresh(), 5000)
-        }
-      }
-    }
-    void refresh()
-    return () => { active = false; clearTimeout(timer) }
-  }, [])
+    mounted.current = true
+    void loadPage(0)
+    return () => { mounted.current = false; ++requestVersion.current }
+  }, [loadPage])
   async function onRetry(): Promise<void> {
     if (retrying) return
     setRetrying(true)
     try {
       await retryFailedUsage()
-      setData(await fetchUsage())
+      await loadPage(page)
     } catch {
       // The API client displays the error.
     } finally {
@@ -52,9 +55,21 @@ export function useUsage() {
     }
   }
 
-  const table = useTablePagination(data === null ? [] : data.records)
+  const total = data === null ? 0 : data.total
+  const pages = data === null ? 1 : Math.max(1, Math.ceil(total / data.page_size))
+  const start = data === null || total === 0 ? 0 : page * data.page_size + 1
+  const end = data === null ? 0 : Math.min((page + 1) * data.page_size, total)
   return {
-    pagination: table.pagination, pageKey: table.pageKey,
+    pageKey: String(page),
+    pagination: {
+      page, pages,
+      previousDisabled: loading || page === 0, nextDisabled: loading || page + 1 >= pages,
+      onPrevious: () => { if (!loading && page > 0) void loadPage(page - 1) },
+      onNext: () => { if (!loading && page + 1 < pages) void loadPage(page + 1) },
+      label: t('pagination.label'), previousLabel: t('pagination.previous'), nextLabel: t('pagination.next'),
+      rangeLabel: t('pagination.range', { start, end, total }),
+      pageLabel: t('pagination.page', { page: page + 1, pages }),
+    },
     operations: (Object.keys(operationColors) as UsageOperation[]).map(id => ({ id, label: t(`usage.operations.${id}`), color: operationColors[id] })),
     onRetry, retrying,
     failedPending: data === null ? 0 : data.failed_pending,
@@ -71,7 +86,7 @@ export function useUsage() {
       dateLabel: new Date(`${day.date}T00:00:00`).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }),
       breakdown: Object.entries(day.operations).filter(([, cost]) => Number(cost) > 0).sort((first, second) => Number(second[1]) - Number(first[1])).map(([operation, cost]) => ({ operation: t(`usage.operations.${operation as UsageOperation}`), cost: money(cost), color: operationColors[operation as UsageOperation] })),
     })),
-    records: table.rows.map(record => ({ ...record,
+    records: (data === null ? [] : data.records).map(record => ({ ...record,
       operation: t(`usage.operations.${record.operation as UsageOperation}`),
       color: operationColors[record.operation as UsageOperation],
       providerName: record.model.split('/')[0],

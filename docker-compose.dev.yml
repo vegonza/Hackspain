@@ -80,7 +80,7 @@ services:
       TZ: Europe/Madrid
       ERP_BASE_URL: http://erp:8009
       REDIS_URL: redis://redis:6379/0
-      INVOICE_WORKERS: "5"
+      INVOICE_WORKERS: "10"
     depends_on:
       erp:
         condition: service_healthy
