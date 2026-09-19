@@ -1,4 +1,5 @@
 import os
+import signal
 import time
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from threading import Event
@@ -7,34 +8,48 @@ from uuid import UUID
 from redis import Redis
 from redis.lock import Lock
 
-from documents.queue import PROCESSING, QUEUE
+from documents.queue import PROCESSING, QUEUE, RETRIES, SCHEDULED, promote_retries
 from documents.repository import read_document, write_document
 from documents.processor import extract_markdown
 from shared.logger import setup_logger
 from shared.redis import get_redis
 from shared.storage import download_file, upload_file
+from shared.retries import MAX_ATTEMPTS, read_retry, record_failure
 
 logger = setup_logger()
 
 
 def process_document(document_id: str) -> None:
+    with get_redis() as redis:
+        state = read_retry(redis, RETRIES, document_id)
+        if state.failed:
+            return
+        if state.attempts >= MAX_ATTEMPTS:
+            state.failed = True
+            state.next_attempt = None
+            redis.hset(RETRIES, document_id, state.model_dump_json())
+            return
+        state.attempts += 1
+        state.next_attempt = None
+        redis.hset(RETRIES, document_id, state.model_dump_json())
     document = read_document(UUID(document_id))
     if document.status in ("ready", "error"):
         return
     document.status = "processing"
     write_document(document)
     logger.info("[QUEUE] Processing %s", document.name)
-    try:
-        pdf = download_file(f"{document_id}/original.pdf")
-        markdown, pages = extract_markdown(pdf, document_id, document.name)
-        upload_file(f"{document_id}/document.md", markdown.encode("utf-8"), "text/markdown; charset=utf-8")
-        document.pages = pages
-        document.status = "ready"
-    except Exception:
-        document.status = "error"
-        logger.exception("[QUEUE] Processing failed for %s", document.name)
+    pdf = download_file(f"{document_id}/original.pdf")
+    markdown, pages = extract_markdown(pdf, document_id, document.name)
+    upload_file(f"{document_id}/document.md", markdown.encode("utf-8"), "text/markdown; charset=utf-8")
+    document.pages = pages
+    document.status = "ready"
     write_document(document)
     logger.info("[QUEUE] Finished %s: %s", document.name, document.status)
+    state.last_error = None
+    with get_redis() as redis, redis.pipeline(transaction=True) as transaction:
+        transaction.delete(f"documents:ocr:{document_id}")
+        transaction.hset(RETRIES, document_id, state.model_dump_json())
+        transaction.execute()
 
 
 def finish_jobs(redis: Redis, active: dict[Future[None], str], done: set[Future[None]]) -> None:
@@ -42,11 +57,14 @@ def finish_jobs(redis: Redis, active: dict[Future[None], str], done: set[Future[
         document_id = active[job]
         try:
             job.result()
-        except Exception:
-            logger.exception("[QUEUE] Job interrupted; requeuing %s", document_id)
+        except Exception as error:
+            state = record_failure(read_retry(redis, RETRIES, document_id), error)
+            logger.exception("[QUEUE] Attempt %s failed for %s; retry scheduled: %s", state.attempts, document_id, state.next_attempt)
             with redis.pipeline(transaction=True) as transaction:
+                transaction.hset(RETRIES, document_id, state.model_dump_json())
                 transaction.lrem(PROCESSING, 1, document_id)
-                transaction.lpush(QUEUE, document_id)
+                if state.next_attempt is not None:
+                    transaction.zadd(SCHEDULED, {document_id: state.next_attempt})
                 transaction.execute()
         else:
             redis.lrem(PROCESSING, 1, document_id)
@@ -63,6 +81,7 @@ def run_pool(redis: Redis, slots: int, stop: Event, lock: Lock) -> None:
             try:
                 done = {job for job in active if job.done()}
                 finish_jobs(redis, active, done)
+                promote_retries()
                 if stop.is_set() or len(active) == slots:
                     if active:
                         wait(active, timeout=1, return_when=FIRST_COMPLETED)
@@ -80,11 +99,14 @@ def run() -> None:
     slots = int(os.environ["DOCUMENT_WORKERS"])
     if slots < 1:
         raise ValueError("DOCUMENT_WORKERS must be positive")
+    stop = Event()
+    signal.signal(signal.SIGTERM, lambda *_: stop.set())
+    signal.signal(signal.SIGINT, lambda *_: stop.set())
     with get_redis() as redis:
         with redis.lock("documents:worker-lock", timeout=120) as lock:
             while redis.rpoplpush(PROCESSING, QUEUE) is not None:
                 pass
-            run_pool(redis, slots, Event(), lock)
+            run_pool(redis, slots, stop, lock)
 
 
 if __name__ == "__main__":

@@ -48,6 +48,13 @@ def download_file(path: str) -> bytes:
     return get_client().storage.from_(os.environ["SUPABASE_STORAGE_BUCKET"]).download(path)
 
 
+def delete_file(path: str) -> None:
+    get_client().storage.from_(os.environ["SUPABASE_STORAGE_BUCKET"]).remove([path])
+    with get_redis() as redis:
+        redis.unlink(signed_url_cache_key(path))
+    logger.info("[STORAGE] Removed %s", path)
+
+
 def signed_url(path: str) -> str:
     """Reuse signed URLs, expiring the cache five minutes before the signature."""
     key = signed_url_cache_key(path)

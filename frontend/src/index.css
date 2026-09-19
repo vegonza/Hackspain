@@ -59,11 +59,11 @@ button:focus-visible, .upload-button:has(input:focus-visible) { outline: 2px sol
 .document-row { position: relative; display: flex; align-items: center; border-radius: 8px; margin-bottom: 3px; padding-right: 5px; }
 .document-row:hover, .document-row:focus-within { background: #f3f3f3; }
 .document-row[data-selected='true'] { background: var(--accent-soft); }
-.document-row[data-selected='true']::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--accent); }
-.document-row[data-selected='true'] .document-item { color: var(--primary); font-weight: 600; }
+.document-row[data-selected='true']::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px; background: var(--accent); }
+.document-row[data-selected='true'] .document-item { background: transparent; color: var(--primary); font-weight: 600; }
 .upload-button, .document-row, .document-item, .document-delete, .source-tabs button, .pdf-toolbar button { transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease, opacity 140ms ease; }
-.document-delete { display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: #737373; opacity: 0; pointer-events: none; }
-.document-row:hover .document-delete { opacity: 1; pointer-events: auto; }
+.document-delete { display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: #737373; visibility: hidden; opacity: 0; pointer-events: none; }
+.document-row:hover .document-delete { visibility: visible; opacity: 1; pointer-events: auto; }
 .document-delete:hover { background: #fee2e2; color: #b91c1c; }
 .delete-confirmation { z-index: 60; width: max-content; max-width: min(18rem, var(--radix-popover-content-available-width)); padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: white; box-shadow: 0 5px 20px #00000012; }
 .delete-confirmation p { margin: 0 0 12px; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }

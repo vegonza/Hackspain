@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { fetchUsage, type UsageResponse } from '@/api/usage'
+import { fetchUsage, retryFailedUsage, type UsageResponse } from '@/api/usage'
 import { formatDateLong } from '@/lib/format'
 
 const money = (amount: string) => `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(Number(amount))}`
@@ -12,6 +12,7 @@ export function useUsage() {
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [retrying, setRetrying] = useState(false)
   const mount = useCallback((node: HTMLElement | null) => {
     if (node === null) return
     let active = true
@@ -33,7 +34,23 @@ export function useUsage() {
     void refresh()
     return () => { active = false; clearTimeout(timer) }
   }, [page])
+  async function onRetry(): Promise<void> {
+    if (retrying) return
+    setRetrying(true)
+    try {
+      await retryFailedUsage()
+      setData(await fetchUsage(page))
+    } catch {
+      // The API client displays the error.
+    } finally {
+      setRetrying(false)
+    }
+  }
+
   return {
+    onRetry, retrying,
+    failedPending: data === null ? 0 : data.failed_pending,
+    pendingError: t('usage.pendingError', { count: data === null ? 0 : data.failed_pending }),
     mount, loading, failed, page, setPage,
     totalLabel: t('usage.records', { count: data === null ? 0 : data.total }),
     pages: data === null ? 1 : Math.max(1, Math.ceil(data.total / data.page_size)),
@@ -61,6 +78,7 @@ export function useUsage() {
       operation: t('usage.operation'), totalCost: t('usage.totalCost'),
       empty: t('usage.empty'), failed: t('documents.requestFailed'), loading: t('documents.loading'),
       previous: t('usage.previous'), next: t('usage.next'),
+      retry: t('documents.retry'),
     },
   }
 }

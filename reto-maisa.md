@@ -1,5 +1,7 @@
 Fuente: [web oficial del reto](https://hackathon.maisa.ai/#reto)
 
+Revisado contra la web el 19 de septiembre de 2026. Texto del reto conservado sin resumir; se omiten navegación y bloques promocionales.
+
 [ MAISA HACKSPAIN · 2026 ]
 
 # 500 Sombras de Alberto
@@ -70,7 +72,7 @@ Alberto añade otro lote y una regla nueva. El domingo también podrá cambiar u
 
 Incorporar el cambio y revisar su impacto
 
-+40 FACTURAS ERP ACTUALIZADO NORMA V4
++40 FACTURAS ERP ACTUALIZADO
 
 Integrad el cambio, conservad el trabajo y explicad qué decisiones debéis reprocesar.
 
@@ -192,8 +194,8 @@ Hitos de entrega y defensa
 
 | DÍA | HORA | ACTIVIDAD |
 | --- | --- | --- |
-| VIE 18 | 21:00 | Enunciado, rúbrica y Caja de Alberto v3.2 |
-| SÁB 19 | 18:00 | Lote 2: 40 facturas, ERP actualizado y norma v4 |
+| VIE 18 | 19:00 | Comienza la hackathon |
+| SÁB 19 | 18:00 | Lote 2: 40 facturas, ERP actualizado |
 | DOM 20 | 11:00 | Cierre de entrega y registro del commit |
 | DOM 20 | Por confirmar | Defensa · 10 minutos por equipo |
 
@@ -247,7 +249,7 @@ Detectad una necesidad adicional de Alberto, implementad una mejora útil y most
 
 #### ¿Dónde conseguimos los materiales?
 
-En el canal del track: el viernes a las 21:00 se comparten caja-abierta-enunciado-v1.zip (README, enunciado y rúbrica) y caja-de-alberto-v3.2.zip (datos, ERP y ejemplo JSONL). El sábado a las 18:00 se publica lote-2-sorpresa-v3.2.zip y la norma v4. Comprobad los hashes publicados en el canal.
+En el canal del track: el viernes a las 19:00 se comparte el repo con los archivos iniciales. El sábado a las 18:00 se publica lote-2-sorpresa-v3.2.zip. Comprobad los hashes publicados en el canal.
 
 #### ¿Cómo arrancamos el ERP local?
 

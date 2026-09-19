@@ -1,5 +1,6 @@
 import { DollarSign, LoaderCircle, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 import { UsageView } from '@/components/usage/UsageView'
 import type { useUsage } from '@/hooks/useUsage'
 import logo from '@/assets/logo.svg'
@@ -14,7 +15,7 @@ import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
 
 type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsage> }
 
-export function DocumentsView({ documents, selected, selectedId, selectedRow, loading, pdfUrl, pdfLoading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage }: Props) {
+export function DocumentsView({ documents, selected, selectedId, selectedRow, loading, pdfUrl, pdfLoading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage, onRetry, retrying }: Props) {
   return (
     <div className="app-shell" ref={watchDocuments}>
       <header className="app-header">
@@ -35,9 +36,9 @@ export function DocumentsView({ documents, selected, selectedId, selectedRow, lo
                 <div key={document.id} className="document-row" data-selected={view === 'documents' && selectedId === document.id}>
                   <Button variant="sidebar" size="sidebar" className="document-item" aria-current={view === 'documents' && selectedId === document.id ? 'true' : undefined}
                     onClick={() => void onSelect(document.id)}>
-                    <span className="document-name" title={document.name}>{document.name}</span>
-                    {document.pending && <LoaderCircle size={15} className="upload-spinner" aria-label={document.statusLabel} />}
-                    {document.status === 'error' && <span className="error-dot" title={labels.error} />}
+                    <Tooltip text={document.name} onlyWhenTruncated asChild><span className="document-name">{document.name}</span></Tooltip>
+                    {document.pending && <Tooltip text={document.statusLabel} asChild><span className="ml-auto flex"><LoaderCircle size={15} className="upload-spinner" aria-label={document.statusLabel} /></span></Tooltip>}
+                    {document.status === 'error' && <Tooltip text={document.errorMessage || labels.error} asChild><span className="error-dot" aria-label={labels.error} /></Tooltip>}
                   </Button>
                   {!document.pending && <DeleteButton label={labels.delete} confirmation={document.deleteConfirmation}
                     disabled={deleting} onDelete={() => void onDelete(document.id)} />}
@@ -52,7 +53,8 @@ export function DocumentsView({ documents, selected, selectedId, selectedRow, lo
             <div className="review-desk">
               <section className="viewer-panel" aria-label={sourceTab === 'pdf' ? labels.pdf : labels.markdown}>
                 <header className="source-header">
-                  <h2 title={selectedRow.name}>{selectedRow.name}</h2>
+                  <Tooltip text={selectedRow.name} onlyWhenTruncated asChild><h2>{selectedRow.name}</h2></Tooltip>
+                  {selectedRow.status === 'error' && <Button variant="outline" size="sm" disabled={retrying} onClick={() => void onRetry(selectedRow.id)}>{labels.retry}</Button>}
                   <div className="source-tabs" role="group" aria-label={labels.document}>
                     <button aria-pressed={sourceTab === 'pdf'} onClick={() => onSourceTab('pdf')}>{labels.pdf}</button>
                     <button aria-pressed={sourceTab === 'markdown'} onClick={() => onSourceTab('markdown')}>{labels.markdown}</button>
@@ -71,6 +73,7 @@ export function DocumentsView({ documents, selected, selectedId, selectedRow, lo
               </section>
               <section className="features-panel" aria-label={labels.features} aria-busy={loading}>
                 <header className="review-header"><h2>{labels.features}</h2></header>
+                {selectedRow.status === 'error' && selectedRow.errorMessage && <p role="alert" className="markdown-error">{selectedRow.errorMessage}</p>}
                 {loading ? <InvoiceFeaturesSkeleton /> : selected && selected.features ?
                   <InvoiceFeatures features={selected.features} labels={featureLabels} />
                 : <p className="markdown-error">{labels.noFeatures}</p>}

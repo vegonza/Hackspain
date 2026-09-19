@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS public.documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
+    sha256 TEXT NOT NULL CHECK (sha256 ~ '^[0-9a-f]{64}$'),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     status TEXT NOT NULL DEFAULT 'queued'
         CHECK (status IN ('queued', 'processing', 'ready', 'error')),
@@ -10,6 +11,9 @@ CREATE TABLE IF NOT EXISTS public.documents (
 
 CREATE INDEX IF NOT EXISTS idx_documents_active_created_at
     ON public.documents (created_at DESC, id) WHERE deleted_at IS NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_active_sha256
+    ON public.documents (sha256) WHERE deleted_at IS NULL;
 
 ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.documents FROM PUBLIC, anon, authenticated;

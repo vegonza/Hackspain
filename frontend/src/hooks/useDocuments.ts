@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState, type ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { deleteDocument, fetchDocument, fetchDocuments, fetchPdfUrl, uploadDocument, type Document, type DocumentDetail } from '@/api/documents'
+import { deleteDocument, retryDocument, fetchDocument, fetchDocuments, fetchPdfUrl, uploadDocument, type Document, type DocumentDetail } from '@/api/documents'
 
 interface UploadingFile { id: string; name: string }
 
@@ -16,6 +16,7 @@ export function useDocuments(initialDocuments: Document[]) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [retrying, setRetrying] = useState(false)
   const [sourceTab, setSourceTab] = useState<'pdf' | 'markdown'>('pdf')
   const selectionRequest = useRef(0)
   const activeId = useRef<string | null>(null)
@@ -151,19 +152,38 @@ export function useDocuments(initialDocuments: Document[]) {
     }
   }
 
+  async function onRetry(id: string): Promise<void> {
+    if (retrying) return
+    setRetrying(true)
+    ++listRevision.current
+    try {
+      const document = await retryDocument(id)
+      ++listRevision.current
+      updateDocuments(documentsRef.current.map(item => item.id === id ? document : item))
+    } catch {
+      // The API client displays the error.
+    } finally {
+      setRetrying(false)
+    }
+  }
+
   const rows = [
     ...uploads.map(upload => ({ ...upload, status: 'uploading' as const })),
     ...documents,
   ].map(document => ({
     ...document,
     pending: document.status === 'uploading' || document.status === 'queued' || document.status === 'processing',
-    statusLabel: t(`documents.${document.status}`),
+    statusLabel: document.status !== 'uploading' && document.next_retry_at !== null
+      ? t('documents.retryQueued') : t(`documents.${document.status}`),
     deleteConfirmation: t('documents.deleteConfirmation', { name: document.name }),
+    errorMessage: document.status === 'error' ? t('documents.error') : '',
   }))
 
   return {
     documents: rows,
-    selected, selectedId, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments,
+    selected,
+    selectedId, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments,
+    onRetry, retrying,
     selectedRow: rows.find(document => document.id === selectedId),
     uploadSelected: rows.some(document => document.id === selectedId && document.pending),
     view, onUsage: () => setView('usage'),
@@ -180,6 +200,7 @@ export function useDocuments(initialDocuments: Document[]) {
       document: t('documents.document'),
       pdfError: t('documents.pdfError'),
       usage: t('usage.title'),
+      retry: t('documents.retry'),
     },
     featureLabels: {
       invoiceNumber: t('features.invoiceNumber'), invoiceDate: t('features.invoiceDate'),

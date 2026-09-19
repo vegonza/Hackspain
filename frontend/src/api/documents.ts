@@ -3,9 +3,13 @@ import { fetchJson } from '@/api/client'
 export interface Document {
   id: string
   name: string
+  sha256: string
   created_at: string
   status: 'queued' | 'processing' | 'ready' | 'error'
   pages: number
+  retry_attempts: number
+  last_error: string | null
+  next_retry_at: string | null
 }
 
 export interface DocumentDetail extends Document {
@@ -46,6 +50,10 @@ export function fetchPdfUrl(id: string): Promise<{ url: string }> {
 
 export function deleteDocument(id: string): Promise<{ deleted: boolean }> {
   return fetchJson(`/documents/${id}`, { method: 'DELETE' })
+}
+
+export function retryDocument(id: string): Promise<Document> {
+  return fetchJson(`/documents/${id}/retry`, { method: 'POST' })
 }
 
 export function uploadDocument(file: File): Promise<Document> {
