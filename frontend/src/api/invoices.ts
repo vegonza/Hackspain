@@ -22,6 +22,11 @@ export interface Invoice {
   next_retry_at: string | null
 }
 
+export interface IncidentFailure {
+  rule: string
+  reason: string
+}
+
 export interface InvoiceIncident {
   invoice_id: string
   invoice_name: string
@@ -30,6 +35,7 @@ export interface InvoiceIncident {
   due_date: string | null
   amount_eur: string | null
   reasons: string[]
+  failures: IncidentFailure[]
 }
 
 export type ErpWarning = 'missing_entry_id' | 'missing_supplier_id' | 'missing_tax_id' | 'missing_order_id'

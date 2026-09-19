@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Literal
 from uuid import UUID
 
@@ -13,7 +13,7 @@ from invoices.queue import RETRIES
 from extractor.extraction import InvoiceExtraction
 from shared.logger import get_logger
 from erp import ErpEntry
-from rules.models import Decision
+from rules.models import Decision, RuleFailure
 from rules.currency import reconciliation_rate
 
 logger = get_logger()
@@ -46,6 +46,7 @@ class InvoiceIncident(BaseModel):
     due_date: date | None
     amount_eur: Decimal | None
     reasons: list[str]
+    failures: list[RuleFailure]
 
 
 def incident_date(value: str | None) -> date | None:
@@ -94,11 +95,42 @@ def list_invoices() -> list[Invoice]:
             return invoices
 
 
+def supplier_payment_terms() -> dict[str, int]:
+    rows = get_client().table("suppliers").select("tax_id,payment_terms_days").execute().data
+    return {normalize_tax_id(row["tax_id"]): row["payment_terms_days"] for row in rows}
+
+
+def incident_due_date(decision: Decision, issued: date | None, supplier_nif: str | None,
+                      terms: dict[str, int]) -> date | None:
+    """Rebuild the due date from the supplier terms when the published decision predates that field."""
+    if decision.due_date is not None:
+        return decision.due_date
+    payment_days = terms.get(normalize_tax_id(supplier_nif or ""))
+    if issued is None or payment_days is None:
+        return None
+    return issued + timedelta(days=payment_days)
+
+
+def incident_amount(decision: Decision, total_eur: object) -> Decimal | None:
+    """The generated euro total covers decisions published before the amount was stored."""
+    if decision.amount_eur is not None:
+        return decision.amount_eur
+    return Decimal(str(total_eur)) if total_eur is not None else None
+
+
+def incident_failures(decision: Decision) -> list[RuleFailure]:
+    """Older decisions only kept the sentence, so they stay unlabelled instead of mislabelled."""
+    if decision.failures:
+        return decision.failures
+    return [RuleFailure(rule="", reason=reason) for reason in decision.reasons]
+
+
 def list_incidents() -> list[InvoiceIncident]:
     rows = get_client().table("documents").select(
-        "id,name,created_at,invoice_date,payment_decision"
+        "id,name,created_at,invoice_date,supplier_nif,total_eur,payment_decision"
     ).is_("deleted_at", "null").execute().data
     incidents: list[InvoiceIncident] = []
+    terms = supplier_payment_terms()
     for row in rows:
         decision_payload = row["payment_decision"]
         if decision_payload is None:
@@ -106,14 +138,16 @@ def list_incidents() -> list[InvoiceIncident]:
         decision = Decision.model_validate(decision_payload)
         if decision.classification != "ESCALAR":
             continue
+        issued = incident_date(row["invoice_date"])
         incidents.append(InvoiceIncident(
             invoice_id=row["id"],
             invoice_name=row["name"],
-            invoice_date=incident_date(row["invoice_date"]),
+            invoice_date=issued,
             created_at=row["created_at"],
-            due_date=decision.due_date,
-            amount_eur=decision.amount_eur,
+            due_date=incident_due_date(decision, issued, row.get("supplier_nif"), terms),
+            amount_eur=incident_amount(decision, row.get("total_eur")),
             reasons=decision.reasons,
+            failures=incident_failures(decision),
         ))
     logger.info("[INCIDENTS] Listed %s invoices requiring review", len(incidents))
     return incidents

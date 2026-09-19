@@ -251,7 +251,30 @@
     "reasons": "Motivos de escalado",
     "empty": "No hay facturas pendientes de escalar.",
     "retry": "Reintentar",
-    "openInvoice": "Abrir factura"
+    "openInvoice": "Abrir factura",
+    "rules": {
+      "invoice_identity": "Identidad incompleta",
+      "supplier": "Proveedor",
+      "iban": "IBAN",
+      "order": "Pedido",
+      "order_supplier": "Proveedor del pedido",
+      "erp_unique": "Asiento ERP",
+      "erp_supplier": "Proveedor en ERP",
+      "erp_pending": "Estado ERP",
+      "not_paid": "Ya pagada",
+      "currency": "Moneda",
+      "amounts_readable": "Importes ilegibles",
+      "vat": "IVA",
+      "total": "Total",
+      "line_sum": "Suma de líneas",
+      "order_amount": "Importe del pedido",
+      "erp_amount": "Importe del ERP",
+      "date": "Fecha",
+      "pending_review": "Revisión pendiente",
+      "order_claim": "Pedido reclamado",
+      "extraction_certain": "Extracción dudosa",
+      "payment_notes": "Anotación manuscrita"
+    }
   },
   "accounting": {
     "title": "Precierre fiscal",

@@ -31,12 +31,20 @@ class RuleResult(BaseModel):
     reason: str
 
 
+class RuleFailure(BaseModel):
+    """A failed check kept next to the sentence it produced."""
+
+    rule: str
+    reason: str
+
+
 class Decision(BaseModel):
     model_config = ConfigDict(validate_by_name=True)
 
     classification: Literal['PAGAR', 'NO_PAGAR', 'ESCALAR']
     reasons: list[str]
     checks: dict[str, bool]
+    failures: list[RuleFailure] = Field(default_factory=list)
     due_date: date | None = None
     supplier_name: str | None = None
     amount_eur: Decimal | None = None

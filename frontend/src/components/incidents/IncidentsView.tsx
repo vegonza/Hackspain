@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { SortableTableHead } from '@/components/ui/sortable-table-head'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { TableSkeleton } from '@/components/ui/table/table-skeleton'
+import { Tooltip } from '@/components/ui/tooltip'
 import type { useIncidents } from '@/hooks/useIncidents'
 
 export function IncidentsView({ mount, loading, failed, rows, sortColumn, sortDirection, onToggleSort, onRetry, onInvoiceLink, labels }: ReturnType<typeof useIncidents>) {
@@ -28,7 +29,7 @@ export function IncidentsView({ mount, loading, failed, rows, sortColumn, sortDi
             <TableCell className="tabular-nums">{incident.createdLabel}</TableCell>
             <TableCell className="tabular-nums">{incident.dueLabel}</TableCell>
             <TableCell className="tabular-nums font-medium">{incident.amountLabel}</TableCell>
-            <TableCell><div className="incidents-reasons">{incident.reasons.map(reason => <Badge key={reason} variant="outline">{reason}</Badge>)}</div></TableCell>
+            <TableCell><div className="incidents-reasons">{incident.failures.map(failure => <Tooltip key={failure.key} text={failure.reason} asChild><Badge variant="outline">{failure.label}</Badge></Tooltip>)}</div></TableCell>
           </TableRow>)}
           {!loading && rows.length === 0 && <TableRow><TableCell colSpan={6} className="h-40 text-center text-muted-foreground">{labels.empty}</TableCell></TableRow>}
         </TableBody>

@@ -54,6 +54,12 @@ export function useIncidents() {
     createdLabel: calendarDate.format(new Date(incident.created_at)),
     dueLabel: incident.due_date === null ? t('extraction.unavailable') : calendarDate.format(new Date(`${incident.due_date}T00:00:00`)),
     amountLabel: incident.amount_eur === null ? t('extraction.unavailable') : currency.format(Number(incident.amount_eur)),
+    failures: incident.failures.map((failure, index) => ({
+      key: `${failure.rule}-${index}`,
+      // Decisions published before rules were paired with their reason keep the full sentence.
+      label: failure.rule === '' ? failure.reason : t(`incidents.rules.${failure.rule}`, { defaultValue: failure.rule }),
+      reason: failure.reason,
+    })),
   }))
 
   return {
