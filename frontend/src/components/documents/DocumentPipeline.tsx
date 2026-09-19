@@ -24,7 +24,7 @@ export function DocumentPipeline({ title, stages, selected, onSelect, totalCost,
                   : stage.status === 'processing' || stage.status === 'retrying' ? <LoaderCircle size={14} className="upload-spinner" />
                   : stage.status === 'error' ? <CircleAlert size={14} /> : <Circle size={14} />}
               </span>
-              <span className="pipeline-stage-copy"><strong>{stage.label}</strong><span>{stage.description}</span></span>
+              <span className="pipeline-stage-copy"><strong>{stage.label}</strong></span>
               <span className="pipeline-status" aria-live="polite">{stage.status !== 'ready' && stage.status !== 'unavailable' && <span>{stage.statusLabel}</span>}{stage.durationLabel !== null && <span className="pipeline-duration">{stage.durationLabel}</span>}{stage.costLabel !== null && <span className="pipeline-cost">{stage.costLabel}</span>}</span>
             </button>
           </li>
