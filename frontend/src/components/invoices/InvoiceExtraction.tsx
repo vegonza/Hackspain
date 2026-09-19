@@ -2,6 +2,7 @@ import { ChevronRight, CircleAlert } from 'lucide-react'
 import type { InvoiceExtraction as InvoiceExtractionData } from '@/api/invoices'
 import { Tooltip } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { InvoiceIdentifierTooltip } from '@/components/invoices/InvoiceIdentifierTooltip'
 import type { useInvoices } from '@/hooks/useInvoices'
 
@@ -44,12 +45,12 @@ export function InvoiceExtraction({ title, extraction, amounts, labels, identifi
           <div><dt>{labels.supplierNif}</dt>
             {identifierTrace.supplier_nif === null
               ? <Tooltip text={extraction.supplier_nif} onlyWhenTruncated asChild><dd>{extraction.supplier_nif}</dd></Tooltip>
-              : <dd><Tooltip text={<InvoiceIdentifierTooltip {...identifierTrace.supplier_nif} />} asChild><span className="inline-flex max-w-full items-center gap-1.5 align-middle" aria-label={`${labels.inferred}: ${extraction.supplier_nif}`}><CircleAlert size={13} className="shrink-0 text-amber-600" aria-hidden="true" /><span className="truncate">{extraction.supplier_nif}</span></span></Tooltip></dd>}
+              : <dd><Tooltip text={<InvoiceIdentifierTooltip {...identifierTrace.supplier_nif} />} asChild><Badge variant="outline" className="h-auto max-w-full gap-1.5 rounded-md border-amber-200 bg-amber-50 px-2 py-0.5 align-middle text-sm font-normal text-amber-800" aria-label={`${labels.inferred}: ${extraction.supplier_nif}`}><CircleAlert size={13} className="shrink-0 text-amber-600" aria-hidden="true" /><span className="truncate">{extraction.supplier_nif}</span></Badge></Tooltip></dd>}
           </div>
           <div><dt>{labels.iban}</dt>
             {identifierTrace.iban === null
               ? <Tooltip text={extraction.iban} onlyWhenTruncated asChild><dd>{extraction.iban}</dd></Tooltip>
-              : <dd><Tooltip text={<InvoiceIdentifierTooltip {...identifierTrace.iban} />} asChild><span className="inline-flex max-w-full items-center gap-1.5 align-middle" aria-label={`${labels.inferred}: ${extraction.iban}`}><CircleAlert size={13} className="shrink-0 text-amber-600" aria-hidden="true" /><span className="truncate">{extraction.iban}</span></span></Tooltip></dd>}
+              : <dd><Tooltip text={<InvoiceIdentifierTooltip {...identifierTrace.iban} />} asChild><Badge variant="outline" className="h-auto max-w-full gap-1.5 rounded-md border-amber-200 bg-amber-50 px-2 py-0.5 align-middle text-sm font-normal text-amber-800" aria-label={`${labels.inferred}: ${extraction.iban}`}><CircleAlert size={13} className="shrink-0 text-amber-600" aria-hidden="true" /><span className="truncate">{extraction.iban}</span></Badge></Tooltip></dd>}
           </div>
           <div><dt>{labels.taxBase}</dt><Tooltip text={amounts.taxBase} onlyWhenTruncated asChild><dd>{amounts.taxBase}</dd></Tooltip></div>
           <div><dt>{labels.vatRate}</dt><Tooltip text={amounts.vatRate} onlyWhenTruncated asChild><dd>{amounts.vatRate}</dd></Tooltip></div>
