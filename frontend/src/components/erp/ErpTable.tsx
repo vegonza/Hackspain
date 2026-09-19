@@ -1,3 +1,4 @@
+import { TablePagination } from '@/components/ui/table-pagination'
 import { Building2, CircleAlert, Clock, Euro, IdCard, Hash, ListChecks, Package, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -9,9 +10,9 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { useErpSnapshot } from '@/hooks/useErpSnapshot'
 
-type Props = Pick<ReturnType<typeof useErpSnapshot>, 'onRefresh' | 'refreshing' | 'loading' | 'failed' | 'rows' | 'summary' | 'search' | 'onSearch' | 'sortColumn' | 'sortDirection' | 'onToggleSort' | 'onSelect' | 'onEntryLink' | 'labels'>
+type Props = Pick<ReturnType<typeof useErpSnapshot>, 'onRefresh' | 'refreshing' | 'loading' | 'failed' | 'rows' | 'pagination' | 'pageKey' | 'search' | 'onSearch' | 'sortColumn' | 'sortDirection' | 'onToggleSort' | 'onSelect' | 'onEntryLink' | 'labels'>
 
-export function ErpTable({ onRefresh, refreshing, loading, failed, rows, summary, search, onSearch, sortColumn, sortDirection, onToggleSort, onSelect, onEntryLink, labels }: Props) {
+export function ErpTable({ onRefresh, refreshing, loading, failed, rows, pagination, pageKey, search, onSearch, sortColumn, sortDirection, onToggleSort, onSelect, onEntryLink, labels }: Props) {
   const columns = [
     { column: 'entry', label: labels.entry, icon: Hash, width: '220px' },
     { column: 'order', label: labels.order, icon: Package, width: '150px' },
@@ -26,13 +27,13 @@ export function ErpTable({ onRefresh, refreshing, loading, failed, rows, summary
     <>
       <header className="invoices-toolbar">
         <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
-        {summary !== null && <span className="shrink-0 text-sm text-muted-foreground">{summary}</span>}
+        <TablePagination pagination={pagination} loading={loading} />
         <Button size="sm" className="table-add-button" onClick={onRefresh} disabled={loading || refreshing} aria-busy={refreshing}>
           <RefreshCw className={cn('size-3.5', refreshing && 'animate-spin')} />
           {refreshing ? labels.refreshing : labels.refresh}
         </Button>
       </header>
-      <div className="invoices-table-scroll">
+      <div className="invoices-table-scroll" key={pageKey}>
         <table className="invoices-table" style={{ minWidth: 1170 }} aria-busy={loading}>
           <colgroup>{columns.map(column => <col key={column.column} style={{ width: column.width }} />)}</colgroup>
           <TableHeader className="[&_tr]:border-b-0"><TableRow className="hover:bg-transparent">

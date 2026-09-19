@@ -207,6 +207,7 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .table-pagination { display: flex; align-items: center; gap: 6px; margin-left: auto; flex-shrink: 0; font-size: 12px; color: var(--muted-foreground); }
 .table-pagination span { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .table-pagination-range { margin-right: 6px; }
+.invoices-toolbar .table-pagination + .table-add-button { margin-left: 0; }
 
 .invoices-toolbar .upload-button { margin-left: 0; }
 .invoices-toolbar { flex-wrap: wrap; }
