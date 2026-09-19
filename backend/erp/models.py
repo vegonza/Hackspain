@@ -1,5 +1,6 @@
 from datetime import date as Date, datetime
 from decimal import Decimal
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -42,3 +43,22 @@ class ErpSnapshot(BaseModel):
     status_before: ErpSourceState
     status_after: ErpSourceState
     entries: list[ErpEntry]
+
+
+class LinkedDocument(BaseModel):
+    id: UUID
+    name: str
+
+
+class SavedErpEntry(ErpEntry):
+    id: UUID
+    documents: list[LinkedDocument] = Field(default_factory=list)
+
+
+class SavedErpSnapshot(BaseModel):
+    id: UUID
+    fetched_at: datetime
+    erp_version: str
+    update_loaded: bool
+    entry_count: int
+    entries: list[SavedErpEntry]

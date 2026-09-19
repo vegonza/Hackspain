@@ -107,7 +107,22 @@
     "supplier": "Proveedor",
     "nif": "NIF",
     "registeredAt": "Fecha de registro",
-    "states": { "PENDIENTE": "Pendiente", "PAGADA": "Pagada" }
+    "states": { "PENDIENTE": "Pendiente", "PAGADA": "Pagada" },
+    "snapshotTitle": "Volcado del ERP",
+    "search": "Buscar asiento, pedido, proveedor o NIF…",
+    "noResults": "No hay asientos que coincidan con la búsqueda.",
+    "emptySnapshot": "Todavía no hay ningún volcado del ERP. Se descarga al procesar la primera factura.",
+    "entryUnavailable": "El asiento no existe en este volcado.",
+    "back": "Volver al ERP",
+    "noWarnings": "Sin avisos",
+    "warningsColumn": "Avisos",
+    "entryCount_one": "{{count}} asiento", "entryCount_other": "{{count}} asientos",
+    "version": "ERP versión",
+    "fetchedAt": "descargado",
+    "updateLoaded": "Actualización cargada",
+    "yes": "sí", "no": "no",
+    "linkedDocuments": "Facturas enlazadas",
+    "noLinkedDocuments": "Ninguna factura está enlazada a este asiento."
   },
   "pipeline": {
     "noText": "No hay texto.",
