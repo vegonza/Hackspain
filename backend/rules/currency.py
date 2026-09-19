@@ -8,6 +8,7 @@ RECONCILIATION_RATES: dict[str, Decimal] = {
     'CHF': Decimal('1.05'),
     'JPY': Decimal('0.00617'),
     'BRL': Decimal('1') / Decimal('6.2'),
+    'MXN': Decimal('0.05'),
 }
 
 

@@ -156,7 +156,7 @@ class InvoiceDetailTests(unittest.TestCase):
         from tests.test_features import extracted_items
 
         extraction = extracted_items([])
-        for currency, rate in (("USD", "0.92"), ("EUR", "1"), ("MXN", None), ("", None)):
+        for currency, rate in (("USD", "0.92"), ("EUR", "1"), ("MXN", "0.05"), ("CAD", None), ("", None)):
             with self.subTest(currency=currency), patch("invoices.repository.get_client") as client:
                 extraction.currency = currency
                 save_invoice_extraction(uuid4(), "invoice.pdf", extraction)
