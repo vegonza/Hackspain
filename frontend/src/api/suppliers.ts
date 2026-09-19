@@ -1,4 +1,4 @@
-import { fetchJson } from '@/api/client'
+import { fetchJson, fetchEmpty } from '@/api/client'
 
 export interface Supplier {
   supplier_id: string
@@ -19,4 +19,8 @@ export function saveSupplier(id: string | null, supplier: Supplier): Promise<Sup
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(supplier),
   })
+}
+
+export function deleteSupplier(id: string): Promise<void> {
+  return fetchEmpty(`/suppliers/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }

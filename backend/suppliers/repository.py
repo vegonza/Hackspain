@@ -32,3 +32,15 @@ def update_supplier(supplier_id: str, supplier: SupplierInput) -> Supplier:
     result = Supplier.model_validate(rows[0])
     logger.info('[SUPPLIERS] Updated %s (%s)', result.legal_name, supplier_id)
     return result
+
+
+def delete_supplier(supplier_id: str) -> None:
+    try:
+        rows = get_client().table('suppliers').delete().eq('supplier_id', supplier_id).execute().data
+    except APIError as error:
+        if error.code == '23503':
+            raise HTTPException(status_code=409, detail='supplier_has_orders') from None
+        raise
+    if not rows:
+        raise HTTPException(status_code=404, detail='supplier_not_found')
+    logger.info('[SUPPLIERS] Deleted %s (%s)', rows[0]['legal_name'], supplier_id)

@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS public.suppliers (
 
 ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.suppliers FROM PUBLIC, anon, authenticated;
-GRANT SELECT, INSERT, UPDATE ON public.suppliers TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.suppliers TO service_role;

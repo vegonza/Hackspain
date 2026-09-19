@@ -4,7 +4,10 @@
   },
   "common": {
     "cancel": "Cancelar",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "actions": "Opciones",
+    "delete": "Borrar",
+    "holdDelete": "Mantén pulsado para borrar"
   },
   "documents": {
     "redo": "Reprocesar",
@@ -146,9 +149,32 @@
     "save": "Guardar",
     "saving": "Guardando…",
     "saved": "Proveedor guardado",
+    "deleted": "Proveedor eliminado",
+    "hasOrders": "No puedes borrar un proveedor que tiene pedidos asociados.",
     "empty": "No hay proveedores que mostrar.",
     "retry": "Reintentar",
     "exists": "Ya existe un proveedor con ese código.",
     "notFound": "El proveedor ya no está disponible."
+  },
+  "orders": {
+    "title": "Pedidos",
+    "search": "Buscar pedidos…",
+    "add": "Añadir pedido",
+    "edit": "Editar pedido",
+    "id": "Pedido",
+    "supplier": "Proveedor",
+    "taxId": "NIF",
+    "amount": "Importe (€)",
+    "status": "Estado",
+    "date": "Fecha",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "saved": "Pedido guardado",
+    "deleted": "Pedido eliminado",
+    "empty": "No hay pedidos que mostrar.",
+    "retry": "Reintentar",
+    "exists": "Ya existe un pedido con ese código.",
+    "notFound": "El pedido ya no está disponible.",
+    "supplierNotFound": "No existe un proveedor con ese código."
   }
 }

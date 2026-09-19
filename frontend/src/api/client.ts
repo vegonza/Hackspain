@@ -8,7 +8,15 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
         throw new Error(i18n.t('documents.requestFailed'))
       }
       const error: { detail: unknown } = await response.json()
-      const message = error.detail === 'supplier_exists'
+      const message = error.detail === 'supplier_has_orders'
+        ? i18n.t('suppliers.hasOrders')
+        : error.detail === 'order_exists'
+        ? i18n.t('orders.exists')
+        : error.detail === 'order_not_found'
+          ? i18n.t('orders.notFound')
+        : error.detail === 'order_supplier_not_found'
+          ? i18n.t('orders.supplierNotFound')
+        : error.detail === 'supplier_exists'
         ? i18n.t('suppliers.exists')
         : error.detail === 'supplier_not_found'
           ? i18n.t('suppliers.notFound')
@@ -42,3 +50,7 @@ export async function fetchJson<T>(url: string, options: RequestInit = {}): Prom
 
 import i18n from '@/i18n'
 import { toast } from 'sonner'
+
+export async function fetchEmpty(url: string, options: RequestInit): Promise<void> {
+  await baseFetch(url, options)
+}

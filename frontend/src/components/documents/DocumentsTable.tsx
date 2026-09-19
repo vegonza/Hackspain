@@ -1,5 +1,6 @@
 import { StageMetricsTooltip } from '@/components/documents/StageMetricsTooltip'
 import { DocumentsTableHead } from '@/components/documents/DocumentsTableHead'
+import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CircleAlert, Timer, DollarSign, Clock, FileText, ListChecks, LoaderCircle, Upload, RotateCcw, Trash2 } from 'lucide-react'
 import type { useDocuments } from '@/hooks/useDocuments'
@@ -20,10 +21,10 @@ export function DocumentsTable({ documentsLoading, sortColumn, sortDirection, on
     <section className="documents-browser" aria-label={labels.library}>
       <header className="documents-toolbar">
         <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
-        <label className="upload-button">
+        <Button asChild size="sm" className="table-add-button"><label className="upload-button">
           <Upload size={15} />{labels.upload}
           <input type="file" accept="application/pdf,.pdf" multiple onChange={onUpload} aria-label={labels.upload} />
-        </label>
+        </label></Button>
       </header>
       <div className="documents-table-scroll">
         <table className="documents-table" aria-busy={documentsLoading}>
