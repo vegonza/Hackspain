@@ -7,8 +7,9 @@ from postgrest.exceptions import APIError
 
 from invoices.queue import enqueue, RETRIES, SCHEDULED, QUEUE, PROCESSING
 from shared.redis import get_redis
-from invoices.repository import InvoiceDetails, read_invoice_detail, Invoice, archive_invoice, read_invoice, write_invoice, create_invoice, find_invoice_by_hash
+from invoices.repository import InvoiceDetails, InvoiceIncident, read_invoice_detail, Invoice, archive_invoice, read_invoice, write_invoice, create_invoice, find_invoice_by_hash
 from invoices.repository import list_invoices as read_invoices
+from invoices.repository import list_incidents as read_incidents
 from invoices.repository import reset_invoice
 from erp import ErpEntry
 from extractor.extraction import InvoiceExtraction
@@ -38,6 +39,11 @@ def invoice_detail(invoice_record: InvoiceDetails) -> InvoiceDetail:
 @router.get("")
 def list_invoices() -> list[Invoice]:
     return read_invoices()
+
+
+@router.get("/incidents")
+def list_incidents() -> list[InvoiceIncident]:
+    return read_incidents()
 
 
 @router.post("", status_code=202)

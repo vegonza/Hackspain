@@ -1,4 +1,4 @@
-import { ReceiptText, DollarSign, Building2, Landmark, ShoppingCart, Wallet, BookOpenCheck } from 'lucide-react'
+import { ReceiptText, DollarSign, Building2, Landmark, ShoppingCart, Wallet, BookOpenCheck, CircleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { InvoicesTableContainer } from '@/components/invoices/InvoicesTableContainer'
 import { InvoiceDetails } from '@/components/invoices/InvoiceDetails'
@@ -14,13 +14,15 @@ import { TreasuryView } from '@/components/treasury/TreasuryView'
 import type { useTreasury } from '@/hooks/useTreasury'
 import { AccountingView } from '@/components/accounting/AccountingView'
 import type { useAccounting } from '@/hooks/useAccounting'
+import { IncidentsView } from '@/components/incidents/IncidentsView'
+import type { useIncidents } from '@/hooks/useIncidents'
 import logo from '@/assets/logo.svg'
 
 import type { useInvoices } from '@/hooks/useInvoices'
 
-type Props = ReturnType<typeof useInvoices> & { usage: ReturnType<typeof useUsage>; suppliers: ReturnType<typeof useSuppliers>; orders: ReturnType<typeof useOrders>; erp: ReturnType<typeof useErpSnapshot>; treasury: ReturnType<typeof useTreasury>; accounting: ReturnType<typeof useAccounting> }
+type Props = ReturnType<typeof useInvoices> & { usage: ReturnType<typeof useUsage>; suppliers: ReturnType<typeof useSuppliers>; orders: ReturnType<typeof useOrders>; erp: ReturnType<typeof useErpSnapshot>; treasury: ReturnType<typeof useTreasury>; accounting: ReturnType<typeof useAccounting>; incidents: ReturnType<typeof useIncidents> }
 
-export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, suppliers, orders, erp, treasury, accounting, selectedId,
+export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, suppliers, orders, erp, treasury, accounting, incidents, selectedId,
   sortColumn, sortDirection, onToggleSort, onUpload, filteredInvoices, invoicesLoading, search, onSearch, onSelect,
   onInvoiceLink, onDelete, deleting, mountDetail, invoiceName, selected, loading, extractionLoading,
   pdfUrl, pdfLoading, sourceTab, dataTab, onDataTab, emptyMessage, extractionLabels, canRetry, onRetrySelected,
@@ -34,6 +36,9 @@ export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, s
           <nav className="sidebar-navigation" aria-label={labels.appName}>
             <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'invoices' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
               <a href="/invoices" onClick={onNavigate} aria-current={view === 'invoices' ? 'page' : undefined}><ReceiptText /><span>{labels.library}</span></a>
+            </Button>
+            <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'incidents' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
+              <a href="/incidents" onClick={onNavigate} aria-current={view === 'incidents' ? 'page' : undefined}><CircleAlert /><span>{incidents.labels.title}</span></a>
             </Button>
             <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'suppliers' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
               <a href="/suppliers" onClick={onNavigate} aria-current={view === 'suppliers' ? 'page' : undefined}><Building2 /><span>{suppliers.labels.title}</span></a>
@@ -56,6 +61,7 @@ export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, s
           </nav>
         </aside>
         {view === 'usage' ? <UsageView {...usage} />
+          : view === 'incidents' ? <IncidentsView {...incidents} />
           : view === 'accounting' ? <AccountingView {...accounting} />
           : view === 'treasury' ? <TreasuryView {...treasury} />
           : view === 'orders' ? <OrdersView {...orders} />

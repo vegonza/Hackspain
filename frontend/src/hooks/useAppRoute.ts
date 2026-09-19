@@ -2,7 +2,7 @@ import { useSyncExternalStore, type MouseEvent } from 'react'
 
 export type AppRoute =
   | { view: 'invoices'; invoiceId: string | null }
-  | { view: 'usage' | 'orders' | 'suppliers' | 'treasury' | 'accounting' | 'not-found'; invoiceId: null }
+  | { view: 'usage' | 'orders' | 'suppliers' | 'incidents' | 'treasury' | 'accounting' | 'not-found'; invoiceId: null }
   | { view: 'erp'; invoiceId: null; entryId: string | null }
 
 export function parseRoute(path: string): AppRoute {
@@ -10,6 +10,7 @@ export function parseRoute(path: string): AppRoute {
   if (path === '/orders') return { view: 'orders', invoiceId: null }
   if (path === '/suppliers') return { view: 'suppliers', invoiceId: null }
   if (path === '/cost') return { view: 'usage', invoiceId: null }
+  if (path === '/incidents') return { view: 'incidents', invoiceId: null }
   if (path === '/treasury') return { view: 'treasury', invoiceId: null }
   if (path === '/accounting') return { view: 'accounting', invoiceId: null }
   if (path === '/erp') return { view: 'erp', invoiceId: null, entryId: null }

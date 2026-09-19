@@ -22,6 +22,16 @@ export interface Invoice {
   next_retry_at: string | null
 }
 
+export interface InvoiceIncident {
+  invoice_id: string
+  invoice_name: string
+  invoice_date: string | null
+  created_at: string
+  due_date: string | null
+  amount_eur: string | null
+  reasons: string[]
+}
+
 export type ErpWarning = 'missing_entry_id' | 'missing_supplier_id' | 'missing_tax_id' | 'missing_order_id'
   | 'missing_status' | 'missing_date' | 'missing_amount' | 'invalid_date' | 'date_out_of_range'
   | 'invalid_amount' | 'iso_date_format' | 'english_amount_format' | 'unknown_status' | 'possible_character_loss'
@@ -70,6 +80,10 @@ export interface InvoiceExtraction {
 
 export function fetchInvoices(): Promise<Invoice[]> {
   return fetchJson<Invoice[]>('/invoices')
+}
+
+export function fetchInvoiceIncidents(signal: AbortSignal): Promise<InvoiceIncident[]> {
+  return fetchJson<InvoiceIncident[]>('/invoices/incidents', { signal })
 }
 
 export function fetchInvoice(id: string): Promise<InvoiceDetail> {

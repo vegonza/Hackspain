@@ -6,6 +6,7 @@ import { useSuppliers } from '@/hooks/useSuppliers'
 import { useUsage } from '@/hooks/useUsage'
 import { useTreasury } from '@/hooks/useTreasury'
 import { useAccounting } from '@/hooks/useAccounting'
+import { useIncidents } from '@/hooks/useIncidents'
 
 export function InvoicesPage() {
   const invoices = useInvoices()
@@ -15,5 +16,6 @@ export function InvoicesPage() {
   const erp = useErpSnapshot()
   const treasury = useTreasury()
   const accounting = useAccounting()
-  return <InvoicesView {...invoices} usage={usage} suppliers={suppliers} orders={orders} erp={erp} treasury={treasury} accounting={accounting} />
+  const incidents = useIncidents()
+  return <InvoicesView {...invoices} usage={usage} suppliers={suppliers} orders={orders} erp={erp} treasury={treasury} accounting={accounting} incidents={incidents} />
 }

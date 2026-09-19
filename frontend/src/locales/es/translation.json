@@ -240,6 +240,19 @@
       "openInvoice": "Abrir factura"
     }
   },
+  "incidents": {
+    "title": "Incidencias",
+    "subtitle": "Facturas que requieren revisión antes de tomar una decisión de pago.",
+    "invoice": "Factura",
+    "issuedDate": "Fecha de emisión",
+    "createdDate": "Fecha de creación",
+    "dueDate": "Fecha de vencimiento",
+    "amount": "Importe (EUR)",
+    "reasons": "Motivos de escalado",
+    "empty": "No hay facturas pendientes de escalar.",
+    "retry": "Reintentar",
+    "openInvoice": "Abrir factura"
+  },
   "accounting": {
     "title": "Precierre fiscal",
     "subtitle": "Preparación contable de gastos e IVA soportado",

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Literal
 from uuid import UUID
 
@@ -15,6 +15,8 @@ from shared.logger import get_logger
 from erp import ErpEntry
 from rules.models import Decision
 from rules.currency import reconciliation_rate
+
+logger = get_logger()
 
 
 INVOICE_VIRTUAL_FIELDS = {"payment_decision", "retry_attempts", "last_error", "next_retry_at", "total_cost_usd", "total_duration_ms", "finished_at"}
@@ -34,6 +36,16 @@ class Invoice(BaseModel):
     retry_attempts: int = 0
     last_error: str | None = None
     next_retry_at: datetime | None = None
+
+
+class InvoiceIncident(BaseModel):
+    invoice_id: UUID
+    invoice_name: str
+    invoice_date: date | None
+    created_at: datetime
+    due_date: date | None
+    amount_eur: Decimal | None
+    reasons: list[str]
 
 
 def with_retry_state(invoice_record: Invoice, state: RetryState) -> Invoice:
@@ -71,6 +83,31 @@ def list_invoices() -> list[Invoice]:
             invoices.extend(page)
         if len(rows) < 1000:
             return invoices
+
+
+def list_incidents() -> list[InvoiceIncident]:
+    rows = get_client().table("documents").select(
+        "id,name,created_at,invoice_date,payment_decision"
+    ).is_("deleted_at", "null").execute().data
+    incidents: list[InvoiceIncident] = []
+    for row in rows:
+        decision_payload = row["payment_decision"]
+        if decision_payload is None:
+            continue
+        decision = Decision.model_validate(decision_payload)
+        if decision.classification != "ESCALAR":
+            continue
+        incidents.append(InvoiceIncident(
+            invoice_id=row["id"],
+            invoice_name=row["name"],
+            invoice_date=row["invoice_date"] or None,
+            created_at=row["created_at"],
+            due_date=decision.due_date,
+            amount_eur=decision.amount_eur,
+            reasons=decision.reasons,
+        ))
+    logger.info("[INCIDENTS] Listed %s invoices requiring review", len(incidents))
+    return incidents
 
 
 def find_invoice_by_hash(sha256: str) -> bool:
