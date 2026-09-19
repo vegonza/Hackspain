@@ -1,15 +1,17 @@
-import { FileText, DollarSign } from 'lucide-react'
+import { FileText, DollarSign, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DocumentsTable } from '@/components/documents/DocumentsTable'
 import { DocumentDetails } from '@/components/documents/DocumentDetails'
 import { UsageView } from '@/components/usage/UsageView'
+import { SuppliersView } from '@/components/suppliers/SuppliersView'
+import type { useSuppliers } from '@/hooks/useSuppliers'
 import type { useUsage } from '@/hooks/useUsage'
 import type { useDocuments } from '@/hooks/useDocuments'
 import logo from '@/assets/logo.svg'
 
-type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsage> }
+type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsage>; suppliers: ReturnType<typeof useSuppliers> }
 
-export function DocumentsView({ watchDocuments, labels, view, onNavigate, usage, selectedId,
+export function DocumentsView({ watchDocuments, labels, view, onNavigate, usage, suppliers, selectedId,
   sortColumn, sortDirection, onToggleSort, onUpload, filteredDocuments, documentsLoading, search, onSearch, onSelect,
   onDocumentLink, onDelete, deleting, mountDetail, documentName, selected, loading, extractionLoading,
   pdfUrl, pdfLoading, sourceTab, activeStage, emptyMessage, extractionLabels, canRetry, onRetrySelected,
@@ -24,12 +26,16 @@ export function DocumentsView({ watchDocuments, labels, view, onNavigate, usage,
             <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'documents' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
               <a href="/docs" onClick={onNavigate} aria-current={view === 'documents' ? 'page' : undefined}><FileText /><span>{labels.library}</span></a>
             </Button>
+            <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'suppliers' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
+              <a href="/suppliers" onClick={onNavigate} aria-current={view === 'suppliers' ? 'page' : undefined}><Building2 /><span>{suppliers.labels.title}</span></a>
+            </Button>
             <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'usage' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
               <a href="/cost" onClick={onNavigate} aria-current={view === 'usage' ? 'page' : undefined}><DollarSign /><span>{labels.usage}</span></a>
             </Button>
           </nav>
         </aside>
         {view === 'usage' ? <UsageView {...usage} />
+          : view === 'suppliers' ? <SuppliersView {...suppliers} />
           : view === 'not-found' ? <section className="stage-empty"><h1>{labels.notFound}</h1><Button variant="link" asChild><a href="/docs" onClick={onNavigate}>{labels.library}</a></Button></section>
           : selectedId !== null ? <DocumentDetails mountDetail={mountDetail} documentName={documentName} selectedId={selectedId}
             selected={selected} featureAmounts={featureAmounts} loading={loading} extractionLoading={extractionLoading} pdfUrl={pdfUrl} pdfLoading={pdfLoading}

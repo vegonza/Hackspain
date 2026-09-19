@@ -1,0 +1,34 @@
+from fastapi import HTTPException
+from postgrest.exceptions import APIError
+
+from shared.logger import get_logger
+from shared.storage import get_client
+from suppliers.models import Supplier, SupplierInput
+
+logger = get_logger()
+
+
+def list_suppliers() -> list[Supplier]:
+    rows = get_client().table('suppliers').select('*').order('supplier_id').execute().data
+    return [Supplier.model_validate(row) for row in rows]
+
+
+def create_supplier(supplier: Supplier) -> Supplier:
+    try:
+        rows = get_client().table('suppliers').insert(supplier.model_dump()).execute().data
+    except APIError as error:
+        if error.code == '23505':
+            raise HTTPException(status_code=409, detail='supplier_exists') from None
+        raise
+    result = Supplier.model_validate(rows[0])
+    logger.info('[SUPPLIERS] Created %s (%s)', result.legal_name, result.supplier_id)
+    return result
+
+
+def update_supplier(supplier_id: str, supplier: SupplierInput) -> Supplier:
+    rows = get_client().table('suppliers').update(supplier.model_dump()).eq('supplier_id', supplier_id).execute().data
+    if not rows:
+        raise HTTPException(status_code=404, detail='supplier_not_found')
+    result = Supplier.model_validate(rows[0])
+    logger.info('[SUPPLIERS] Updated %s (%s)', result.legal_name, supplier_id)
+    return result

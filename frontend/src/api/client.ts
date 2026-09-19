@@ -8,7 +8,11 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
         throw new Error(i18n.t('documents.requestFailed'))
       }
       const error: { detail: unknown } = await response.json()
-      const message = error.detail === 'invalid_pdf'
+      const message = error.detail === 'supplier_exists'
+        ? i18n.t('suppliers.exists')
+        : error.detail === 'supplier_not_found'
+          ? i18n.t('suppliers.notFound')
+        : error.detail === 'invalid_pdf'
         ? i18n.t('documents.invalidPdf')
         : error.detail === 'document_processing'
           ? i18n.t('documents.processingConflict')

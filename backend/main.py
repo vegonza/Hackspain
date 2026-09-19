@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from documents.router import router as documents_router
 from usage.router import router as usage_router
+from suppliers.router import router as suppliers_router
 from usage.worker import start_usage_worker
 from shared.logger import setup_logger
 
@@ -41,6 +42,7 @@ app = FastAPI(
 )
 app.include_router(documents_router)
 app.include_router(usage_router)
+app.include_router(suppliers_router)
 
 
 @app.get("/api/health")
