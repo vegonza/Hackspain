@@ -1,4 +1,4 @@
-from datetime import date as Date
+from datetime import date as Date, datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, Field
@@ -20,3 +20,25 @@ class ErpEntry(BaseModel):
     date: Date | None = None
     amount: Decimal | None = None
     warnings: list[ErpWarning] = Field(default_factory=list)
+
+
+class ErpPage(BaseModel):
+    number: int = Field(ge=1)
+    total_pages: int = Field(ge=1)
+    total_entries: int = Field(ge=0)
+    page_size: int = Field(ge=1)
+    entries: list[ErpEntry]
+
+
+class ErpStatus(BaseModel):
+    version: str = Field(min_length=1)
+    uptime_seconds: int = Field(ge=0)
+    entry_count: int = Field(ge=0)
+    update_loaded: bool
+
+
+class ErpSnapshot(BaseModel):
+    fetched_at: datetime
+    status_before: ErpStatus
+    status_after: ErpStatus
+    entries: list[ErpEntry]
