@@ -1,3 +1,4 @@
+import { Skeleton } from '@/components/ui/skeleton'
 import { Plus, Hash, Building2, IdCard, Landmark, MapPin, Clock } from 'lucide-react'
 import { RowActions } from '@/components/ui/row-actions'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,7 @@ export function SuppliersView({ mount, loading, failed, rows, editing, saving, d
   return <section className="documents-browser" ref={mount} aria-label={labels.title}>
     <header className="documents-toolbar">
       <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
+      {loading ? <Skeleton className="h-4 w-24 shrink-0" /> : !failed && <span className="shrink-0 text-sm text-muted-foreground">{labels.count}</span>}
       <Button size="sm" className="table-add-button" onClick={onNew} disabled={editing || loading || failed}><Plus size={15} />{labels.add}</Button>
     </header>
     {editing && <SupplierEditor {...{ draft, editingId, saving, onChange, onSave, onCancel, labels }} />}

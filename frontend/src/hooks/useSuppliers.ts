@@ -90,6 +90,7 @@ export function useSuppliers() {
     onNew: () => edit(null), onEdit: edit, onChange: change, onSave: save,
     onCancel: () => setEditing(false), onRetry: () => setReload(value => value + 1),
     labels: {
+      count: t('suppliers.count', { count: suppliers.length }),
       actions: t('common.actions'), delete: t('common.delete'), holdDelete: t('common.holdDelete'),
       title: t('suppliers.title'), search: t('suppliers.search'), add: t('suppliers.add'), edit: t('suppliers.edit'),
       supplier_id: t('suppliers.id'), legal_name: t('suppliers.name'), tax_id: t('suppliers.taxId'),

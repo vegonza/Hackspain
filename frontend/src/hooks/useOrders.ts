@@ -98,6 +98,7 @@ export function useOrders() {
     onNew: () => edit(null), onEdit: edit, onChange: change, onSave: save,
     onCancel: () => setEditing(false), onRetry: () => setReload(value => value + 1),
     labels: {
+      count: t('orders.count', { count: orders.length }),
       actions: t('common.actions'), delete: t('common.delete'), holdDelete: t('common.holdDelete'),
       title: t('orders.title'), search: t('orders.search'), add: t('orders.add'), edit: t('orders.edit'),
       order_id: t('orders.id'), supplier_id: t('orders.supplier'), tax_id: t('orders.taxId'),

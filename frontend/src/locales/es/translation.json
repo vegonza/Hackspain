@@ -10,6 +10,7 @@
     "holdDelete": "Mantén pulsado para borrar"
   },
   "documents": {
+    "count_one": "{{count}} documento", "count_other": "{{count}} documentos",
     "redo": "Reprocesar",
     "redoConfirmation": "¿Reprocesar «{{name}}»?",
     "actions": "Acciones",
@@ -108,6 +109,8 @@
     "nif": "NIF",
     "registeredAt": "Fecha de registro",
     "states": { "PENDIENTE": "Pendiente", "PAGADA": "Pagada" },
+    "refresh": "Actualizar ERP",
+    "refreshing": "Actualizando…",
     "snapshotTitle": "Volcado del ERP",
     "search": "Buscar asiento, pedido, proveedor o NIF…",
     "noResults": "No hay asientos que coincidan con la búsqueda.",
@@ -146,6 +149,7 @@
     }
   },
   "suppliers": {
+    "count_one": "{{count}} proveedor", "count_other": "{{count}} proveedores",
     "title": "Proveedores",
     "search": "Buscar proveedores…",
     "add": "Añadir proveedor",
@@ -168,6 +172,7 @@
     "notFound": "El proveedor ya no está disponible."
   },
   "orders": {
+    "count_one": "{{count}} pedido", "count_other": "{{count}} pedidos",
     "title": "Pedidos",
     "search": "Buscar pedidos…",
     "add": "Añadir pedido",

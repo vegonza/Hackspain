@@ -1,6 +1,6 @@
-import { useCallback, useState, type MouseEvent } from 'react'
+import { useCallback, useRef, useState, type MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { fetchErpEntry, fetchErpSnapshot, type ErpEntry, type ErpEntryDetail, type ErpSnapshot } from '@/api/erp'
+import { fetchErpEntry, fetchErpSnapshot, refreshErpSnapshot, type ErpEntry, type ErpEntryDetail, type ErpSnapshot } from '@/api/erp'
 import { documentPath, erpEntryPath, useAppRoute } from '@/hooks/useAppRoute'
 import { erpSortValue, filterErpRows, type ErpRow, type ErpSortColumn } from '@/hooks/erpRows'
 import { useTableSort } from '@/hooks/useTableSort'
@@ -20,6 +20,9 @@ export function useErpSnapshot() {
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [search, setSearch] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
+  const refreshInFlight = useRef(false)
+  const snapshotVersion = useRef(0)
   const { sortColumn, sortDirection, onToggleSort, sortRows } = useTableSort<ErpSortColumn>()
   const mount = useCallback((node: HTMLElement | null) => {
     if (node === null) return
@@ -31,8 +34,9 @@ export function useErpSnapshot() {
     async function load(): Promise<void> {
       try {
         if (selectedId === null) {
+          const version = ++snapshotVersion.current
           const result = await fetchErpSnapshot()
-          if (active) setSnapshot(result)
+          if (active && version === snapshotVersion.current) setSnapshot(result)
         } else {
           const result = await fetchErpEntry(selectedId)
           if (active) setDetail(result)
@@ -46,6 +50,26 @@ export function useErpSnapshot() {
     void load()
     return () => { active = false }
   }, [selectedId])
+  async function onRefresh(): Promise<void> {
+    if (refreshInFlight.current) return
+    refreshInFlight.current = true
+    setRefreshing(true)
+    try {
+      await refreshErpSnapshot()
+      const version = ++snapshotVersion.current
+      const result = await fetchErpSnapshot()
+      if (version === snapshotVersion.current) {
+        setSnapshot(result)
+        setFailed(false)
+      }
+    } catch {
+      // The API client displays the error.
+    } finally {
+      refreshInFlight.current = false
+      setRefreshing(false)
+    }
+  }
+
   function onEntryLink(event: MouseEvent<HTMLAnchorElement>): void {
     event.stopPropagation()
     route.followLink(event)
@@ -85,6 +109,7 @@ export function useErpSnapshot() {
   ]
 
   return {
+    onRefresh, refreshing,
     mount, loading: loading || requestedId !== selectedId, failed, selectedId, onEntryLink, onNavigate: route.followLink,
     rows: sortRows(filterErpRows(rows, search), erpSortValue),
     search, onSearch: setSearch, sortColumn, sortDirection, onToggleSort,
@@ -94,6 +119,7 @@ export function useErpSnapshot() {
     linkedDocuments: selected === null ? [] : selected.documents.map(document => ({ id: document.id, name: document.name, href: documentPath(document.id) })),
     summary: snapshot === null ? null : t('erp.entryCount', { count: snapshot.entry_count }),
     labels: {
+      refresh: t('erp.refresh'), refreshing: t('erp.refreshing'),
       title: t('erp.snapshotTitle'), search: t('erp.search'), noResults: t('erp.noResults'), emptySnapshot: t('erp.emptySnapshot'),
       entryUnavailable: t('erp.entryUnavailable'), back: t('erp.back'), linkedDocuments: t('erp.linkedDocuments'), noLinkedDocuments: t('erp.noLinkedDocuments'),
       entry: t('erp.entry'), order: t('erp.purchaseOrder'), supplier: t('erp.supplier'), taxId: t('erp.nif'), status: t('erp.status'),

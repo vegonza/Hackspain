@@ -1,4 +1,4 @@
-import { fetchJson } from '@/api/client'
+import { fetchEmpty, fetchJson } from '@/api/client'
 import type { DocumentErpEntry } from '@/api/documents'
 
 export interface ErpLinkedDocument {
@@ -29,4 +29,8 @@ export function fetchErpSnapshot(): Promise<ErpSnapshot | null> {
 
 export function fetchErpEntry(id: string): Promise<ErpEntryDetail | null> {
   return fetchJson<ErpEntryDetail | null>(`/erp/entries/${id}`)
+}
+
+export function refreshErpSnapshot(): Promise<void> {
+  return fetchEmpty('/erp/snapshot', { method: 'POST' })
 }

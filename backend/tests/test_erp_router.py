@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
 from erp.repository import read_entry, read_latest_snapshot
-from erp.router import get_entry, get_snapshot
+from erp.router import get_entry, get_snapshot, refresh_snapshot
 from erp.warnings import ErpWarning
 
 
@@ -106,3 +106,16 @@ class ErpRouteTests(unittest.TestCase):
         with patch('erp.router.read_entry') as read:
             self.assertIs(get_entry(entry_id), read.return_value)
             read.assert_called_once_with(entry_id)
+
+
+class ErpRefreshTests(unittest.TestCase):
+    def test_refresh_waits_for_the_validated_snapshot_to_be_saved(self) -> None:
+        with patch('erp.router.sync_erp_snapshot', return_value=uuid4()) as sync:
+            response = refresh_snapshot()
+        sync.assert_called_once_with()
+        self.assertEqual(response.status_code, 204)
+
+    def test_download_failure_is_not_reported_as_success(self) -> None:
+        with patch('erp.router.sync_erp_snapshot', side_effect=RuntimeError('ERP unavailable')):
+            with self.assertRaisesRegex(RuntimeError, 'ERP unavailable'):
+                refresh_snapshot()

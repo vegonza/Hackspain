@@ -1,4 +1,5 @@
-import { Building2, CircleAlert, Clock, Euro, Fingerprint, Hash, ListChecks, Package } from 'lucide-react'
+import { Building2, CircleAlert, Clock, Euro, Fingerprint, Hash, ListChecks, Package, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { SearchInput } from '@/components/ui/search-input'
 import { SortableTableHead } from '@/components/ui/sortable-table-head'
@@ -8,9 +9,9 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { useErpSnapshot } from '@/hooks/useErpSnapshot'
 
-type Props = Pick<ReturnType<typeof useErpSnapshot>, 'loading' | 'failed' | 'rows' | 'summary' | 'search' | 'onSearch' | 'sortColumn' | 'sortDirection' | 'onToggleSort' | 'onSelect' | 'onEntryLink' | 'labels'>
+type Props = Pick<ReturnType<typeof useErpSnapshot>, 'onRefresh' | 'refreshing' | 'loading' | 'failed' | 'rows' | 'summary' | 'search' | 'onSearch' | 'sortColumn' | 'sortDirection' | 'onToggleSort' | 'onSelect' | 'onEntryLink' | 'labels'>
 
-export function ErpTable({ loading, failed, rows, summary, search, onSearch, sortColumn, sortDirection, onToggleSort, onSelect, onEntryLink, labels }: Props) {
+export function ErpTable({ onRefresh, refreshing, loading, failed, rows, summary, search, onSearch, sortColumn, sortDirection, onToggleSort, onSelect, onEntryLink, labels }: Props) {
   const columns = [
     { column: 'entry', label: labels.entry, icon: Hash, width: '220px' },
     { column: 'order', label: labels.order, icon: Package, width: '150px' },
@@ -26,6 +27,10 @@ export function ErpTable({ loading, failed, rows, summary, search, onSearch, sor
       <header className="documents-toolbar">
         <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
         {summary !== null && <span className="shrink-0 text-sm text-muted-foreground">{summary}</span>}
+        <Button size="sm" className="table-add-button" onClick={onRefresh} disabled={loading || refreshing} aria-busy={refreshing}>
+          <RefreshCw className={cn('size-3.5', refreshing && 'animate-spin')} />
+          {refreshing ? labels.refreshing : labels.refresh}
+        </Button>
       </header>
       <div className="documents-table-scroll">
         <table className="documents-table" style={{ minWidth: 1170 }} aria-busy={loading}>

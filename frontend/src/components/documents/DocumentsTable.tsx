@@ -21,6 +21,7 @@ export function DocumentsTable({ documentsLoading, sortColumn, sortDirection, on
     <section className="documents-browser" aria-label={labels.library}>
       <header className="documents-toolbar">
         <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
+        {documentsLoading ? <Skeleton className="h-4 w-24 shrink-0" /> : <span className="shrink-0 text-sm text-muted-foreground">{labels.count}</span>}
         <Button asChild size="sm" className="table-add-button"><label className="upload-button">
           <Upload size={15} />{labels.upload}
           <input type="file" accept="application/pdf,.pdf" multiple onChange={onUpload} aria-label={labels.upload} />

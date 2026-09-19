@@ -292,6 +292,7 @@ export function useDocuments() {
     view,
     onUpload, onDelete, onSelect: (id: string) => navigate(documentPath(id)),
     labels: {
+      count: t('documents.count', { count: rows.length }),
       erp: t('erp.title'), erpData: t('erp.dataTitle'), totalTime: t('documents.totalTime'),
       totalCost: t('usage.totalCost'), waiting: t('pipeline.waiting'), appName: t('app.name'), upload: t('documents.upload'),
       library: t('documents.library'), search: t('documents.search'), back: t('documents.back'),
