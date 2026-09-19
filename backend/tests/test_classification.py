@@ -82,6 +82,14 @@ class ClassificationTests(unittest.TestCase):
         self.references.order.review_required = True
         self.assertEqual(self.classify(self.invoice).classification, "ESCALAR")
 
+    def test_conflicted_order_without_owner_escalates(self) -> None:
+        self.claim.return_value = None
+        decision = self.classify(self.invoice)
+        self.assertEqual(decision.classification, 'ESCALAR')
+        self.assertFalse(decision.checks['order_claim'])
+        self.references.entries[0].status = 'PAGADA'
+        self.assertEqual(self.classify(self.invoice).classification, 'NO_PAGAR')
+
     def test_paid_prevents_payment_even_with_other_anomalies(self) -> None:
         self.references.entries[0].status = "PAGADA"
         invoice = self.invoice.model_copy(update={"iban": "WRONG"})

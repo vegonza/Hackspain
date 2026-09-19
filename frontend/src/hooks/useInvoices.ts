@@ -68,7 +68,11 @@ export function useInvoices() {
               }
             }
             const wasProcessing = previous.some(invoice => invoice.id === selectedId && isProcessing(invoice))
-            if (wasProcessing) await refreshDetail()
+            const oldSelected = previous.find(invoice => invoice.id === selectedId)
+            const nextSelected = next.find(invoice => invoice.id === selectedId)
+            const decisionChanged = oldSelected !== undefined && nextSelected !== undefined
+              && JSON.stringify(oldSelected.payment_decision) !== JSON.stringify(nextSelected.payment_decision)
+            if (wasProcessing || decisionChanged) await refreshDetail()
           }
         }
       } catch {
