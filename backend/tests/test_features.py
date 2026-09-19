@@ -9,7 +9,7 @@ from extractor.extraction import InvoiceExtraction, InvoiceLine, extract_invoice
 def extracted_items(items: list[InvoiceLine]) -> InvoiceExtraction:
     return InvoiceExtraction(
         invoice_number="F-1", supplier_name="Proveedor", supplier_nif="B12345678",
-        iban="ES123", invoice_date="2026-01-01", purchase_order="PO-2026-0001",
+        iban="ES123", invoice_date="2026-01-01", purchase_order="PO-2026-0001", currency="EUR",
         line_items=items, tax_base="200.19", vat_rate="21", vat_amount="42.04",
         total="242.23", notes=[], uncertainties=[],
     )
@@ -80,3 +80,15 @@ class InvoiceExtractionTests(unittest.TestCase):
             result = extract_invoice("Servicio", [b"page"])
         self.assertEqual(result.line_items[0].amount, "")
         self.assertEqual(result.uncertainties, ["Importe ilegible"])
+
+    def test_currency_and_original_amounts_are_preserved(self) -> None:
+        for currency in ("EUR", "USD", "GBP", "CHF", "JPY", "BRL", ""):
+            with self.subTest(currency=currency), patch("extractor.extraction.create_extractor") as factory:
+                extracted = extracted_items([])
+                extracted.currency = currency
+                extracted.uncertainties = ["Moneda ambigua"] if currency == "" else []
+                factory.return_value.__enter__.return_value.run.return_value = extracted
+                result = extract_invoice("", [b"page"])
+                self.assertEqual(result.currency, currency)
+                self.assertEqual(result.total, extracted.total)
+                self.assertEqual(result.uncertainties, extracted.uncertainties)

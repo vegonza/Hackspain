@@ -21,6 +21,7 @@ class InvoiceExtraction(BaseModel):
     iban: str
     invoice_date: str
     purchase_order: str
+    currency: str
     line_items: list[InvoiceLine]
     tax_base: str
     vat_rate: str

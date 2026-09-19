@@ -30,7 +30,7 @@ class InvoiceDetailTests(unittest.TestCase):
         redis.__enter__.return_value.hget.return_value = None
         extraction = InvoiceExtraction(
             invoice_number="INV-1", supplier_name="Proveedor", supplier_nif="N-1", iban="Account",
-            invoice_date="2026-01-01", purchase_order="PO-1", line_items=[],
+            invoice_date="2026-01-01", purchase_order="PO-1", currency="EUR", line_items=[],
             tax_base="10", vat_rate="21", vat_amount="2.10", total="12.10", notes=[], uncertainties=[],
         )
         artifacts = {f"{identifier}/native.txt": b"Invoice",
@@ -88,7 +88,7 @@ class InvoiceDetailTests(unittest.TestCase):
     def test_result_preserves_raw_date_and_decimal_precision(self) -> None:
         extraction = InvoiceExtraction(
             invoice_number="F-1", supplier_name="Proveedor", supplier_nif="B12345678",
-            iban="ES123", invoice_date="31/02/2026", purchase_order="PO-1",
+            iban="ES123", invoice_date="31/02/2026", purchase_order="PO-1", currency="EUR",
             line_items=[], tax_base="123456789012345.12", vat_rate="21",
             vat_amount="25925925692592.4752", total="149382714704937.5952",
             notes=["Nota impresa"], uncertainties=["Fecha imposible"],
@@ -107,7 +107,7 @@ class InvoiceDetailTests(unittest.TestCase):
     def test_missing_amounts_are_stored_as_null_without_changing_the_artifact_fields(self) -> None:
         extraction = InvoiceExtraction(
             invoice_number="F-1", supplier_name="Proveedor", supplier_nif="B12345678",
-            iban="", invoice_date="", purchase_order="", line_items=[],
+            iban="", invoice_date="", purchase_order="", currency="EUR", line_items=[],
             tax_base="", vat_rate="", vat_amount="", total="", notes=[], uncertainties=["Importes ilegibles"],
         )
         with patch("invoices.repository.get_client") as client:

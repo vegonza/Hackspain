@@ -16,7 +16,7 @@ class PipelineClassificationTests(unittest.TestCase):
                                         created_at=datetime.now(timezone.utc), result_path="extraction/features.json")
         self.invoice = InvoiceExtraction(
             invoice_number='F1', supplier_name='Proveedor', supplier_nif='B12345678', iban='ES001234',
-            invoice_date='2026-01-01', purchase_order=' po-001 ', line_items=[], tax_base='100', vat_rate='21',
+            invoice_date='2026-01-01', purchase_order=' po-001 ', currency="EUR", line_items=[], tax_base='100', vat_rate='21',
             vat_amount='21', total='121', notes=[], uncertainties=[],
         )
         self.candidate = Decision(classification='PAGAR', reasons=['Verificada'], checks={'order_claim': True})

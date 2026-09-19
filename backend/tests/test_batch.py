@@ -19,7 +19,7 @@ class BatchTests(unittest.TestCase):
             (source / "scan.pdf").write_bytes(b"PDF fixture")
             extraction = InvoiceExtraction(
                 invoice_number="I-1", supplier_name="Vendor", supplier_nif="N-1", iban="Account",
-                invoice_date="2026-01-01", purchase_order="PO-2026-0010", line_items=[],
+                invoice_date="2026-01-01", purchase_order="PO-2026-0010", currency="EUR", line_items=[],
                 tax_base="10", vat_rate="21", vat_amount="2.10", total="12.10", notes=[], uncertainties=[],
             )
             (invoice_record / "features.json").write_text(extraction.model_dump_json())

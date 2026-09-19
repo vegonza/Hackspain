@@ -21,6 +21,7 @@ class ExtractionTests(unittest.TestCase):
         self.pdf = b"PDF"
         self.pages = [b"jpeg one", b"jpeg two"]
         self.result = extracted_items([InvoiceLine(description="Servicio", amount="31,50")])
+        self.result.currency = "USD"
         self.result.uncertainties = ["Firma ilegible"]
         self.result.notes = ["Pago a 30 días"]
         self.events = MagicMock()
@@ -61,6 +62,7 @@ class ExtractionTests(unittest.TestCase):
         artifacts = {call.args[0]: call.args[1] for call in self.events.upload.call_args_list}
         extraction = InvoiceExtraction.model_validate_json(artifacts[f"{prefix}/features.json"])
         self.assertEqual(extraction.line_items[0].amount, "31.50")
+        self.assertEqual(extraction.currency, "USD")
         self.assertEqual(extraction.notes, ["Pago a 30 días"])
         self.assertEqual(extraction.uncertainties, ["Firma ilegible"])
         metadata = json.loads(artifacts[f"{prefix}/extraction.json"])

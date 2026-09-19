@@ -17,7 +17,7 @@ class RulesTests(unittest.TestCase):
         self.context = RuleContext(invoice_id=invoice_id, claimed_by_invoice_id=invoice_id,
             invoice=InvoiceExtraction(
                 invoice_number='F-1', supplier_name='Proveedor', supplier_nif='B12345678', iban='ES001234',
-                invoice_date='2026-09-01', purchase_order='PO-1',
+                invoice_date='2026-09-01', purchase_order='PO-1', currency="EUR",
                 line_items=[InvoiceLine(description='Servicio', amount='100')],
                 tax_base='100', vat_rate='21', vat_amount='21', total='121', notes=[], uncertainties=[],
             ),

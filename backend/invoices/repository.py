@@ -93,7 +93,7 @@ def reset_invoice(invoice_id: UUID, name: str) -> None:
     client = get_client()
     fields = {field: None for field in InvoiceExtraction.model_fields if field not in {"notes", "uncertainties"}}
     client.table("documents").update({
-        **fields, "status": "queued", "pages": 0, "erp_entry_id": None, "payment_decision": None,
+        **fields, "exchange_rate": None, "exchange_rate_date": None, "status": "queued", "pages": 0, "erp_entry_id": None, "payment_decision": None,
         "started_at": None, "finished_at": None, "duration_ms": None, "result_path": None,
     }).eq("id", str(invoice_id)).is_("deleted_at", "null").execute()
     get_logger().info("[INVOICES] Reset processing results for %s", name)

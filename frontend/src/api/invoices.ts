@@ -58,6 +58,7 @@ export interface InvoiceExtraction {
   iban: string
   invoice_date: string
   purchase_order: string
+  currency: string
   line_items: InvoiceLine[]
   notes: string[]
   uncertainties: string[]

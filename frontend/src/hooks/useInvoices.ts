@@ -217,17 +217,17 @@ export function useInvoices() {
 
   const erp = selected === null ? null : selected.erp
   const extraction = selected === null ? null : selected.extraction
-  const featureMoney = (value: string): string => value === '' ? t('extraction.unavailable')
-    : new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(Number(value))
+  const featureMoney = (value: string, currency: string): string => value === '' ? t('extraction.unavailable')
+    : new Intl.NumberFormat('es-ES', currency === '' ? {} : { style: 'currency', currency }).format(Number(value))
   const featureAmounts = extraction === null ? null : {
-    taxBase: featureMoney(extraction.tax_base),
+    taxBase: featureMoney(extraction.tax_base, extraction.currency),
     vatRate: extraction.vat_rate === '' ? t('extraction.unavailable') : `${extraction.vat_rate}%`,
-    vatAmount: featureMoney(extraction.vat_amount),
-    total: featureMoney(extraction.total),
-    lineItems: extraction.line_items.map(line => `${line.description} · ${featureMoney(line.amount)}`).join(', '),
+    vatAmount: featureMoney(extraction.vat_amount, extraction.currency),
+    total: featureMoney(extraction.total, extraction.currency),
+    lineItems: extraction.line_items.map(line => `${line.description} · ${featureMoney(line.amount, extraction.currency)}`).join(', '),
   }
   const erpMoney = (value: number) => `${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)} €`
-  const difference = erp !== null && erp.amount !== null && extraction !== null && extraction.total !== ''
+  const difference = erp !== null && erp.amount !== null && extraction !== null && extraction.currency === 'EUR' && extraction.total !== ''
     ? Number(extraction.total) - Number(erp.amount) : null
   const erpRows = [
     { label: t('erp.status'), value: erp === null ? t('erp.notLinked')

@@ -33,7 +33,7 @@ class ClassificationTests(unittest.TestCase):
         self.addCleanup(resolver.stop)
         self.invoice = InvoiceExtraction(
             invoice_number="NEW-1", supplier_name="Proveedor Nuevo", supplier_nif="B12345678",
-            iban="ES001234", invoice_date="2026-09-01", purchase_order="PO-2026-9999",
+            iban="ES001234", invoice_date="2026-09-01", purchase_order="PO-2026-9999", currency="EUR",
             line_items=[InvoiceLine(description="Servicio", amount="100.00")],
             tax_base="100.00", vat_rate="21", vat_amount="21.00", total="121.00",
             notes=[], uncertainties=[],

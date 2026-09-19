@@ -40,7 +40,7 @@ class PaymentPolicyTests(unittest.TestCase):
     def test_payment_restriction_escalates_but_never_overrides_paid_erp(self) -> None:
         invoice = InvoiceExtraction(
             invoice_number="INV-1", supplier_name="Proveedor", supplier_nif="B12345678",
-            iban="ES123", invoice_date="2026-01-01", purchase_order="PO-2026-0001",
+            iban="ES123", invoice_date="2026-01-01", purchase_order="PO-2026-0001", currency="EUR",
             line_items=[InvoiceLine(description="Servicio", amount="100")],
             tax_base="100", vat_rate="21", vat_amount="21", total="121",
             notes=["Pedido anulado."], uncertainties=[],
