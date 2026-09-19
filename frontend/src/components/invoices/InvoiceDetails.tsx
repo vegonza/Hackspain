@@ -1,3 +1,4 @@
+import { InvoiceDecisionBadge } from '@/components/invoices/InvoiceDecisionBadge'
 import { ArrowLeft, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -37,6 +38,15 @@ export function InvoiceDetails({ mountDetail, invoiceName, selectedId, selected,
         <dl className="invoice-totals" aria-busy={metricsLoading}>
           <div><dt>{labels.totalTime}</dt><dd>{metricsLoading ? <Skeleton className="h-4 w-16" /> : totalDuration}</dd></div>
           <div><dt>{labels.totalCost}</dt><dd>{metricsLoading ? <Skeleton className="h-4 w-16" /> : totalCost}</dd></div>
+          <div className="invoice-decision-summary" aria-busy={loading}>
+            <dt>{labels.decision}</dt>
+            <dd>{loading ? <Skeleton className="h-5 w-20" />
+              : <InvoiceDecisionBadge classification={selected === null || selected.payment_decision === null ? null : selected.payment_decision.classification} label={labels.decisionLabel} />}</dd>
+            <dd className="invoice-decision-reasons">
+              {loading ? <Skeleton className="h-4 w-full" />
+                : selected !== null && selected.payment_decision !== null && selected.payment_decision.reasons.length > 0 && <><span className="invoice-justification-label">{labels.justification}</span><ul>{selected.payment_decision.reasons.map((reason, index) => <li key={index}>{reason}</li>)}</ul></>}
+            </dd>
+          </div>
         </dl>
       </aside>
       <section className="viewer-panel" aria-label={sourceTab === 'pdf' ? labels.pdf : sourceTab === 'erp' ? labels.erp : activeStage === undefined ? labels.invoice : activeStage.label}>

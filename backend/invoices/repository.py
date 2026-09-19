@@ -22,7 +22,7 @@ class StageMetrics(BaseModel):
     duration_ms: int | None = None
 
 
-INVOICE_VIRTUAL_FIELDS = {"retry_attempts", "last_error", "next_retry_at", "stage_metrics", "current_stages", "total_cost_usd", "total_duration_ms", "finished_at"}
+INVOICE_VIRTUAL_FIELDS = {"payment_decision", "retry_attempts", "last_error", "next_retry_at", "stage_metrics", "current_stages", "total_cost_usd", "total_duration_ms", "finished_at"}
 
 
 class Invoice(BaseModel):
@@ -33,6 +33,7 @@ class Invoice(BaseModel):
     finished_at: datetime | None = None
     status: Literal["queued", "processing", "ready", "error"] = "queued"
     pages: int = 0
+    payment_decision: Decision | None = None
     total_cost_usd: Decimal | None = None
     total_duration_ms: int | None = None
     stage_metrics: list[StageMetrics] = Field(default_factory=list)
@@ -110,7 +111,6 @@ def reset_invoice(invoice_id: UUID, name: str) -> None:
 
 
 class InvoiceDetails(Invoice):
-    payment_decision: Decision | None = None
     stages: list[StageDetail]
     erp_snapshot_id: UUID | None = None
     erp: ErpEntry | None = None

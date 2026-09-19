@@ -19,6 +19,7 @@ class InvoiceDetailTests(unittest.TestCase):
         database.rpc.return_value.execute.return_value.data = {
             "id": str(identifier), "name": "invoice.pdf", "sha256": "a" * 64,
             "created_at": datetime.now(timezone.utc).isoformat(), "status": "ready",
+            "payment_decision": {"classification": "NO_PAGAR", "reasons": ["Ya pagada en el ERP"], "checks": {"not_paid": False}},
             "erp_snapshot_id": str(uuid4()),
             "erp": {"entry_id": "AS-REAL", "supplier_id": "P-REAL", "tax_id": "B12345678",
                     "order_id": "PO-1", "status": "PAGADA", "raw_date": "12/01/2026",
@@ -56,6 +57,8 @@ class InvoiceDetailTests(unittest.TestCase):
         self.assertEqual(response.json()["finished_at"], "2026-09-19T10:00:20Z")
         self.assertEqual(response.json()["erp"]["status"], "PAGADA")
         self.assertEqual(response.json()["erp"]["entry_id"], "AS-REAL")
+        self.assertEqual(response.json()["payment_decision"]["classification"], "NO_PAGAR")
+        self.assertEqual(response.json()["payment_decision"]["reasons"], ["Ya pagada en el ERP"])
         database.table.assert_not_called()
         stages = response.json()["stages"]
         self.assertEqual([stage["id"] for stage in stages], ["ocr", "text", "extraction"])

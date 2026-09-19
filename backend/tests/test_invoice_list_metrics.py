@@ -16,6 +16,7 @@ class InvoiceListMetricsTests(unittest.TestCase):
             "created_at": datetime.now(timezone.utc).isoformat(), "status": "processing",
             "finished_at": "2026-09-19T10:00:03+00:00",
             "total_cost_usd": "0.0047", "total_duration_ms": 9860,
+            "payment_decision": {"classification": "ESCALAR", "reasons": ["Revisar importe"], "checks": {}},
             "current_stages": ["ocr", "extraction"],
             "stage_metrics": [{"stage": "extraction", "cost_usd": "0.004", "duration_ms": 8420}],
         }]
@@ -23,6 +24,8 @@ class InvoiceListMetricsTests(unittest.TestCase):
         with patch("invoices.repository.get_client", return_value=client), patch("invoices.repository.get_redis", return_value=redis):
             result = list_invoices()
         client.rpc.assert_called_once_with("get_documents", {"p_offset": 0, "p_limit": 1000})
+        self.assertEqual(result[0].payment_decision.classification, "ESCALAR")
+        self.assertEqual(result[0].payment_decision.reasons, ["Revisar importe"])
         self.assertEqual(result[0].total_cost_usd, Decimal("0.0047"))
         self.assertEqual(result[0].current_stages, ["ocr", "extraction"])
         self.assertEqual(result[0].stage_metrics[0].stage, "extraction")

@@ -1,4 +1,4 @@
-import { Building2, CircleAlert, Clock, Euro, Fingerprint, Hash, ListChecks, Package, RefreshCw } from 'lucide-react'
+import { Building2, CircleAlert, Clock, Euro, IdCard, Hash, ListChecks, Package, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { SearchInput } from '@/components/ui/search-input'
@@ -16,7 +16,7 @@ export function ErpTable({ onRefresh, refreshing, loading, failed, rows, summary
     { column: 'entry', label: labels.entry, icon: Hash, width: '220px' },
     { column: 'order', label: labels.order, icon: Package, width: '150px' },
     { column: 'supplier', label: labels.supplier, icon: Building2, width: '120px' },
-    { column: 'taxId', label: labels.taxId, icon: Fingerprint, width: '140px' },
+    { column: 'taxId', label: labels.taxId, icon: IdCard, width: '140px' },
     { column: 'status', label: labels.status, icon: ListChecks, width: '130px' },
     { column: 'date', label: labels.date, icon: Clock, width: '150px' },
     { column: 'amount', label: labels.amount, icon: Euro, width: '150px' },

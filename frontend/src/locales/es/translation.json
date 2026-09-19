@@ -10,6 +10,10 @@
     "holdDelete": "Mantén pulsado para borrar"
   },
   "invoices": {
+    "decision": "Decisión",
+    "justification": "Justificación",
+    "decisionPending": "Sin decisión",
+    "decisions": { "PAGAR": "Pagar", "NO_PAGAR": "No pagar", "ESCALAR": "Escalar" },
     "count_one": "{{count}} factura", "count_other": "{{count}} facturas",
     "redo": "Reprocesar",
     "redoConfirmation": "¿Reprocesar «{{name}}»?",

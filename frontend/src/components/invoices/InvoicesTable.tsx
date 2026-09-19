@@ -1,3 +1,4 @@
+import { InvoiceDecisionBadge } from '@/components/invoices/InvoiceDecisionBadge'
 import { StageMetricsTooltip } from '@/components/invoices/StageMetricsTooltip'
 import { InvoicesTableHead } from '@/components/invoices/InvoicesTableHead'
 import { Button } from '@/components/ui/button'
@@ -29,9 +30,9 @@ export function InvoicesTable({ invoicesLoading, sortColumn, sortDirection, onTo
       </header>
       <div className="invoices-table-scroll">
         <table className="invoices-table" aria-busy={invoicesLoading}>
-          <colgroup><col /><col style={{ width: '180px' }} /><col style={{ width: '130px' }} /><col style={{ width: '130px' }} /><col style={{ width: '210px' }} /><col style={{ width: '88px' }} /></colgroup>
+          <colgroup><col /><col style={{ width: '180px' }} /><col style={{ width: '130px' }} /><col style={{ width: '130px' }} /><col style={{ width: '130px' }} /><col style={{ width: '210px' }} /><col style={{ width: '88px' }} /></colgroup>
           <TableHeader className="[&_tr]:border-b-0"><TableRow className="hover:bg-transparent">
-            <InvoicesTableHead column="name" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.invoice} icon={FileText} stickyLeft /><InvoicesTableHead column="status" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.status} icon={ListChecks} /><InvoicesTableHead column="cost" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.totalCost} icon={DollarSign} /><InvoicesTableHead column="duration" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.totalTime} icon={Timer} /><InvoicesTableHead column="created" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.created} icon={Clock} /><TableHead className="sticky top-0 z-20 border-b bg-muted"><span className="sr-only">{labels.actions}</span></TableHead>
+            <InvoicesTableHead column="name" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.invoice} icon={FileText} stickyLeft /><InvoicesTableHead column="status" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.status} icon={ListChecks} /><InvoicesTableHead column="decision" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.decision} icon={ListChecks} /><InvoicesTableHead column="cost" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.totalCost} icon={DollarSign} /><InvoicesTableHead column="duration" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.totalTime} icon={Timer} /><InvoicesTableHead column="created" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.created} icon={Clock} /><TableHead className="sticky top-0 z-20 border-b bg-muted"><span className="sr-only">{labels.actions}</span></TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {rows.map(invoice => <TableRow key={invoice.id} className="invoice-table-row" data-openable={invoice.canOpen} onClick={() => { if (invoice.canOpen) void onSelect(invoice.id) }}>
@@ -39,6 +40,7 @@ export function InvoicesTable({ invoicesLoading, sortColumn, sortDirection, onTo
                 ? <a className="invoice-table-name" href={invoice.href} onClick={onInvoiceLink}>{invoice.name}</a>
                 : <span className="invoice-table-name">{invoice.name}</span>}</Tooltip></TableCell>
               <TableCell><Tooltip text={invoice.errorMessage || invoice.statusLabel} asChild><Badge variant="secondary" className="invoice-table-status" data-status={invoice.status}>{invoice.statusIcon === 'spinner' && <LoaderCircle size={13} className="upload-spinner" />}{invoice.statusIcon === 'clock' && <Clock size={13} />}{invoice.statusIcon === 'error' && <CircleAlert size={13} />}{invoice.status === 'error' ? labels.errorStatus : invoice.statusLabel}</Badge></Tooltip></TableCell>
+              <TableCell><InvoiceDecisionBadge classification={invoice.payment_decision === null ? null : invoice.payment_decision.classification} label={invoice.decisionLabel} /></TableCell>
               <TableCell><Tooltip text={<StageMetricsTooltip rows={invoice.costBreakdown} total={invoice.costLabel} title={labels.totalCost} />} asChild><span className="usage-detail tabular-nums">{invoice.costLabel}</span></Tooltip></TableCell>
               <TableCell><Tooltip text={<StageMetricsTooltip rows={invoice.durationBreakdown} total={invoice.durationLabel} title={labels.totalTime} />} asChild><span className="usage-detail tabular-nums">{invoice.durationLabel}</span></Tooltip></TableCell>
               <TableCell className="text-muted-foreground">{invoice.dateLabel}</TableCell>
@@ -47,12 +49,13 @@ export function InvoicesTable({ invoicesLoading, sortColumn, sortDirection, onTo
             {invoicesLoading && Array.from({ length: 8 }, (_, row) => <TableRow key={`loading-${row}`} className="invoice-table-row" data-openable="false">
               <TableCell><Skeleton className="h-4 w-3/4" /></TableCell>
               <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-20" /></TableCell>
               <TableCell><Skeleton className="h-4 w-16" /></TableCell>
               <TableCell><Skeleton className="h-4 w-16" /></TableCell>
               <TableCell><Skeleton className="h-4 w-32" /></TableCell>
               <TableCell><div className="invoice-table-action" /></TableCell>
             </TableRow>)}
-            {!invoicesLoading && rows.length === 0 && <TableRow className="hover:bg-transparent"><TableCell colSpan={6} className="h-40 text-center text-muted-foreground">{search.trim() ? labels.noResults : labels.emptyList}</TableCell></TableRow>}
+            {!invoicesLoading && rows.length === 0 && <TableRow className="hover:bg-transparent"><TableCell colSpan={7} className="h-40 text-center text-muted-foreground">{search.trim() ? labels.noResults : labels.emptyList}</TableCell></TableRow>}
           </TableBody>
         </table>
       </div>

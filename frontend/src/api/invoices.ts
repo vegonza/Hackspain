@@ -1,5 +1,11 @@
 import { fetchJson } from '@/api/client'
 
+export interface PaymentDecision {
+  classification: 'PAGAR' | 'NO_PAGAR' | 'ESCALAR'
+  reasons: string[]
+  checks: Record<string, boolean>
+}
+
 export interface Invoice {
   id: string
   name: string
@@ -8,6 +14,7 @@ export interface Invoice {
   finished_at: string | null
   status: 'queued' | 'processing' | 'ready' | 'error'
   pages: number
+  payment_decision: PaymentDecision | null
   total_cost_usd: string | null
   stage_metrics: { stage: StageId; cost_usd: string | null; duration_ms: number | null }[]
   current_stages: StageId[]

@@ -9,7 +9,7 @@ import { deleteInvoice, redoInvoice, retryInvoice, fetchInvoices, uploadInvoice,
 
 const isProcessing = (invoice: Invoice) => invoice.status === 'queued' || invoice.status === 'processing'
 
-export type InvoiceSortColumn = 'name' | 'status' | 'cost' | 'duration' | 'created'
+export type InvoiceSortColumn = 'name' | 'status' | 'decision' | 'cost' | 'duration' | 'created'
 
 interface UploadingFile { id: string; name: string; created_at: string }
 
@@ -172,16 +172,21 @@ export function useInvoices() {
   }
 
   const formatCost = (cost: string | null): string => cost === null ? '—' : `$${Number(cost).toFixed(4)}`
-  const formatDuration = (duration: number | null): string => duration === null ? '—'
-    : duration < 60000 ? t('pipeline.durationSeconds', { value: Math.floor(duration / 1000) })
-    : t('pipeline.durationMinutes', { minutes: Math.floor(duration / 60000), seconds: Math.floor(duration % 60000 / 1000) })
+  const formatDuration = (duration: number | null): string => {
+    if (duration === null) return '—'
+    const centiseconds = Math.round(duration / 10)
+    return centiseconds < 6000
+      ? t('pipeline.durationSeconds', { value: (centiseconds / 100).toFixed(2) })
+      : t('pipeline.durationMinutes', { minutes: Math.floor(centiseconds / 6000), seconds: ((centiseconds % 6000) / 100).toFixed(2) })
+  }
   const rows = [
-    ...uploads.map(upload => ({ ...upload, status: 'uploading' as const, finished_at: null, total_cost_usd: null, stage_metrics: [], current_stages: [] })),
+    ...uploads.map(upload => ({ ...upload, status: 'uploading' as const, payment_decision: null, finished_at: null, total_cost_usd: null, stage_metrics: [], current_stages: [] })),
     ...invoices,
   ].map(invoice => {
     const durationMs = totalStageDuration(invoice.stage_metrics)
     return {
       ...invoice,
+      decisionLabel: invoice.payment_decision === null ? t('invoices.decisionPending') : t(`invoices.decisions.${invoice.payment_decision.classification}`),
       costLabel: formatCost(invoice.total_cost_usd),
       durationMs,
       href: invoicePath(invoice.id),
@@ -206,6 +211,7 @@ export function useInvoices() {
     switch (sortColumn) {
       case 'name': return row.name
       case 'status': return row.statusLabel
+      case 'decision': return row.payment_decision === null ? null : row.decisionLabel
       case 'cost': return row.total_cost_usd === null ? null : Number(row.total_cost_usd)
       case 'duration': return row.durationMs
       case 'created': return row.status === 'uploading' ? null : Date.parse(row.created_at)
@@ -292,6 +298,9 @@ export function useInvoices() {
     view,
     onUpload, onDelete, onSelect: (id: string) => navigate(invoicePath(id)),
     labels: {
+      decision: t('invoices.decision'),
+      justification: t('invoices.justification'),
+      decisionLabel: selected === null || selected.payment_decision === null ? t('invoices.decisionPending') : t(`invoices.decisions.${selected.payment_decision.classification}`),
       count: t('invoices.count', { count: rows.length }),
       erp: t('erp.title'), erpData: t('erp.dataTitle'), totalTime: t('invoices.totalTime'),
       totalCost: t('usage.totalCost'), waiting: t('pipeline.waiting'), appName: t('app.name'), upload: t('invoices.upload'),

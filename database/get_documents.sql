@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION public.get_documents(p_offset INTEGER DEFAULT 0, p_limit INTEGER DEFAULT 1000)
 RETURNS JSONB LANGUAGE sql STABLE SET search_path = public AS $$
 WITH page AS MATERIALIZED (
-    SELECT id, name, sha256, created_at, status, pages FROM public.documents WHERE deleted_at IS NULL
+    SELECT id, name, sha256, created_at, status, pages, payment_decision FROM public.documents WHERE deleted_at IS NULL
     ORDER BY created_at DESC, id LIMIT p_limit OFFSET p_offset
 ), costs AS (
     SELECT u.document_id, u.operation, SUM((entry->>'cost')::numeric) AS cost
