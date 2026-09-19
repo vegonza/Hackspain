@@ -1,5 +1,4 @@
-# Local challenge data checkout
-/500-sombras-de-alberto/
+# Local data
 /invoice_review.csv
 /backend/data/
 /database/migration_*.sql

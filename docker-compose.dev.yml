@@ -1,6 +1,20 @@
 name: hackspain-dev
 
 services:
+  erp:
+    build:
+      context: ./infra/erp
+    init: true
+    restart: unless-stopped
+    volumes:
+      - ./500-sombras-de-alberto:/challenge:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8009/erp/estado', timeout=3).read()"]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+      start_period: 5s
+
   backend:
     build:
       context: ./backend
@@ -10,8 +24,11 @@ services:
     environment:
       ENV: development
       TZ: Europe/Madrid
+      ERP_BASE_URL: http://erp:8009
       REDIS_URL: redis://redis:6379/0
     depends_on:
+      erp:
+        condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
@@ -60,9 +77,12 @@ services:
     environment:
       ENV: development
       TZ: Europe/Madrid
+      ERP_BASE_URL: http://erp:8009
       REDIS_URL: redis://redis:6379/0
       DOCUMENT_WORKERS: "5"
     depends_on:
+      erp:
+        condition: service_healthy
       redis:
         condition: service_healthy
     develop:
