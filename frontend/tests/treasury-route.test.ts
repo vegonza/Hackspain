@@ -6,4 +6,8 @@ describe('treasury route', () => {
   test('opens the treasury dashboard', () => {
     expect(parseRoute('/treasury')).toEqual({ view: 'treasury', documentId: null })
   })
+
+  test('opens the accounting pre-close dashboard', () => {
+    expect(parseRoute('/accounting')).toEqual({ view: 'accounting', documentId: null })
+  })
 })
