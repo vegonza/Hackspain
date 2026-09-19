@@ -9,7 +9,6 @@ erp_client.py           reads the ERP over HTTP and writes a snapshot
 order_resolver.py       matches an invoice to an entry in that snapshot
 test_order_resolver.py  tests for the above
 validate_resolver.py    scores the resolver against the real invoice corpus
-docs/ADR.md             why each decision was made
 ```
 
 `erp_client.py` and `order_resolver.py` know nothing about each other. The

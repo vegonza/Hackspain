@@ -10,3 +10,6 @@ fake_ocr.py
 # Reconnaissance scripts used to survey the invoice PDFs. Measuring
 # instruments, not product.
 tools/
+
+# Design notes kept for my own use. Not part of the deliverable.
+docs/
