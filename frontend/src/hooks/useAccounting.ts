@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useRef, useState, type ChangeEvent, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -65,17 +65,25 @@ export function useAccounting() {
     unknown_category: t('accounting.reasons.unknownCategory'),
   }
   const summary = report === null ? [] : [
-    { id: 'recorded', label: t('accounting.recordedExpenses'), value: currency.format(Number(report.summary.recorded_expenses)), subtitle: t('accounting.recordedExpensesSubtitle'), risk: false },
-    { id: 'deductible-expenses', label: t('accounting.potentialExpenses'), value: currency.format(Number(report.summary.potential_deductible_expenses)), subtitle: t('accounting.potentialExpensesSubtitle'), risk: false },
-    { id: 'deductible-vat', label: t('accounting.potentialVat'), value: currency.format(Number(report.summary.potential_deductible_vat)), subtitle: t('accounting.potentialVatSubtitle'), risk: false },
-    { id: 'review', label: t('accounting.underReview'), value: currency.format(Number(report.summary.amount_under_review)), subtitle: t('accounting.underReviewSubtitle', { count: report.summary.review_invoices }), risk: true },
+    { id: 'recorded', label: t('accounting.recordedExpenses'), value: currency.format(Number(report.summary.recorded_expenses)), subtitle: t('accounting.recordedExpensesSubtitle'), tone: 'neutral' },
+    { id: 'deductible-expenses', label: t('accounting.potentialExpenses'), value: currency.format(Number(report.summary.potential_deductible_expenses)), subtitle: t('accounting.potentialExpensesSubtitle'), tone: 'positive' },
+    { id: 'deductible-vat', label: t('accounting.potentialVat'), value: currency.format(Number(report.summary.potential_deductible_vat)), subtitle: t('accounting.potentialVatSubtitle'), tone: 'primary' },
+    { id: 'review', label: t('accounting.underReview'), value: currency.format(Number(report.summary.amount_under_review)), subtitle: t('accounting.underReviewSubtitle', { count: report.summary.review_invoices }), tone: 'warning' },
   ]
-  const categories = report === null ? [] : report.by_category.map(item => ({
-    ...item,
-    label: categoryLabels[item.category],
-    displayBase: currency.format(Number(item.tax_base)),
-    displayVat: currency.format(Number(item.vat_amount)),
-  }))
+  const categoryTotal = report === null ? 0 : report.by_category.reduce((total, item) => total + Number(item.tax_base), 0)
+  const categories = report === null ? [] : report.by_category.map(item => {
+    const share = categoryTotal === 0 ? 0 : Number(item.tax_base) / categoryTotal * 100
+    return {
+      ...item,
+      label: categoryLabels[item.category],
+      displayBase: currency.format(Number(item.tax_base)),
+      displayVat: currency.format(Number(item.vat_amount)),
+      displayShare: t('accounting.categoryShare', { value: share.toLocaleString('es-ES', { maximumFractionDigits: 1 }) }),
+      displayInvoices: t('accounting.invoiceCountValue', { count: item.invoice_count }),
+      displayReview: t('accounting.reviewCountValue', { count: item.review_count }),
+      barStyle: { '--accounting-bar-width': `${share}%` } as CSSProperties,
+    }
+  })
   const invoices = report === null ? [] : report.invoices.map(invoice => ({
     ...invoice,
     href: documentPath(invoice.document_id),
@@ -95,6 +103,19 @@ export function useAccounting() {
     })),
   ]
   const years = [currentYear - 2, currentYear - 1, currentYear]
+  const readiness = report === null ? null : (() => {
+    const total = report.summary.prepared_invoices + report.summary.review_invoices
+    const rate = total === 0 ? 0 : Math.round(report.summary.prepared_invoices / total * 100)
+    return {
+      rate,
+      displayRate: t('accounting.preparedPercent', { value: rate }),
+      description: t('accounting.readinessDescription', { prepared: report.summary.prepared_invoices, total }),
+      prepared: report.summary.prepared_invoices,
+      review: report.summary.review_invoices,
+      progressStyle: { '--accounting-progress': `${rate * 3.6}deg` } as CSSProperties,
+    }
+  })()
+  const selectedPeriod = `${year} · ${quarter === null ? t('accounting.annual') : t('accounting.quarter', { value: quarter })}`
   const onYearChange = (event: ChangeEvent<HTMLSelectElement>) => setYear(Number(event.target.value))
   const onExport = () => {
     setExporting(true)
@@ -110,10 +131,14 @@ export function useAccounting() {
   }
 
   return {
-    mount, loading, failed, exporting, summary, categories, invoices, periods, years, year,
+    mount, loading, failed, exporting, summary, categories, invoices, periods, years, year, readiness, selectedPeriod,
     onYearChange, onExport, onRetry: load, onDocumentLink: followLink,
     labels: {
       title: t('accounting.title'), subtitle: t('accounting.subtitle'), advisory: t('accounting.advisory'),
+      controlCenter: t('accounting.controlCenter'), period: t('accounting.period'), overview: t('accounting.overview'),
+      readiness: t('accounting.readiness'), ready: t('accounting.ready'), pending: t('accounting.pending'),
+      categoriesSubtitle: t('accounting.categoriesSubtitle'), invoicesSubtitle: t('accounting.invoicesSubtitle'),
+      invoiceTotal: t('accounting.invoiceTotal', { count: invoices.length }), vatShort: t('accounting.vatShort'),
       export: t('accounting.export'), exporting: t('accounting.exporting'), categories: t('accounting.categoryBreakdown'),
       category: t('accounting.category'), invoices: t('accounting.invoices'), invoice: t('accounting.invoice'),
       supplier: t('accounting.supplier'), date: t('accounting.date'), account: t('accounting.account'),
