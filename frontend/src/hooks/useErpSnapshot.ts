@@ -1,10 +1,9 @@
 import { useCallback, useState, type MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { fetchErpSnapshot, type ErpEntry, type ErpSnapshot } from '@/api/erp'
+import { fetchErpEntry, fetchErpSnapshot, type ErpEntry, type ErpEntryDetail, type ErpSnapshot } from '@/api/erp'
 import { documentPath, erpEntryPath, useAppRoute } from '@/hooks/useAppRoute'
 import { erpSortValue, filterErpRows, type ErpRow, type ErpSortColumn } from '@/hooks/erpRows'
 import { useTableSort } from '@/hooks/useTableSort'
-import { formatDateLong } from '@/lib/format'
 
 const money = (amount: string | null): string => amount === null ? '—'
   : new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(Number(amount))
@@ -16,6 +15,8 @@ export function useErpSnapshot() {
   const route = useAppRoute()
   const selectedId = route.view === 'erp' ? route.entryId : null
   const [snapshot, setSnapshot] = useState<ErpSnapshot | null>(null)
+  const [detail, setDetail] = useState<ErpEntryDetail | null>(null)
+  const [requestedId, setRequestedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [search, setSearch] = useState('')
@@ -24,10 +25,18 @@ export function useErpSnapshot() {
     if (node === null) return
     let active = true
     setLoading(true)
+    setFailed(false)
+    setRequestedId(selectedId)
+    setDetail(null)
     async function load(): Promise<void> {
       try {
-        const result = await fetchErpSnapshot()
-        if (active) { setSnapshot(result); setFailed(false) }
+        if (selectedId === null) {
+          const result = await fetchErpSnapshot()
+          if (active) setSnapshot(result)
+        } else {
+          const result = await fetchErpEntry(selectedId)
+          if (active) setDetail(result)
+        }
       } catch {
         if (active) setFailed(true)
       } finally {
@@ -36,7 +45,7 @@ export function useErpSnapshot() {
     }
     void load()
     return () => { active = false }
-  }, [])
+  }, [selectedId])
   function onEntryLink(event: MouseEvent<HTMLAnchorElement>): void {
     event.stopPropagation()
     route.followLink(event)
@@ -59,8 +68,8 @@ export function useErpSnapshot() {
     amountValue: entry.amount === null ? null : Number(entry.amount),
     warningLabels: entry.warnings.map(warning => t(`erp.warnings.${warning}`)),
   }))
-  const selected = selectedId === null ? undefined : entries.find(entry => entry.id === selectedId)
-  const field = (read: (entry: ErpEntry) => string): string => selected === undefined ? '—' : read(selected)
+  const selected = detail !== null && detail.id === selectedId ? detail : null
+  const field = (read: (entry: ErpEntry) => string): string => selected === null ? '—' : read(selected)
   const detailRows = [
     { label: t('erp.status'), value: field(entry => statusLabel(entry.status)) },
     { label: t('erp.expectedAmount'), value: field(entry => money(entry.amount)) },
@@ -76,22 +85,17 @@ export function useErpSnapshot() {
   ]
 
   return {
-    mount, loading, failed, selectedId, onEntryLink, onNavigate: route.followLink,
+    mount, loading: loading || requestedId !== selectedId, failed, selectedId, onEntryLink, onNavigate: route.followLink,
     rows: sortRows(filterErpRows(rows, search), erpSortValue),
     search, onSearch: setSearch, sortColumn, sortDirection, onToggleSort,
     onSelect: (id: string) => route.navigate(erpEntryPath(id)),
-    detailTitle: selected === undefined ? null : selected.entry_id,
+    detailTitle: selected === null ? null : selected.entry_id,
     detailRows,
-    linkedDocuments: selected === undefined ? [] : selected.documents.map(document => ({ id: document.id, name: document.name, href: documentPath(document.id) })),
-    summary: snapshot === null ? null : [
-      t('erp.entryCount', { count: snapshot.entry_count }),
-      `${t('erp.version')} ${snapshot.erp_version}`,
-      `${t('erp.fetchedAt')} ${formatDateLong(snapshot.fetched_at, 'es-ES')}`,
-      `${t('erp.updateLoaded')}: ${snapshot.update_loaded ? t('erp.yes') : t('erp.no')}`,
-    ].join(' · '),
+    linkedDocuments: selected === null ? [] : selected.documents.map(document => ({ id: document.id, name: document.name, href: documentPath(document.id) })),
+    summary: snapshot === null ? null : t('erp.entryCount', { count: snapshot.entry_count }),
     labels: {
       title: t('erp.snapshotTitle'), search: t('erp.search'), noResults: t('erp.noResults'), emptySnapshot: t('erp.emptySnapshot'),
-      entryUnavailable: t('erp.entryUnavailable'), back: t('erp.back'), entryData: t('erp.dataTitle'), linkedDocuments: t('erp.linkedDocuments'), noLinkedDocuments: t('erp.noLinkedDocuments'), failed: t('documents.requestFailed'),
+      entryUnavailable: t('erp.entryUnavailable'), back: t('erp.back'), linkedDocuments: t('erp.linkedDocuments'), noLinkedDocuments: t('erp.noLinkedDocuments'),
       entry: t('erp.entry'), order: t('erp.purchaseOrder'), supplier: t('erp.supplier'), taxId: t('erp.nif'), status: t('erp.status'),
       date: t('erp.registeredAt'), amount: t('erp.expectedAmount'), warnings: t('erp.warningsColumn'),
     },

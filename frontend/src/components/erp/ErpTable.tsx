@@ -12,7 +12,7 @@ type Props = Pick<ReturnType<typeof useErpSnapshot>, 'loading' | 'failed' | 'row
 
 export function ErpTable({ loading, failed, rows, summary, search, onSearch, sortColumn, sortDirection, onToggleSort, onSelect, onEntryLink, labels }: Props) {
   const columns = [
-    { column: 'entry', label: labels.entry, icon: Hash, width: undefined },
+    { column: 'entry', label: labels.entry, icon: Hash, width: '220px' },
     { column: 'order', label: labels.order, icon: Package, width: '150px' },
     { column: 'supplier', label: labels.supplier, icon: Building2, width: '120px' },
     { column: 'taxId', label: labels.taxId, icon: Fingerprint, width: '140px' },
@@ -25,11 +25,11 @@ export function ErpTable({ loading, failed, rows, summary, search, onSearch, sor
     <>
       <header className="documents-toolbar">
         <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
-        {summary !== null && <span className="ml-auto truncate text-sm text-muted-foreground">{summary}</span>}
+        {summary !== null && <span className="shrink-0 text-sm text-muted-foreground">{summary}</span>}
       </header>
       <div className="documents-table-scroll">
-        <table className="documents-table" aria-busy={loading}>
-          <colgroup>{columns.map(column => <col key={column.column} style={column.width === undefined ? undefined : { width: column.width }} />)}</colgroup>
+        <table className="documents-table" style={{ minWidth: 1170 }} aria-busy={loading}>
+          <colgroup>{columns.map(column => <col key={column.column} style={{ width: column.width }} />)}</colgroup>
           <TableHeader className="[&_tr]:border-b-0"><TableRow className="hover:bg-transparent">
             {columns.map(column => <SortableTableHead key={column.column} column={column.column} label={column.label} icon={column.icon}
               activeColumn={sortColumn} direction={sortDirection} onToggle={onToggleSort}

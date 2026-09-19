@@ -20,7 +20,7 @@ export function ErpEntryDetails({ loading, detailTitle, detailRows, linkedDocume
           : loading ? <Skeleton className="h-4 flex-1" /> : <h1>{labels.entryUnavailable}</h1>}
       </header>
       {(loading || detailTitle !== null) && <div className="documents-table-scroll">
-        <DocumentErp title={labels.entryData} loading={loading} rows={detailRows} />
+        <DocumentErp loading={loading} rows={detailRows} />
         <ErpLinkedDocuments title={labels.linkedDocuments} empty={labels.noLinkedDocuments} loading={loading} documents={linkedDocuments} onNavigate={onNavigate} />
       </div>}
     </>

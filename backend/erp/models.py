@@ -52,6 +52,9 @@ class LinkedDocument(BaseModel):
 
 class SavedErpEntry(ErpEntry):
     id: UUID
+
+
+class ErpEntryDetail(SavedErpEntry):
     documents: list[LinkedDocument] = Field(default_factory=list)
 
 

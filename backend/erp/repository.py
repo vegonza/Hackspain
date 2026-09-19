@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from erp.models import ErpSnapshot, SavedErpSnapshot
+from erp.models import ErpEntryDetail, ErpSnapshot, SavedErpSnapshot
 from shared.logger import get_logger
 from shared.storage import get_client
 
@@ -22,14 +22,12 @@ def save_snapshot(snapshot: ErpSnapshot) -> UUID:
 
 
 def read_latest_snapshot() -> SavedErpSnapshot | None:
-    """Read the newest saved download together with all of its entries."""
-    snapshots = get_client().table('erp_snapshots').select('*').order('fetched_at', desc=True).order('id', desc=True).limit(1).execute().data
-    if not snapshots:
-        return None
-    entries = get_client().table('erp_entries').select('*').eq('snapshot_id', snapshots[0]['id']).order('entry_id').execute().data
-    documents = get_client().table('documents').select('id,name,erp_entry_id').eq('erp_snapshot_id', snapshots[0]['id']).is_('deleted_at', 'null').order('name').execute().data
-    linked: dict[str, list[dict[str, str]]] = {}
-    for document in documents:
-        if document['erp_entry_id'] is not None:
-            linked.setdefault(document['erp_entry_id'], []).append({'id': document['id'], 'name': document['name']})
-    return SavedErpSnapshot.model_validate({**snapshots[0], 'entries': [{**entry, 'documents': linked.get(entry['id'], [])} for entry in entries]})
+    """Read the complete latest snapshot in one database request."""
+    data = get_client().rpc('get_erp_snapshot', {}).execute().data
+    return None if data is None else SavedErpSnapshot.model_validate(data)
+
+
+def read_entry(entry_id: UUID) -> ErpEntryDetail | None:
+    """Resolve a saved entry independently of newer snapshots."""
+    data = get_client().rpc('get_erp_entry', {'p_entry_id': str(entry_id)}).execute().data
+    return None if data is None else ErpEntryDetail.model_validate(data)
