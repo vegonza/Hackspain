@@ -95,6 +95,8 @@
     }
   },
   "extraction": {
+    "identifierTrace": "Campo inferido",
+    "identifierCorrection": "Corrección inferida · Original:",
     "unavailable": "No disponible",
     "invoiceNumber": "Número de factura",
     "invoiceDate": "Fecha",

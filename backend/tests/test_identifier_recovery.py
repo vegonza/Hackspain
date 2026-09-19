@@ -27,6 +27,8 @@ class IdentifierRecoveryTests(unittest.TestCase):
         for field, original, expected, anchor in (
             ('iban', 'ES4414650100981704302211', self.supplier.iban, 'supplier_nif'),
             ('supplier_nif', 'B96120774', self.supplier.tax_id, 'iban'),
+            ('supplier_nif', 'B96120771', self.supplier.tax_id, 'iban'),
+            ('iban', 'ES4414650100981704302212', self.supplier.iban, 'supplier_nif'),
         ):
             with self.subTest(field=field):
                 invoice = self.invoice.model_copy(update={field: original})
@@ -39,12 +41,12 @@ class IdentifierRecoveryTests(unittest.TestCase):
                     'supplier_id': 'P1', 'matched_field': anchor, 'matched_value': getattr(self.invoice, anchor),
                 })
 
-    def test_does_not_recover_two_errors_missing_fields_or_different_lengths(self) -> None:
+    def test_does_not_recover_three_errors_missing_fields_or_different_lengths(self) -> None:
         for changes in (
-            {'iban': 'ES4414650100981704302212'},
+            {'iban': 'ES4414650100981704302222'},
             {'iban': 'ES441465010095170430221'},
             {'iban': 'ES44146501009517043022111'},
-            {'supplier_nif': 'B96120775'},
+            {'supplier_nif': 'B96120711'},
             {'supplier_nif': 'B9812077'},
             {'iban': ''}, {'supplier_nif': ''},
             {'iban': 'ES4414650100981704302211', 'supplier_nif': 'B96120774'},
@@ -57,8 +59,8 @@ class IdentifierRecoveryTests(unittest.TestCase):
 
     def test_ambiguous_anchor_is_not_disambiguated_by_fuzzy_field(self) -> None:
         for field, value, other in (
-            ('supplier_nif', 'B96120774', self.supplier.model_copy(update={'supplier_id': 'P2', 'tax_id': 'A12345678'})),
-            ('iban', 'ES4414650100981704302211', self.supplier.model_copy(update={'supplier_id': 'P2', 'iban': 'ES001234'})),
+            ('supplier_nif', 'B96120771', self.supplier.model_copy(update={'supplier_id': 'P2', 'tax_id': 'A12345678'})),
+            ('iban', 'ES4414650100981704302212', self.supplier.model_copy(update={'supplier_id': 'P2', 'iban': 'ES001234'})),
         ):
             with self.subTest(field=field):
                 invoice = self.invoice.model_copy(update={field: value})

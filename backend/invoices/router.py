@@ -13,6 +13,7 @@ from invoices.repository import list_invoices as read_invoices
 from invoices.repository import reset_invoice
 from erp import ErpEntry
 from extractor.extraction import InvoiceExtraction
+from extractor.recovery import IdentifierTrace
 from shared.logger import get_logger
 from shared.storage import download_file, invalidate_invoice_urls, signed_url, upload_file, delete_file
 
@@ -25,11 +26,13 @@ class InvoiceDetail(Invoice):
     extraction: InvoiceExtraction | None
     erp_snapshot_id: UUID | None
     erp: ErpEntry | None
+    identifier_trace: IdentifierTrace
 
 
 def invoice_detail(invoice_record: InvoiceDetails) -> InvoiceDetail:
     extraction = None
     native_text = None
+    identifier_trace = IdentifierTrace()
     if invoice_record.result_path is not None:
         payload = download_file(invoice_record.result_path)
         try:
@@ -38,7 +41,9 @@ def invoice_detail(invoice_record: InvoiceDetails) -> InvoiceDetail:
             logger.warning("[INVOICES] Invalid saved extraction for %s (%s); reprocessing required", invoice_record.name, invoice_record.id)
             raise HTTPException(status_code=409, detail="invalid_saved_extraction") from None
         native_text = download_file(f"{invoice_record.id}/native.txt").decode("utf-8")
-    return InvoiceDetail(**invoice_record.model_dump(exclude={"result_path"}), native_text=native_text, extraction=extraction)
+        identifier_trace = IdentifierTrace.model_validate_json(download_file(f"{invoice_record.id}/extraction/extraction.json"))
+    return InvoiceDetail(**invoice_record.model_dump(exclude={"result_path"}), native_text=native_text,
+                         extraction=extraction, identifier_trace=identifier_trace)
 
 
 @router.get("")

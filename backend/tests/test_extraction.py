@@ -153,6 +153,24 @@ class ExtractionTests(unittest.TestCase):
         self.events.finish.assert_not_called()
         self.events.fail.assert_called_once()
 
+    def test_two_character_difference_is_inferred_without_another_model_call(self) -> None:
+        self.result.supplier_nif = 'B96120771'
+        self.result.iban = 'ES4414650100951704302211'
+        self.suppliers.return_value = [Supplier(
+            supplier_id='P1', legal_name='Proveedor', tax_id='B98120774', iban=self.result.iban,
+            city='Málaga', payment_terms_days=30,
+        )]
+        self.prepare_response()
+        process(self.document)
+        self.request.assert_called_once()
+        self.assertEqual(self.events.save_extraction.call_args.args[2].supplier_nif, 'B98120774')
+        artifacts = {call.args[0]: call.args[1] for call in self.events.upload.call_args_list}
+        metadata = json.loads(artifacts[f'{self.document.id}/extraction/extraction.json'])
+        self.assertEqual(metadata['identifier_corrections'][0]['original'], 'B96120771')
+        self.assertEqual(metadata['identifier_corrections'][0]['corrected'], 'B98120774')
+        self.assertNotIn('identifier_reread', metadata)
+        self.redis.hset.assert_called_once()
+
     def test_render_failure_does_not_call_the_model_or_publish_extraction(self) -> None:
         self.render.side_effect = ValueError("PDF rendering returned no pages")
         with self.assertRaises(ValueError):

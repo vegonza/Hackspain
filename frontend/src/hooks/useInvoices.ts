@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { invoicePath, useAppRoute } from '@/hooks/useAppRoute'
 import { useInvoiceDetail } from '@/hooks/useInvoiceDetail'
+import { useIdentifierTrace } from '@/hooks/useIdentifierTrace'
 import { invoiceErrorKey } from '@/hooks/invoiceError'
 import { invoiceMetrics } from '@/hooks/invoiceMetrics'
 import { deleteInvoice, redoInvoice, retryInvoice, fetchInvoices, uploadInvoice, type Invoice } from '@/api/invoices'
@@ -280,10 +281,11 @@ export function useInvoices() {
   const emptyMessage = sourceTab === 'text' && selected !== null && selected.native_text !== null && selected.native_text.trim() === ''
     ? t('processing.noText') : null
   const extractionLoading = loading || (selected !== null && selected.extraction === null && isProcessing(selected))
+  const identifierTrace = useIdentifierTrace(selected === null ? [] : selected.identifier_trace.identifier_corrections)
 
   return {
     redoing, onRedo,
-    metricsLoading, emptyMessage, erpRows, totalDuration, totalCost,
+    metricsLoading, emptyMessage, erpRows, totalDuration, totalCost, identifierTrace,
     filteredInvoices, invoicesLoading, sortColumn, sortDirection, onToggleSort,
     search, onSearch: setSearch, onInvoiceLink, onNavigate: followLink,
     selected, selectedId, mountDetail, featureAmounts,
@@ -315,6 +317,7 @@ export function useInvoices() {
       actions: t('invoices.actions'),
     },
     extractionLabels: {
+      inferred: t('extraction.identifierTrace'),
       notes: t('extraction.notes'), uncertainties: t('extraction.uncertainties'),
       invoiceNumber: t('extraction.invoiceNumber'), invoiceDate: t('extraction.invoiceDate'),
       purchaseOrder: t('extraction.purchaseOrder'), supplierName: t('extraction.supplierName'),

@@ -15,11 +15,11 @@ type Props = Pick<ReturnType<typeof useInvoices>,
   'mountDetail' | 'invoiceName' | 'selectedId' | 'selected' | 'loading' | 'extractionLoading' |
   'pdfUrl' | 'pdfLoading' | 'dataTab' | 'onDataTab' | 'sourceTab' | 'emptyMessage' | 'labels' | 'extractionLabels' |
   'canRetry' | 'onRetrySelected' | 'retrying' | 'metricsLoading' | 'totalDuration' | 'totalCost' |
-  'onNavigate' | 'onSourceTab' | 'erpRows' | 'featureAmounts'>
+  'onNavigate' | 'onSourceTab' | 'erpRows' | 'featureAmounts' | 'identifierTrace'>
 
 export function InvoiceDetails({ mountDetail, invoiceName, selectedId, selected, loading, extractionLoading,
   pdfUrl, pdfLoading, sourceTab, dataTab, onDataTab, emptyMessage, labels, extractionLabels, canRetry, onRetrySelected,
-  retrying, metricsLoading, onNavigate, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts }: Props) {
+  retrying, metricsLoading, onNavigate, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts, identifierTrace }: Props) {
   return (
     <div className="review-desk" ref={mountDetail}>
       <section className="viewer-panel invoice-source-pane" aria-label={labels.invoice}>
@@ -73,7 +73,7 @@ export function InvoiceDetails({ mountDetail, invoiceName, selectedId, selected,
           {!loading && selected === null ? <p role="alert" className="markdown-error">{labels.invoiceUnavailable}</p>
             : dataTab === 'erp' ? <InvoiceErp loading={loading} rows={erpRows} />
             : extractionLoading ? <InvoiceExtractionSkeleton title={labels.extraction} />
-            : selected !== null && selected.extraction !== null && featureAmounts !== null ? <InvoiceExtraction title={labels.extraction} extraction={selected.extraction} amounts={featureAmounts} labels={extractionLabels} />
+            : selected !== null && selected.extraction !== null && featureAmounts !== null ? <InvoiceExtraction title={labels.extraction} extraction={selected.extraction} amounts={featureAmounts} labels={extractionLabels} identifierTrace={identifierTrace} />
             : <p className="invoice-empty" role="status">{labels.noExtraction}</p>}
         </div>
       </section>

@@ -1,10 +1,12 @@
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, CircleAlert } from 'lucide-react'
 import type { InvoiceExtraction as InvoiceExtractionData } from '@/api/invoices'
 import { Tooltip } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
+import { InvoiceIdentifierTooltip } from '@/components/invoices/InvoiceIdentifierTooltip'
 import type { useInvoices } from '@/hooks/useInvoices'
 
 interface Labels {
+  inferred: string
   notes: string
   uncertainties: string
   invoiceNumber: string
@@ -27,9 +29,10 @@ interface Props {
   extraction: InvoiceExtractionData
   amounts: NonNullable<ReturnType<typeof useInvoices>['featureAmounts']>
   labels: Labels
+  identifierTrace: ReturnType<typeof useInvoices>['identifierTrace']
 }
 
-export function InvoiceExtraction({ title, extraction, amounts, labels }: Props) {
+export function InvoiceExtraction({ title, extraction, amounts, labels, identifierTrace }: Props) {
   return (
     <section className="invoice-data" aria-label={title}>
       <div className="extraction-view">
@@ -38,8 +41,16 @@ export function InvoiceExtraction({ title, extraction, amounts, labels }: Props)
           <div><dt>{labels.invoiceNumber}</dt><Tooltip text={extraction.invoice_number} onlyWhenTruncated asChild><dd>{extraction.invoice_number}</dd></Tooltip></div>
           <div><dt>{labels.invoiceDate}</dt><Tooltip text={extraction.invoice_date} onlyWhenTruncated asChild><dd>{extraction.invoice_date}</dd></Tooltip></div>
           <div><dt>{labels.purchaseOrder}</dt><Tooltip text={extraction.purchase_order} onlyWhenTruncated asChild><dd>{extraction.purchase_order}</dd></Tooltip></div>
-          <div><dt>{labels.supplierNif}</dt><Tooltip text={extraction.supplier_nif} onlyWhenTruncated asChild><dd>{extraction.supplier_nif}</dd></Tooltip></div>
-          <div><dt>{labels.iban}</dt><Tooltip text={extraction.iban} onlyWhenTruncated asChild><dd>{extraction.iban}</dd></Tooltip></div>
+          <div><dt>{labels.supplierNif}</dt>
+            {identifierTrace.supplier_nif === null
+              ? <Tooltip text={extraction.supplier_nif} onlyWhenTruncated asChild><dd>{extraction.supplier_nif}</dd></Tooltip>
+              : <dd><Tooltip text={<InvoiceIdentifierTooltip {...identifierTrace.supplier_nif} />} asChild><span className="inline-flex max-w-full items-center gap-1.5 align-middle" aria-label={`${labels.inferred}: ${extraction.supplier_nif}`}><CircleAlert size={13} className="shrink-0 text-amber-600" aria-hidden="true" /><span className="truncate">{extraction.supplier_nif}</span></span></Tooltip></dd>}
+          </div>
+          <div><dt>{labels.iban}</dt>
+            {identifierTrace.iban === null
+              ? <Tooltip text={extraction.iban} onlyWhenTruncated asChild><dd>{extraction.iban}</dd></Tooltip>
+              : <dd><Tooltip text={<InvoiceIdentifierTooltip {...identifierTrace.iban} />} asChild><span className="inline-flex max-w-full items-center gap-1.5 align-middle" aria-label={`${labels.inferred}: ${extraction.iban}`}><CircleAlert size={13} className="shrink-0 text-amber-600" aria-hidden="true" /><span className="truncate">{extraction.iban}</span></span></Tooltip></dd>}
+          </div>
           <div><dt>{labels.taxBase}</dt><Tooltip text={amounts.taxBase} onlyWhenTruncated asChild><dd>{amounts.taxBase}</dd></Tooltip></div>
           <div><dt>{labels.vatRate}</dt><Tooltip text={amounts.vatRate} onlyWhenTruncated asChild><dd>{amounts.vatRate}</dd></Tooltip></div>
           <div><dt>{labels.vatAmount}</dt><Tooltip text={amounts.vatAmount} onlyWhenTruncated asChild><dd>{amounts.vatAmount}</dd></Tooltip></div>
