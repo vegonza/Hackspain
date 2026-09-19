@@ -46,7 +46,8 @@ class ExtractionTests(unittest.TestCase):
 
     def prepare_response(self) -> None:
         self.request.return_value = ChatCompletion.model_validate({
-            "id": "response-1", "created": 0, "object": "chat.completion", "model": "google/gemini-3.5-flash-lite",
+            "id": "response-1", "provider": "OpenAI", "created": 0,
+            "object": "chat.completion", "model": "google/gemini-3.5-flash-lite",
             "usage": {"cost": "0.002", "prompt_tokens": 300, "completion_tokens": 120, "total_tokens": 420},
             "choices": [{"index": 0, "finish_reason": "tool_calls", "message": {"role": "assistant", "content": None, "tool_calls": [{
                 "id": "call-1", "type": "function",
@@ -99,7 +100,8 @@ class ExtractionTests(unittest.TestCase):
         self.assertNotIn("response_format", payload)
         usage = UsageRecord.model_validate_json(self.redis.hset.call_args.args[2])
         self.assertEqual((usage.operation, usage.provider, usage.document_id),
-                         ("extraction", "openrouter", str(self.document.id)))
+                         ("extraction", "OpenAI", str(self.document.id)))
+        self.assertEqual(usage.usage[0].provider, "OpenAI")
         self.assertEqual(usage.usage[0].cost, Decimal("0.002"))
 
     def test_invalid_tool_output_fails_without_publishing_extraction_and_keeps_usage(self) -> None:
