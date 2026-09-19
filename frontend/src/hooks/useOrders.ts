@@ -92,6 +92,7 @@ export function useOrders() {
       (row, column) => column === 'amount' ? Number(row.amount) : row[column])
       .map(order => ({
         ...order,
+        deleteConfirmation: t('common.deleteConfirmation', { name: order.order_id }),
         displayAmount: amountFormat.format(Number(order.amount)),
         displayDate: dateFormat.format(new Date(`${order.date}T00:00:00`)),
       })),
@@ -99,7 +100,7 @@ export function useOrders() {
     onCancel: () => setEditing(false), onRetry: () => setReload(value => value + 1),
     labels: {
       count: t('orders.count', { count: orders.length }),
-      actions: t('common.actions'), delete: t('common.delete'), holdDelete: t('common.holdDelete'),
+      actions: t('common.actions'), delete: t('common.delete'),
       title: t('orders.title'), search: t('orders.search'), add: t('orders.add'), edit: t('orders.edit'),
       order_id: t('orders.id'), supplier_id: t('orders.supplier'), tax_id: t('orders.taxId'),
       amount: t('orders.amount'), status: t('orders.status'), date: t('orders.date'),

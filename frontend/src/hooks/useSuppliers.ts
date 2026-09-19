@@ -86,12 +86,12 @@ export function useSuppliers() {
     sortColumn, sortDirection, onToggleSort,
     mount, loading, failed, editing, saving, deleting, onDelete: remove, draft, editingId, search, onSearch: setSearch,
     rows: sortRows(suppliers.filter(supplier => [supplier.supplier_id, supplier.legal_name, supplier.tax_id, supplier.iban, supplier.city]
-      .some(value => value.toLocaleLowerCase('es-ES').includes(query))), (row, column) => row[column]),
+      .some(value => value.toLocaleLowerCase('es-ES').includes(query))), (row, column) => row[column]).map(supplier => ({ ...supplier, deleteConfirmation: t('common.deleteConfirmation', { name: supplier.legal_name }) })),
     onNew: () => edit(null), onEdit: edit, onChange: change, onSave: save,
     onCancel: () => setEditing(false), onRetry: () => setReload(value => value + 1),
     labels: {
       count: t('suppliers.count', { count: suppliers.length }),
-      actions: t('common.actions'), delete: t('common.delete'), holdDelete: t('common.holdDelete'),
+      actions: t('common.actions'), delete: t('common.delete'),
       title: t('suppliers.title'), search: t('suppliers.search'), add: t('suppliers.add'), edit: t('suppliers.edit'),
       supplier_id: t('suppliers.id'), legal_name: t('suppliers.name'), tax_id: t('suppliers.taxId'),
       iban: t('suppliers.iban'), city: t('suppliers.city'), payment_terms_days: t('suppliers.terms'),

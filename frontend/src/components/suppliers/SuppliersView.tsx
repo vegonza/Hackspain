@@ -36,7 +36,7 @@ export function SuppliersView({ mount, loading, failed, rows, editing, saving, d
               <Tooltip text={supplier[field]} onlyWhenTruncated asChild><span className="block truncate">{supplier[field]}</span></Tooltip>
             </TableCell>)}
             <TableCell className="tabular-nums">{supplier.payment_terms_days} {labels.days}</TableCell>
-            <TableCell><RowActions labels={labels} name={supplier.supplier_id} disabled={editing || saving || deleting}
+            <TableCell><RowActions confirmation={supplier.deleteConfirmation} labels={labels} name={supplier.supplier_id} disabled={editing || saving || deleting}
               onEdit={() => onEdit(supplier)} onDelete={() => onDelete(supplier.supplier_id)} /></TableCell>
           </TableRow>)}
           {!loading && rows.length === 0 && <TableRow><TableCell colSpan={7} className="h-40 text-center text-muted-foreground">{labels.empty}</TableCell></TableRow>}

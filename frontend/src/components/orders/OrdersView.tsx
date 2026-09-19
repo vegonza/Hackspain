@@ -38,7 +38,7 @@ export function OrdersView({ mount, loading, failed, rows, editing, saving, dele
             <TableCell className="tabular-nums">{order.displayAmount}</TableCell>
             <TableCell>{order.status}</TableCell>
             <TableCell>{order.displayDate}</TableCell>
-            <TableCell><RowActions labels={labels} name={order.order_id} disabled={editing || saving || deleting}
+            <TableCell><RowActions confirmation={order.deleteConfirmation} labels={labels} name={order.order_id} disabled={editing || saving || deleting}
               onEdit={() => onEdit(order)} onDelete={() => onDelete(order.order_id)} /></TableCell>
           </TableRow>)}
           {!loading && rows.length === 0 && <TableRow><TableCell colSpan={7} className="h-40 text-center text-muted-foreground">{labels.empty}</TableCell></TableRow>}

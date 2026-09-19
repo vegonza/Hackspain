@@ -20,6 +20,8 @@
 @theme inline {
   --color-background: #ffffff;
   --color-foreground: #171717;
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-card: #ffffff;
   --color-card-foreground: #171717;
   --color-primary: var(--primary);
@@ -142,21 +144,22 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
   .invoice-sidebar { border-right: 0; border-bottom: 1px solid var(--border); overflow: visible; }
 }
 
-.usage-view { flex: 1; min-width: 0; overflow: auto; }
+.usage-view { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; overflow: hidden; }
+.usage-view > :not(.usage-log) { flex-shrink: 0; }
 .usage-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 16px; }
 .usage-stats > div { padding: 16px; }
 .usage-stats span { display: block; color: var(--muted-foreground); font-size: 12px; }
 .usage-stats strong { display: block; margin-top: 8px; font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .usage-view h2 { font-size: 13px; font-weight: 600; margin: 0; }
 .usage-chart { width: 100%; padding: 16px; margin-bottom: 16px; }
-.usage-chart-canvas { height: 240px; font-size: 12px; }
-.usage-log { width: 100%; min-height: 320px; background: white; }
-.usage-log-header { display: flex; align-items: center; flex-wrap: wrap; min-height: 48px; gap: 8px; padding: 8px 16px; }
+.usage-chart-canvas { height: clamp(128px, 28dvh, 240px); font-size: 12px; }
+.usage-log { display: flex; flex-direction: column; flex: 1; width: 100%; min-height: 0; overflow: hidden; background: white; }
+.usage-log-header { flex-shrink: 0; display: flex; align-items: center; flex-wrap: wrap; min-height: 48px; gap: 8px; padding: 8px 16px; }
 .usage-log-header h2 { font-size: 14px; font-weight: 600; }
 .usage-record-count { color: var(--muted-foreground); font-size: 12px; font-variant-numeric: tabular-nums; }
 .usage-pagination { display: flex; align-items: center; gap: 4px; margin-left: auto; font-size: 12px; color: var(--muted-foreground); }
 .usage-pagination span { min-width: 48px; text-align: center; font-variant-numeric: tabular-nums; }
-.usage-table-scroll { overflow: auto; max-height: 55dvh; }
+.usage-table-scroll { flex: 1; min-height: 0; overflow: auto; }
 .usage-table { width: 100%; min-width: 900px; table-layout: fixed; border-collapse: collapse; font-size: 14px; }
 .usage-table thead { position: sticky; top: 0; z-index: 1; background: var(--muted); }
 .usage-table td { font-variant-numeric: tabular-nums; }
@@ -167,7 +170,7 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .usage-table .usage-empty-row:hover { background: transparent; }
 .usage-detail { cursor: help; }
 @media (max-width: 800px) {
-  .usage-view { flex: none; overflow: visible; }
+  .review-layout:has(> .usage-view) { overflow: hidden; }
   .usage-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
 

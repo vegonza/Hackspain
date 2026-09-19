@@ -9,7 +9,7 @@ export function UsageDailyChart({ daily, phases, loading, labels }: Props) {
   return <section className="usage-chart">
     <div className="usage-chart-canvas">
       {loading ? <Skeleton className="h-full w-full" /> : daily.length === 0 ? <p>{labels.empty}</p> : (
-        <ResponsiveContainer width="100%" height="100%" minHeight={192}>
+        <ResponsiveContainer width="100%" height="100%" minHeight={0}>
           <BarChart data={daily} margin={{ top: 8, right: 4, bottom: 0, left: 8 }}>
             <CartesianGrid vertical={false} stroke="var(--border)" />
             <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} minTickGap={24}
