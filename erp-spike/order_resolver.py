@@ -59,7 +59,7 @@ ORDER_CODE = re.compile(r"\bPO-(\d{4})-(\d{4})\b")
 #: Deliberately permissive: catches separators and digit/letter confusions that
 #: OCR introduces. Only used to *propose* a repair, never as a direct match.
 ORDER_CODE_LOOSE = re.compile(
-    r"\bP[O0Q]\s*[-–—_. ]?\s*([0-9OQlIiSsBbZz]{4})\s*[-–—_. ]?\s*([0-9OQlIiSsBbZz]{3,5})\b"
+    r"\bP[O0Q]\s*[-–—_. ]?\s*([0-9OQlIiSsBbZz]{4})\s*[-–—_. ]?\s*([0-9OQlIiSsBbZz]{1,4})\b"
 )
 
 #: Characters OCR habitually swaps for digits.
