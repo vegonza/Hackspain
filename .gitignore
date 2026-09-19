@@ -1,5 +1,6 @@
 # Local data
 /invoice_review.csv
+/invoice_review_lote2.csv
 /notes.md
 /backend/data/
 /backend/audit_invoices.py
