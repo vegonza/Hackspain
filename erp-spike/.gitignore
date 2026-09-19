@@ -1,2 +1,12 @@
+# Challenge data and local artefacts. This repository is public.
 data/
 __pycache__/
+
+# A stand-in for the OCR layer, used only to measure the resolver before the
+# real extraction existed. Not a contribution to the extraction work and not
+# something anyone should build on, so it stays local.
+fake_ocr.py
+
+# Reconnaissance scripts used to survey the invoice PDFs. Measuring
+# instruments, not product.
+tools/
