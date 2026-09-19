@@ -1,6 +1,6 @@
-import type { Document, DocumentDetail } from '@/api/documents'
+import type { Invoice, InvoiceDetail } from '@/api/invoices'
 
-export function documentStageMetrics(detail: Pick<DocumentDetail, 'stages'> | null, summary: Pick<Document, 'stage_metrics'> | undefined): Document['stage_metrics'] {
+export function invoiceStageMetrics(detail: Pick<InvoiceDetail, 'stages'> | null, summary: Pick<Invoice, 'stage_metrics'> | undefined): Invoice['stage_metrics'] {
   if (detail !== null) {
     return detail.stages.map(stage => ({ stage: stage.id, cost_usd: stage.cost_usd, duration_ms: stage.duration_ms }))
   }

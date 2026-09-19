@@ -42,14 +42,14 @@ class RequiredOutputToolTests(unittest.TestCase):
         ))
         self.manager = ExtractionManager(client)
         self.usage = UsageRecord(provider="openrouter", model=MODEL, operation="extraction",
-                                 document_id="document-1", document_name="invoice.pdf")
+                                 invoice_id="invoice-1", invoice_name="invoice.pdf")
 
     def respond(self, request: httpx2.Request) -> httpx2.Response:
         self.requests.append(request)
         return httpx2.Response(self.status_code, json=self.response_body)
 
     def test_single_non_streaming_required_tool_uses_sdk_arguments_and_usage(self) -> None:
-        result = self.manager.run("Read the invoice", "Document text", ExtractedText, usage=self.usage)
+        result = self.manager.run("Read the invoice", "Invoice text", ExtractedText, usage=self.usage)
         self.assertEqual(result.text, "Factura")
         self.assertEqual(len(self.requests), 1)
         request = self.requests[0]
@@ -67,7 +67,7 @@ class RequiredOutputToolTests(unittest.TestCase):
         self.assertEqual(payload["tools"][0]["function"]["name"], "ExtractedText")
         self.assertNotIn("strict", payload["tools"][0]["function"])
         self.assertEqual(payload["tools"][0]["function"]["parameters"], ExtractedText.model_json_schema())
-        self.assertEqual(payload["messages"][1]["content"], [{"type": "text", "text": "Document text"}])
+        self.assertEqual(payload["messages"][1]["content"], [{"type": "text", "text": "Invoice text"}])
         self.assertEqual(self.usage.provider, "OpenAI")
         self.assertEqual(self.usage.usage[0].provider, "OpenAI")
         self.assertEqual(self.usage.usage[0].cost, Decimal("0.001"))

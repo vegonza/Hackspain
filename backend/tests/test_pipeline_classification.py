@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-from documents.repository import DocumentDetails
+from invoices.repository import InvoiceDetails
 from pipeline.classification import process
 from pipeline.extraction_3.extraction import InvoiceExtraction
 from rules.models import Decision
@@ -12,7 +12,7 @@ from rules.models import Decision
 
 class PipelineClassificationTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.document = DocumentDetails(id=uuid4(), name='Factura.pdf', sha256='a' * 64,
+        self.invoice_record = InvoiceDetails(id=uuid4(), name='Factura.pdf', sha256='a' * 64,
                                         created_at=datetime.now(timezone.utc), stages=[])
         self.invoice = InvoiceExtraction(
             invoice_number='F1', supplier_name='Proveedor', supplier_nif='B12345678', iban='ES001234',
@@ -23,24 +23,24 @@ class PipelineClassificationTests(unittest.TestCase):
 
     def test_publishes_and_keeps_the_classifiers_decision(self) -> None:
         client = MagicMock()
-        client.rpc.return_value.execute.return_value.data = self.candidate.model_dump(mode='json')
+        client.rpc.return_value.execute.return_value.data = self.candidate.model_dump(mode='json', by_alias=True)
         with (
             patch('pipeline.classification.download_file', return_value=self.invoice.model_dump_json().encode()),
-            patch('pipeline.classification.classify_document', return_value=self.candidate),
+            patch('pipeline.classification.classify_invoice', return_value=self.candidate),
             patch('pipeline.classification.track_usage', return_value=nullcontext(None)),
             patch('pipeline.classification.get_client', return_value=client),
         ):
-            process(self.document)
-        self.assertEqual(self.document.payment_decision, self.candidate)
+            process(self.invoice_record)
+        self.assertEqual(self.invoice_record.payment_decision, self.candidate)
         client.rpc.assert_called_once_with('publish_payment_decision', {
-            'p_document_id': str(self.document.id), 'p_order_key': 'PO-001',
-            'p_decision': self.candidate.model_dump(mode='json'),
+            'p_document_id': str(self.invoice_record.id), 'p_order_key': 'PO-001',
+            'p_decision': self.candidate.model_dump(mode='json', by_alias=True),
         })
 
     def test_retry_with_saved_decision_does_not_repeat_ai_call(self) -> None:
-        self.document.payment_decision = self.candidate
-        with patch('pipeline.classification.classify_document') as classify, patch('pipeline.classification.get_client') as client:
-            process(self.document)
+        self.invoice_record.payment_decision = self.candidate
+        with patch('pipeline.classification.classify_invoice') as classify, patch('pipeline.classification.get_client') as client:
+            process(self.invoice_record)
         classify.assert_not_called()
         client.assert_not_called()
 
@@ -49,28 +49,28 @@ class PipelineClassificationTests(unittest.TestCase):
         client.rpc.return_value.execute.side_effect = RuntimeError('Database unavailable')
         with (
             patch('pipeline.classification.download_file', return_value=self.invoice.model_dump_json().encode()),
-            patch('pipeline.classification.classify_document', return_value=self.candidate),
+            patch('pipeline.classification.classify_invoice', return_value=self.candidate),
             patch('pipeline.classification.track_usage', return_value=nullcontext(None)),
             patch('pipeline.classification.get_client', return_value=client),
         ):
             with self.assertRaisesRegex(RuntimeError, 'Database unavailable'):
-                process(self.document)
-        self.assertIsNone(self.document.payment_decision)
+                process(self.invoice_record)
+        self.assertIsNone(self.invoice_record.payment_decision)
 
     def test_rules_claim_lookup_and_publication_work_together(self) -> None:
         from pipeline.extraction_3.extraction import InvoiceLine
-        from documents.payment_notes import PaymentNotesReview
+        from invoices.payment_notes import PaymentNotesReview
 
         self.invoice.purchase_order = 'PO-001'
         self.invoice.line_items = [InvoiceLine(description='Servicio', amount='100')]
         other_id = uuid4()
         for owner, status, expected in (
-            (self.document.id, 'PENDIENTE', 'PAGAR'),
+            (self.invoice_record.id, 'PENDIENTE', 'PAGAR'),
             (other_id, 'PENDIENTE', 'ESCALAR'),
             (other_id, 'PAGADA', 'NO_PAGAR'),
         ):
             with self.subTest(owner=owner, status=status):
-                self.document.payment_decision = None
+                self.invoice_record.payment_decision = None
                 client = MagicMock()
 
                 def rpc(name: str, args: dict[str, object]) -> MagicMock:
@@ -99,11 +99,11 @@ class PipelineClassificationTests(unittest.TestCase):
                     patch('pipeline.classification.track_usage', return_value=nullcontext(None)),
                     patch('pipeline.classification.get_client', return_value=client),
                     patch('rules.resolver.get_client', return_value=client),
-                    patch('documents.classification.review_payment_notes', return_value=PaymentNotesReview(concerns=[])) as notes,
+                    patch('invoices.classification.review_payment_notes', return_value=PaymentNotesReview(concerns=[])) as notes,
                 ):
-                    process(self.document)
-                self.assertEqual(self.document.payment_decision.classification, expected)
-                self.assertEqual(self.document.payment_decision.claimed_by_document_id, owner)
+                    process(self.invoice_record)
+                self.assertEqual(self.invoice_record.payment_decision.classification, expected)
+                self.assertEqual(self.invoice_record.payment_decision.claimed_by_invoice_id, owner)
                 self.assertEqual([call.args[0] for call in client.rpc.call_args_list],
                                  ['claim_invoice_order', 'get_rule_references', 'publish_payment_decision'])
                 if status == 'PAGADA':

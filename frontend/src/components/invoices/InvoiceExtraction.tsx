@@ -1,6 +1,6 @@
-import type { InvoiceExtraction as InvoiceExtractionData } from '@/api/documents'
+import type { InvoiceExtraction as InvoiceExtractionData } from '@/api/invoices'
 import { Tooltip } from '@/components/ui/tooltip'
-import type { useDocuments } from '@/hooks/useDocuments'
+import type { useInvoices } from '@/hooks/useInvoices'
 
 interface Labels {
   notes: string
@@ -21,13 +21,13 @@ interface Labels {
 interface Props {
   title: string
   extraction: InvoiceExtractionData
-  amounts: NonNullable<ReturnType<typeof useDocuments>['featureAmounts']>
+  amounts: NonNullable<ReturnType<typeof useInvoices>['featureAmounts']>
   labels: Labels
 }
 
 export function InvoiceExtraction({ title, extraction, amounts, labels }: Props) {
   return (
-    <section className="document-data" aria-label={title}>
+    <section className="invoice-data" aria-label={title}>
       <header className="review-header"><h2>{title}</h2></header>
       <div className="extraction-view">
         <dl className="extraction-grid">

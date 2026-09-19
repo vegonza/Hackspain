@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState, type MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { fetchErpEntry, fetchErpSnapshot, refreshErpSnapshot, type ErpEntry, type ErpEntryDetail, type ErpSnapshot } from '@/api/erp'
-import { documentPath, erpEntryPath, useAppRoute } from '@/hooks/useAppRoute'
+import { invoicePath, erpEntryPath, useAppRoute } from '@/hooks/useAppRoute'
 import { erpSortValue, filterErpRows, type ErpRow, type ErpSortColumn } from '@/hooks/erpRows'
 import { useTableSort } from '@/hooks/useTableSort'
 
@@ -116,12 +116,12 @@ export function useErpSnapshot() {
     onSelect: (id: string) => route.navigate(erpEntryPath(id)),
     detailTitle: selected === null ? null : selected.entry_id,
     detailRows,
-    linkedDocuments: selected === null ? [] : selected.documents.map(document => ({ id: document.id, name: document.name, href: documentPath(document.id) })),
+    linkedInvoices: selected === null ? [] : selected.invoices.map(invoice => ({ id: invoice.id, name: invoice.name, href: invoicePath(invoice.id) })),
     summary: snapshot === null ? null : t('erp.entryCount', { count: snapshot.entry_count }),
     labels: {
       refresh: t('erp.refresh'), refreshing: t('erp.refreshing'),
       title: t('erp.snapshotTitle'), search: t('erp.search'), noResults: t('erp.noResults'), emptySnapshot: t('erp.emptySnapshot'),
-      entryUnavailable: t('erp.entryUnavailable'), back: t('erp.back'), linkedDocuments: t('erp.linkedDocuments'), noLinkedDocuments: t('erp.noLinkedDocuments'),
+      entryUnavailable: t('erp.entryUnavailable'), back: t('erp.back'), linkedInvoices: t('erp.linkedInvoices'), noLinkedInvoices: t('erp.noLinkedInvoices'),
       entry: t('erp.entry'), order: t('erp.purchaseOrder'), supplier: t('erp.supplier'), taxId: t('erp.nif'), status: t('erp.status'),
       date: t('erp.registeredAt'), amount: t('erp.expectedAmount'), warnings: t('erp.warningsColumn'),
     },

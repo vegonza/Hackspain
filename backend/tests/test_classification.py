@@ -5,18 +5,18 @@ from unittest.mock import patch
 
 from uuid import UUID
 
-from documents.classification import classify_document
+from invoices.classification import classify_invoice
 from rules.models import Decision, ResolvedReferences
 from suppliers.models import Supplier
 from orders.models import Order
 from pipeline.extraction_3.extraction import InvoiceExtraction, InvoiceLine
-from documents.payment_notes import PaymentConcern, PaymentNotesReview
+from invoices.payment_notes import PaymentConcern, PaymentNotesReview
 from erp import ErpEntry
 
 
 class ClassificationTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.document_id = UUID('00000000-0000-0000-0000-000000000001')
+        self.invoice_id = UUID('00000000-0000-0000-0000-000000000001')
         self.references = ResolvedReferences(
             supplier=Supplier(supplier_id='NEW', legal_name='Proveedor Nuevo', tax_id='B12345678',
                               iban='ES001234', city='Málaga', payment_terms_days=30),
@@ -25,10 +25,10 @@ class ClassificationTests(unittest.TestCase):
             entries=[ErpEntry(entry_id='AS-NEW', order_id='PO-2026-9999', supplier_id='NEW', tax_id='B12345678',
                               raw_amount='121,00', amount=Decimal('121'), status='PENDIENTE', raw_date='01/09/2026')],
         )
-        claim = patch('documents.classification.claim_order', return_value=self.document_id)
+        claim = patch('invoices.classification.claim_order', return_value=self.invoice_id)
         self.claim = claim.start()
         self.addCleanup(claim.stop)
-        resolver = patch('documents.classification.resolve_references', return_value=self.references)
+        resolver = patch('invoices.classification.resolve_references', return_value=self.references)
         self.resolver = resolver.start()
         self.addCleanup(resolver.stop)
         self.invoice = InvoiceExtraction(
@@ -38,16 +38,16 @@ class ClassificationTests(unittest.TestCase):
             tax_base="100.00", vat_rate="21", vat_amount="21.00", total="121.00",
             notes=[], uncertainties=[],
         )
-        self.notes = patch("documents.classification.review_payment_notes", return_value=PaymentNotesReview(concerns=[]))
+        self.notes = patch("invoices.classification.review_payment_notes", return_value=PaymentNotesReview(concerns=[]))
         self.review = self.notes.start()
         self.addCleanup(self.notes.stop)
 
     def classify(self, invoice: InvoiceExtraction) -> Decision:
-        return classify_document(self.document_id, invoice, date(2026, 9, 19))
+        return classify_invoice(self.invoice_id, invoice, date(2026, 9, 19))
 
-    def test_loads_supabase_references_for_document(self) -> None:
+    def test_loads_supabase_references_for_invoice(self) -> None:
         self.classify(self.invoice)
-        self.resolver.assert_called_once_with(self.document_id, self.invoice.purchase_order)
+        self.resolver.assert_called_once_with(self.invoice_id, self.invoice.purchase_order)
 
     def test_lookup_failure_propagates_without_local_data(self) -> None:
         self.resolver.side_effect = RuntimeError('Supabase unavailable')
@@ -78,7 +78,7 @@ class ClassificationTests(unittest.TestCase):
     def test_pending_review_and_other_claim_escalate(self) -> None:
         self.claim.return_value = UUID("00000000-0000-0000-0000-000000000002")
         self.assertEqual(self.classify(self.invoice).classification, "ESCALAR")
-        self.claim.return_value = self.document_id
+        self.claim.return_value = self.invoice_id
         self.references.order.review_required = True
         self.assertEqual(self.classify(self.invoice).classification, "ESCALAR")
 

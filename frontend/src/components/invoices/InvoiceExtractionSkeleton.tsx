@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export function InvoiceExtractionSkeleton({ title }: { title: string }) {
   return (
-    <section className="document-data" aria-label={title} aria-busy="true">
+    <section className="invoice-data" aria-label={title} aria-busy="true">
       <header className="review-header"><h2>{title}</h2></header>
       <div className="extraction-view">
         <dl className="extraction-grid">

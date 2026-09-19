@@ -23,24 +23,24 @@ class RuleResolverTests(unittest.TestCase):
         self.assertEqual(self.order.order_id, 'PO-0001')
 
     @patch('rules.resolver.get_client')
-    def test_database_lookup_uses_document_and_normalized_key(self, client: MagicMock) -> None:
+    def test_database_lookup_uses_invoice_and_normalized_key(self, client: MagicMock) -> None:
         client.return_value.rpc.return_value.execute.return_value = SimpleNamespace(data={
             'order': None, 'supplier': None, 'order_ambiguous': False, 'entries': [],
         })
-        document_id = UUID('00000000-0000-0000-0000-000000000001')
-        resolve_references(document_id, ' po-0001 ')
+        invoice_id = UUID('00000000-0000-0000-0000-000000000001')
+        resolve_references(invoice_id, ' po-0001 ')
         client.return_value.rpc.assert_called_once_with('get_rule_references', {
-            'p_document_id': str(document_id), 'p_order_key': 'PO-0001',
+            'p_document_id': str(invoice_id), 'p_order_key': 'PO-0001',
         })
 
     @patch('rules.resolver.get_client')
     def test_claim_returns_owner_or_missing_order(self, client: MagicMock) -> None:
-        document_id = UUID('00000000-0000-0000-0000-000000000001')
+        invoice_id = UUID('00000000-0000-0000-0000-000000000001')
         other_id = UUID('00000000-0000-0000-0000-000000000002')
-        for owner in (document_id, other_id, None):
+        for owner in (invoice_id, other_id, None):
             with self.subTest(owner=owner):
                 client.return_value.rpc.return_value.execute.return_value.data = str(owner) if owner is not None else None
-                self.assertEqual(claim_order(document_id, ' po-0001 '), owner)
+                self.assertEqual(claim_order(invoice_id, ' po-0001 '), owner)
         client.return_value.rpc.assert_called_with('claim_invoice_order', {
-            'p_document_id': str(document_id), 'p_order_key': 'PO-0001',
+            'p_document_id': str(invoice_id), 'p_order_key': 'PO-0001',
         })

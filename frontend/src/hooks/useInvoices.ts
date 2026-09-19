@@ -2,23 +2,23 @@ import { useCallback, useRef, useState, type ChangeEvent, type MouseEvent } from
 import { useTranslation } from 'react-i18next'
 import { formatDateLong } from '@/lib/format'
 import { toast } from 'sonner'
-import { documentPath, useAppRoute } from '@/hooks/useAppRoute'
-import { useDocumentDetail } from '@/hooks/useDocumentDetail'
-import { documentStageMetrics, totalStageDuration } from '@/hooks/documentMetrics'
-import { deleteDocument, redoDocument, retryDocument, fetchDocuments, uploadDocument, type Document } from '@/api/documents'
+import { invoicePath, useAppRoute } from '@/hooks/useAppRoute'
+import { useInvoiceDetail } from '@/hooks/useInvoiceDetail'
+import { invoiceStageMetrics, totalStageDuration } from '@/hooks/invoiceMetrics'
+import { deleteInvoice, redoInvoice, retryInvoice, fetchInvoices, uploadInvoice, type Invoice } from '@/api/invoices'
 
-const isProcessing = (document: Document) => document.status === 'queued' || document.status === 'processing'
+const isProcessing = (invoice: Invoice) => invoice.status === 'queued' || invoice.status === 'processing'
 
-export type DocumentSortColumn = 'name' | 'status' | 'cost' | 'duration' | 'created'
+export type InvoiceSortColumn = 'name' | 'status' | 'cost' | 'duration' | 'created'
 
 interface UploadingFile { id: string; name: string; created_at: string }
 
-export function useDocuments() {
+export function useInvoices() {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
-  const [sortColumn, setSortColumn] = useState<DocumentSortColumn | null>(null)
+  const [sortColumn, setSortColumn] = useState<InvoiceSortColumn | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-  const onToggleSort = (column: DocumentSortColumn) => {
+  const onToggleSort = (column: InvoiceSortColumn) => {
     if (sortColumn !== column) {
       setSortColumn(column)
       setSortDirection('asc')
@@ -29,45 +29,45 @@ export function useDocuments() {
       setSortDirection('asc')
     }
   }
-  const { view, documentId: selectedId, navigate, followLink } = useAppRoute()
-  const { selected, loading, pdfUrl, pdfLoading, mountDetail, refreshDetail, updateMetrics, sourceTab, onSourceTab } = useDocumentDetail(selectedId)
-  const [documents, setDocuments] = useState<Document[]>([])
-  const [documentsLoading, setDocumentsLoading] = useState(true)
+  const { view, invoiceId: selectedId, navigate, followLink } = useAppRoute()
+  const { selected, loading, pdfUrl, pdfLoading, mountDetail, refreshDetail, updateMetrics, sourceTab, onSourceTab } = useInvoiceDetail(selectedId)
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [invoicesLoading, setInvoicesLoading] = useState(true)
   const [uploads, setUploads] = useState<UploadingFile[]>([])
   const [deleting, setDeleting] = useState(false)
   const [retrying, setRetrying] = useState(false)
   const [redoing, setRedoing] = useState(false)
   const redoInFlight = useRef(false)
-  const documentsRef = useRef<Document[]>([])
+  const invoicesRef = useRef<Invoice[]>([])
   const listRevision = useRef(0)
 
-  const updateDocuments = useCallback((next: Document[]) => {
-    documentsRef.current = next
-    setDocuments(next)
+  const updateInvoices = useCallback((next: Invoice[]) => {
+    invoicesRef.current = next
+    setInvoices(next)
   }, [])
 
-  const watchDocuments = useCallback((node: HTMLDivElement | null) => {
-    if (node === null || view !== 'documents') return
+  const watchInvoices = useCallback((node: HTMLDivElement | null) => {
+    if (node === null || view !== 'invoices') return
     let active = true
     let timer: ReturnType<typeof setTimeout>
     async function poll(): Promise<void> {
       try {
         if (!document.hidden) {
           const revision = listRevision.current
-          const next = await fetchDocuments()
+          const next = await fetchInvoices()
           if (!active) return
           if (revision === listRevision.current) {
-            const previous = documentsRef.current
-            updateDocuments(next)
-            setDocumentsLoading(false)
+            const previous = invoicesRef.current
+            updateInvoices(next)
+            setInvoicesLoading(false)
             updateMetrics(next)
-            for (const document of next) {
-              const old = previous.find(item => item.id === document.id)
-              if (old && old.status !== document.status && document.status === 'error') {
-                toast.error(t('documents.processingFailed', { name: document.name }))
+            for (const invoice of next) {
+              const old = previous.find(item => item.id === invoice.id)
+              if (old && old.status !== invoice.status && invoice.status === 'error') {
+                toast.error(t('invoices.processingFailed', { name: invoice.name }))
               }
             }
-            const wasProcessing = previous.some(document => document.id === selectedId && isProcessing(document))
+            const wasProcessing = previous.some(invoice => invoice.id === selectedId && isProcessing(invoice))
             if (wasProcessing) await refreshDetail()
           }
         }
@@ -82,13 +82,13 @@ export function useDocuments() {
       active = false
       clearTimeout(timer)
     }
-  }, [t, updateDocuments, updateMetrics, view, selectedId, refreshDetail])
+  }, [t, updateInvoices, updateMetrics, view, selectedId, refreshDetail])
 
   function onBack(): void {
-    navigate('/docs')
+    navigate('/invoices')
   }
 
-  function onDocumentLink(event: MouseEvent<HTMLAnchorElement>): void {
+  function onInvoiceLink(event: MouseEvent<HTMLAnchorElement>): void {
     event.stopPropagation()
     followLink(event)
   }
@@ -98,7 +98,7 @@ export function useDocuments() {
     event.target.value = ''
     if (files.length === 0) return
     const valid = files.filter(file => file.name.toLowerCase().endsWith('.pdf'))
-    if (valid.length !== files.length) toast.error(t('documents.invalidPdf'))
+    if (valid.length !== files.length) toast.error(t('invoices.invalidPdf'))
     if (valid.length === 0) return
     const pending = valid.map(file => ({ id: `upload-${crypto.randomUUID()}`, name: file.name, created_at: new Date().toISOString(), file }))
     setUploads(current => [...pending, ...current])
@@ -108,9 +108,9 @@ export function useDocuments() {
     async function transfer(): Promise<void> {
       for (const item of tasks) {
         try {
-          const document = await uploadDocument(item.file)
+          const invoice = await uploadInvoice(item.file)
           ++listRevision.current
-          updateDocuments([document, ...documentsRef.current.filter(existing => existing.id !== document.id)])
+          updateInvoices([invoice, ...invoicesRef.current.filter(existing => existing.id !== invoice.id)])
         } catch {
           // The API client displays upload errors.
         } finally {
@@ -126,10 +126,10 @@ export function useDocuments() {
     setDeleting(true)
     ++listRevision.current
     try {
-      await deleteDocument(id)
+      await deleteInvoice(id)
       ++listRevision.current
-      updateDocuments(documentsRef.current.filter(document => document.id !== id))
-      if (selectedId === id) navigate('/docs', true)
+      updateInvoices(invoicesRef.current.filter(invoice => invoice.id !== id))
+      if (selectedId === id) navigate('/invoices', true)
     } catch {
       // The API client displays the error.
     } finally {
@@ -142,9 +142,9 @@ export function useDocuments() {
     setRetrying(true)
     ++listRevision.current
     try {
-      const document = await retryDocument(id)
+      const invoice = await retryInvoice(id)
       ++listRevision.current
-      updateDocuments(documentsRef.current.map(item => item.id === id ? document : item))
+      updateInvoices(invoicesRef.current.map(item => item.id === id ? invoice : item))
       if (selectedId === id) await refreshDetail()
     } catch {
       // The API client displays the error.
@@ -159,9 +159,9 @@ export function useDocuments() {
     setRedoing(true)
     ++listRevision.current
     try {
-      const document = await redoDocument(id)
+      const invoice = await redoInvoice(id)
       ++listRevision.current
-      updateDocuments([document, ...documentsRef.current.filter(item => item.id !== id)])
+      updateInvoices([invoice, ...invoicesRef.current.filter(item => item.id !== id)])
       if (selectedId === id) await refreshDetail()
     } catch {
       // The API client displays the error.
@@ -177,28 +177,28 @@ export function useDocuments() {
     : t('pipeline.durationMinutes', { minutes: Math.floor(duration / 60000), seconds: Math.floor(duration % 60000 / 1000) })
   const rows = [
     ...uploads.map(upload => ({ ...upload, status: 'uploading' as const, finished_at: null, total_cost_usd: null, stage_metrics: [], current_stages: [] })),
-    ...documents,
-  ].map(document => {
-    const durationMs = totalStageDuration(document.stage_metrics)
+    ...invoices,
+  ].map(invoice => {
+    const durationMs = totalStageDuration(invoice.stage_metrics)
     return {
-      ...document,
-      costLabel: formatCost(document.total_cost_usd),
+      ...invoice,
+      costLabel: formatCost(invoice.total_cost_usd),
       durationMs,
-      href: documentPath(document.id),
+      href: invoicePath(invoice.id),
       durationLabel: formatDuration(durationMs),
-      costBreakdown: document.stage_metrics.map(metric => ({ label: t(`pipeline.stages.${metric.stage}`), value: formatCost(metric.cost_usd) })),
-      durationBreakdown: document.stage_metrics.map(metric => ({ label: t(`pipeline.stages.${metric.stage}`), value: formatDuration(metric.duration_ms) })),
-      canOpen: document.status !== 'uploading',
-      canDelete: (document.status === 'ready' || document.status === 'error'),
-      canRedo: document.status === 'ready' || document.status === 'error',
-      statusIcon: document.status === 'uploading' || document.status === 'processing' ? 'spinner'
-        : document.status === 'queued' ? 'clock' : document.status === 'error' ? 'error' : null,
-      statusLabel: document.status !== 'uploading' && document.next_retry_at !== null
-        ? t('documents.retryQueued') : t(`documents.${document.status}`),
-      deleteConfirmation: t('documents.deleteConfirmation', { name: document.name }),
-      redoConfirmation: t('documents.redoConfirmation', { name: document.name }),
-      dateLabel: document.status === 'uploading' ? '—' : formatDateLong(document.created_at, 'es-ES'),
-      errorMessage: document.status === 'error' ? t('documents.error') : '',
+      costBreakdown: invoice.stage_metrics.map(metric => ({ label: t(`pipeline.stages.${metric.stage}`), value: formatCost(metric.cost_usd) })),
+      durationBreakdown: invoice.stage_metrics.map(metric => ({ label: t(`pipeline.stages.${metric.stage}`), value: formatDuration(metric.duration_ms) })),
+      canOpen: invoice.status !== 'uploading',
+      canDelete: (invoice.status === 'ready' || invoice.status === 'error'),
+      canRedo: invoice.status === 'ready' || invoice.status === 'error',
+      statusIcon: invoice.status === 'uploading' || invoice.status === 'processing' ? 'spinner'
+        : invoice.status === 'queued' ? 'clock' : invoice.status === 'error' ? 'error' : null,
+      statusLabel: invoice.status !== 'uploading' && invoice.next_retry_at !== null
+        ? t('invoices.retryQueued') : t(`invoices.${invoice.status}`),
+      deleteConfirmation: t('invoices.deleteConfirmation', { name: invoice.name }),
+      redoConfirmation: t('invoices.redoConfirmation', { name: invoice.name }),
+      dateLabel: invoice.status === 'uploading' ? '—' : formatDateLong(invoice.created_at, 'es-ES'),
+      errorMessage: invoice.status === 'error' ? t('invoices.error') : '',
     }
   })
 
@@ -212,8 +212,8 @@ export function useDocuments() {
       default: return null
     }
   }
-  const filteredDocuments = rows.filter(document => document.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))
-  if (sortColumn !== null) filteredDocuments.sort((a, b) => {
+  const filteredInvoices = rows.filter(invoice => invoice.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))
+  if (sortColumn !== null) filteredInvoices.sort((a, b) => {
     const left = sortValue(a), right = sortValue(b)
     if (left === null) return right === null ? 0 : 1
     if (right === null) return -1
@@ -258,9 +258,9 @@ export function useDocuments() {
       ...(erp.warnings.length === 0 ? [] : [{ label: t('erp.warningsLabel'), value: erp.warnings.map(warning => t(`erp.warnings.${warning}`)).join('; ') }]),
     ]),
   ]
-  const selectedRow = rows.find(document => document.id === selectedId)
+  const selectedRow = rows.find(invoice => invoice.id === selectedId)
   const metricsLoading = loading && selected === null && selectedRow === undefined
-  const stageMetrics = documentStageMetrics(selected, selectedRow)
+  const stageMetrics = invoiceStageMetrics(selected, selectedRow)
   const stageNavigation = (['ocr', 'text', 'extraction'] as const).map(id => {
     const metric = stageMetrics.find(item => item.stage === id)
     return {
@@ -281,33 +281,33 @@ export function useDocuments() {
   return {
     redoing, onRedo,
     stageNavigation, metricsLoading, activeStage, emptyMessage, erpRows, totalDuration, totalCost,
-    filteredDocuments, documentsLoading, sortColumn, sortDirection, onToggleSort,
-    search, onSearch: setSearch, onDocumentLink, onNavigate: followLink,
+    filteredInvoices, invoicesLoading, sortColumn, sortDirection, onToggleSort,
+    search, onSearch: setSearch, onInvoiceLink, onNavigate: followLink,
     selected, selectedId, mountDetail, featureAmounts,
-    loading, extractionLoading, pdfUrl, pdfLoading, deleting, sourceTab, onSourceTab, watchDocuments,
+    loading, extractionLoading, pdfUrl, pdfLoading, deleting, sourceTab, onSourceTab, watchInvoices,
     retrying,
     canRetry: (selected !== null && selected.status === 'error') || (selectedRow !== undefined && selectedRow.status === 'error'),
     onRetrySelected: () => { if (selectedId !== null) void onRetry(selectedId) },
-    documentName: selected !== null ? selected.name : selectedRow === undefined ? null : selectedRow.name,
+    invoiceName: selected !== null ? selected.name : selectedRow === undefined ? null : selectedRow.name,
     view,
-    onUpload, onDelete, onSelect: (id: string) => navigate(documentPath(id)),
+    onUpload, onDelete, onSelect: (id: string) => navigate(invoicePath(id)),
     labels: {
-      count: t('documents.count', { count: rows.length }),
-      erp: t('erp.title'), erpData: t('erp.dataTitle'), totalTime: t('documents.totalTime'),
-      totalCost: t('usage.totalCost'), waiting: t('pipeline.waiting'), appName: t('app.name'), upload: t('documents.upload'),
-      library: t('documents.library'), search: t('documents.search'), back: t('documents.back'),
-      errorStatus: t('pipeline.status.error'), status: t('documents.status'), created: t('documents.created'), noResults: t('documents.noResults'),
-      emptyList: t('documents.emptyList'), pdf: t('documents.pdf'),
-      extraction: t('documents.extraction'), noExtraction: t('documents.noExtraction'),
-      error: t('documents.error'), loading: t('documents.loading'),
-      delete: t('documents.delete'),
-      document: t('documents.document'),
-      pdfError: t('documents.pdfError'), documentUnavailable: t('documents.unavailable'),
-      notFound: t('documents.pageNotFound'),
+      count: t('invoices.count', { count: rows.length }),
+      erp: t('erp.title'), erpData: t('erp.dataTitle'), totalTime: t('invoices.totalTime'),
+      totalCost: t('usage.totalCost'), waiting: t('pipeline.waiting'), appName: t('app.name'), upload: t('invoices.upload'),
+      library: t('invoices.library'), search: t('invoices.search'), back: t('invoices.back'),
+      errorStatus: t('pipeline.status.error'), status: t('invoices.status'), created: t('invoices.created'), noResults: t('invoices.noResults'),
+      emptyList: t('invoices.emptyList'), pdf: t('invoices.pdf'),
+      extraction: t('invoices.extraction'), noExtraction: t('invoices.noExtraction'),
+      error: t('invoices.error'), loading: t('invoices.loading'),
+      delete: t('invoices.delete'),
+      invoice: t('invoices.invoice'),
+      pdfError: t('invoices.pdfError'), invoiceUnavailable: t('invoices.unavailable'),
+      notFound: t('invoices.pageNotFound'),
       usage: t('usage.title'),
-      retry: t('documents.retry'),
-      redo: t('documents.redo'),
-      actions: t('documents.actions'),
+      retry: t('invoices.retry'),
+      redo: t('invoices.redo'),
+      actions: t('invoices.actions'),
     },
     extractionLabels: {
       notes: t('extraction.notes'), uncertainties: t('extraction.uncertainties'),

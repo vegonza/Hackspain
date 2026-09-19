@@ -15,10 +15,10 @@ from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 from fastapi import HTTPException
 
-from documents import queue, worker
+from invoices import queue, worker
 from pipeline import ocr_2 as ocr_phase
-from documents import router as document_router
-from documents.repository import Document
+from invoices import router as invoice_router
+from invoices.repository import Invoice
 from shared.retries import RetryState, read_retry, record_failure, retry_delay, retryable
 from shared.usage import UsageEntry, UsageRecord
 from usage import worker as usage_worker
@@ -53,23 +53,23 @@ class RetryTests(unittest.TestCase):
         self.assertTrue(record_failure(RetryState(attempts=5), ConnectionError()).failed)
         self.assertTrue(record_failure(RetryState(attempts=1), ValueError()).failed)
 
-    def test_manual_document_retry_preserves_identity_and_prevents_double_enqueue(self) -> None:
+    def test_manual_invoice_retry_preserves_identity_and_prevents_double_enqueue(self) -> None:
         identifier = uuid4()
         retries, scheduled, ready = [self.prefix + name for name in ('state', 'scheduled', 'queue')]
-        document = Document(id=identifier, name='test.pdf', sha256='a' * 64, created_at=datetime.now(timezone.utc), status='error')
+        invoice_record = Invoice(id=identifier, name='test.pdf', sha256='a' * 64, created_at=datetime.now(timezone.utc), status='error')
         self.redis.hset(retries, str(identifier), RetryState(attempts=5, failed=True).model_dump_json())
-        with patch.multiple(document_router, RETRIES=retries, SCHEDULED=scheduled, QUEUE=ready), patch.object(document_router, 'get_redis', return_value=self.redis), patch.object(document_router, 'read_document', return_value=document), patch.object(document_router, 'write_document'):
-            result = document_router.retry_document(identifier)
+        with patch.multiple(invoice_router, RETRIES=retries, SCHEDULED=scheduled, QUEUE=ready), patch.object(invoice_router, 'get_redis', return_value=self.redis), patch.object(invoice_router, 'read_invoice', return_value=invoice_record), patch.object(invoice_router, 'write_invoice'):
+            result = invoice_router.retry_invoice(identifier)
             self.assertEqual(result.id, identifier)
             self.assertEqual(result.status, 'queued')
             self.assertEqual(self.redis.lrange(ready, 0, -1), [str(identifier)])
             self.assertFalse(self.redis.hexists(retries, str(identifier)))
             with self.assertRaises(HTTPException) as error:
-                document_router.retry_document(identifier)
+                invoice_router.retry_invoice(identifier)
             self.assertEqual(error.exception.status_code, 409)
             self.assertEqual(self.redis.llen(ready), 1)
 
-    def test_document_failure_is_scheduled_and_promoted_once(self) -> None:
+    def test_invoice_failure_is_scheduled_and_promoted_once(self) -> None:
         retries, scheduled, processing, ready = [self.prefix + name for name in ('state', 'scheduled', 'processing', 'queue')]
         identifier = 'doc'
         self.redis.hset(retries, identifier, RetryState(attempts=1).model_dump_json())
@@ -92,7 +92,7 @@ class RetryTests(unittest.TestCase):
 
     def test_usage_backoff_limit_and_manual_reset(self) -> None:
         outbox, retries = self.prefix + 'outbox', self.prefix + 'state'
-        record = UsageRecord(provider='mistral', model='ocr', operation='ocr', document_id=str(uuid4()), document_name='test.pdf', usage=[UsageEntry(provider='mistral', model='ocr', cost=Decimal('0.004'), details={})])
+        record = UsageRecord(provider='mistral', model='ocr', operation='ocr', invoice_id=str(uuid4()), invoice_name='test.pdf', usage=[UsageEntry(provider='mistral', model='ocr', cost=Decimal('0.004'), details={})])
         payload = record.model_dump_json()
         self.redis.hset(outbox, record.id, payload)
         with patch.multiple(usage_worker, RETRIES=retries, USAGE_OUTBOX=outbox), patch.object(usage_worker, 'save_usage', side_effect=httpx.ConnectTimeout('test')) as save:

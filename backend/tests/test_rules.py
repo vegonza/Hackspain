@@ -13,8 +13,8 @@ from suppliers.models import Supplier
 
 class RulesTests(unittest.TestCase):
     def setUp(self) -> None:
-        document_id = UUID('00000000-0000-0000-0000-000000000001')
-        self.context = RuleContext(document_id=document_id, claimed_by_document_id=document_id,
+        invoice_id = UUID('00000000-0000-0000-0000-000000000001')
+        self.context = RuleContext(invoice_id=invoice_id, claimed_by_invoice_id=invoice_id,
             invoice=InvoiceExtraction(
                 invoice_number='F-1', supplier_name='Proveedor', supplier_nif='B12345678', iban='ES001234',
                 invoice_date='2026-09-01', purchase_order='PO-1',
@@ -36,12 +36,12 @@ class RulesTests(unittest.TestCase):
     def test_valid_invoice_passes_without_external_services(self) -> None:
         self.assertEqual(self.classification(), 'PAGAR')
 
-    def test_order_claim_must_belong_to_this_document(self) -> None:
+    def test_order_claim_must_belong_to_this_invoice(self) -> None:
         for owner in (None, UUID('00000000-0000-0000-0000-000000000002')):
             with self.subTest(owner=owner):
-                self.context.claimed_by_document_id = owner
+                self.context.claimed_by_invoice_id = owner
                 self.assertEqual(self.classification(), 'ESCALAR')
-        self.context.claimed_by_document_id = self.context.document_id
+        self.context.claimed_by_invoice_id = self.context.invoice_id
         self.assertEqual(self.classification(), 'PAGAR')
 
     def test_order_pending_review_escalates(self) -> None:

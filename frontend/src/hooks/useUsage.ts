@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { fetchUsage, retryFailedUsage, type UsageResponse } from '@/api/usage'
 import { formatDateLong } from '@/lib/format'
-import type { StageId } from '@/api/documents'
+import type { StageId } from '@/api/invoices'
 
 const money = (amount: string) => `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(Number(amount))}`
 const detailFields = ['pages_processed', 'prompt_tokens', 'completion_tokens', 'total_tokens'] as const
@@ -61,7 +61,7 @@ export function useUsage() {
     pages: data === null ? 1 : Math.max(1, Math.ceil(data.total / data.page_size)),
     stats: data === null ? [] : [
       { label: t('usage.totalCost'), value: money(data.summary.cost_usd) },
-      { label: t('usage.documentCost'), value: money(data.summary.average_document_cost_usd) },
+      { label: t('usage.invoiceCost'), value: money(data.summary.average_invoice_cost_usd) },
       { label: t('usage.pages'), value: String(data.summary.pages) },
     ],
     daily: data === null ? [] : data.daily.map(day => ({ ...day,
@@ -81,13 +81,13 @@ export function useUsage() {
     })),
     labels: {
       title: t('usage.title'), history: t('usage.history'),
-      date: t('usage.date'), document: t('usage.document'), model: t('usage.model'),
+      date: t('usage.date'), invoice: t('usage.invoice'), model: t('usage.model'),
       provider: t('usage.provider'), pages: t('usage.pages'), cost: t('usage.cost'),
       calls: t('usage.calls'),
       operation: t('usage.operation'), totalCost: t('usage.totalCost'),
-      empty: t('usage.empty'), failed: t('documents.requestFailed'), loading: t('documents.loading'),
+      empty: t('usage.empty'), failed: t('invoices.requestFailed'), loading: t('invoices.loading'),
       previous: t('usage.previous'), next: t('usage.next'),
-      retry: t('documents.retry'),
+      retry: t('invoices.retry'),
     },
   }
 }

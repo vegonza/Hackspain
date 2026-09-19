@@ -16,7 +16,7 @@ export function ConfirmButton({ label, confirmation, disabled, onConfirm, icon: 
   return (
     <Popover.Root open={controller.open} onOpenChange={controller.onOpenChange}>
       <Popover.Trigger asChild>
-        <button type="button" className={`document-${variant}`} disabled={disabled} aria-label={label} title={label}>
+        <button type="button" className={`invoice-${variant}`} disabled={disabled} aria-label={label} title={label}>
           <Icon size={15} />
         </button>
       </Popover.Trigger>

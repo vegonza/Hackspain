@@ -72,14 +72,14 @@ class ErpSnapshotReadTests(unittest.TestCase):
 
 class ErpEntryReadTests(unittest.TestCase):
     def test_entry_is_resolved_by_uuid_without_reading_the_latest_snapshot(self) -> None:
-        document = {'id': str(uuid4()), 'name': 'factura.pdf'}
-        row = entry_row(documents=[document])
+        invoice_record = {'id': str(uuid4()), 'name': 'factura.pdf'}
+        row = entry_row(invoices=[invoice_record])
         client = database(row)
         with patch('erp.repository.get_client', return_value=client):
             entry = read_entry(UUID(row['id']))
         assert entry is not None
         self.assertEqual(str(entry.id), row['id'])
-        self.assertEqual(entry.model_dump(mode='json')['documents'], [document])
+        self.assertEqual(entry.model_dump(mode='json')['invoices'], [invoice_record])
         client.rpc.assert_called_once_with('get_erp_entry', {'p_entry_id': row['id']})
         client.table.assert_not_called()
 
@@ -87,12 +87,12 @@ class ErpEntryReadTests(unittest.TestCase):
         with patch('erp.repository.get_client', return_value=database(None)):
             self.assertIsNone(read_entry(uuid4()))
 
-    def test_entry_without_linked_documents_keeps_an_empty_list(self) -> None:
-        row = entry_row(documents=[])
+    def test_entry_without_linked_invoices_keeps_an_empty_list(self) -> None:
+        row = entry_row(invoices=[])
         with patch('erp.repository.get_client', return_value=database(row)):
             entry = read_entry(UUID(row['id']))
         assert entry is not None
-        self.assertEqual(entry.documents, [])
+        self.assertEqual(entry.invoices, [])
 
 
 class ErpRouteTests(unittest.TestCase):

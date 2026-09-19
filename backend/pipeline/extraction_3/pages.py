@@ -8,7 +8,7 @@ logger = get_logger()
 
 
 def render_pages(pdf: bytes) -> list[bytes]:
-    """Render every PDF page as a JPEG, in document order, for invoice extraction."""
+    """Render every PDF page as a JPEG, in invoice order, for invoice extraction."""
     with TemporaryDirectory() as directory:
         prefix = Path(directory) / "page"
         subprocess.run(

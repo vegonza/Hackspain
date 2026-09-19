@@ -1,6 +1,6 @@
 import { fetchJson } from '@/api/client'
 
-export interface Document {
+export interface Invoice {
   id: string
   name: string
   sha256: string
@@ -19,7 +19,7 @@ export interface Document {
 export type StageId = 'ocr' | 'text' | 'extraction'
 export type StageStatus = 'queued' | 'processing' | 'ready' | 'error' | 'retrying' | 'unavailable'
 
-export interface DocumentStage {
+export interface InvoiceStage {
   id: StageId
   status: StageStatus
   depends_on: StageId[]
@@ -33,7 +33,7 @@ export type ErpWarning = 'missing_entry_id' | 'missing_supplier_id' | 'missing_t
   | 'missing_status' | 'missing_date' | 'missing_amount' | 'invalid_date' | 'date_out_of_range'
   | 'invalid_amount' | 'iso_date_format' | 'english_amount_format' | 'unknown_status' | 'possible_character_loss'
 
-export interface DocumentErpEntry {
+export interface InvoiceErpEntry {
   entry_id: string
   date: string | null
   supplier_id: string
@@ -46,10 +46,10 @@ export interface DocumentErpEntry {
   status: string
 }
 
-export interface DocumentDetail extends Document {
-  stages: DocumentStage[]
+export interface InvoiceDetail extends Invoice {
+  stages: InvoiceStage[]
   extraction: InvoiceExtraction | null
-  erp: DocumentErpEntry | null
+  erp: InvoiceErpEntry | null
   erp_snapshot_id: string | null
 }
 
@@ -74,32 +74,32 @@ export interface InvoiceExtraction {
   total: string
 }
 
-export function fetchDocuments(): Promise<Document[]> {
-  return fetchJson<Document[]>('/documents')
+export function fetchInvoices(): Promise<Invoice[]> {
+  return fetchJson<Invoice[]>('/invoices')
 }
 
-export function fetchDocument(id: string): Promise<DocumentDetail> {
-  return fetchJson<DocumentDetail>(`/documents/${id}`)
+export function fetchInvoice(id: string): Promise<InvoiceDetail> {
+  return fetchJson<InvoiceDetail>(`/invoices/${id}`)
 }
 
 export function fetchPdfUrl(id: string): Promise<{ url: string }> {
-  return fetchJson(`/documents/${id}/pdf-url`)
+  return fetchJson(`/invoices/${id}/pdf-url`)
 }
 
-export function deleteDocument(id: string): Promise<{ deleted: boolean }> {
-  return fetchJson(`/documents/${id}`, { method: 'DELETE' })
+export function deleteInvoice(id: string): Promise<{ deleted: boolean }> {
+  return fetchJson(`/invoices/${id}`, { method: 'DELETE' })
 }
 
-export function retryDocument(id: string): Promise<Document> {
-  return fetchJson(`/documents/${id}/retry`, { method: 'POST' })
+export function retryInvoice(id: string): Promise<Invoice> {
+  return fetchJson(`/invoices/${id}/retry`, { method: 'POST' })
 }
 
-export function redoDocument(id: string): Promise<Document> {
-  return fetchJson(`/documents/${id}/redo`, { method: 'POST' })
+export function redoInvoice(id: string): Promise<Invoice> {
+  return fetchJson(`/invoices/${id}/redo`, { method: 'POST' })
 }
 
-export function uploadDocument(file: File): Promise<Document> {
+export function uploadInvoice(file: File): Promise<Invoice> {
   const body = new FormData()
   body.append('file', file)
-  return fetchJson<Document>('/documents', { method: 'POST', body })
+  return fetchJson<Invoice>('/invoices', { method: 'POST', body })
 }

@@ -7,9 +7,9 @@ type Props = {
   rows: { label: string; value: string }[]
 }
 
-export function DocumentErp({ title, loading, rows }: Props) {
+export function InvoiceErp({ title, loading, rows }: Props) {
   return (
-    <section className="document-data" aria-label={title} aria-busy={loading}>
+    <section className="invoice-data" aria-label={title} aria-busy={loading}>
       {title !== undefined && <header className="review-header"><h2>{title}</h2></header>}
       <div className="extraction-view">
         <dl className="extraction-grid">

@@ -51,7 +51,7 @@ class ExtractionManager:
                 "type": "function",
                 "function": {
                     "name": result_type.__name__,
-                    "description": "Return the structured result for the supplied document content.",
+                    "description": "Return the structured result for the supplied invoice content.",
                     "parameters": result_type.model_json_schema(),
                 },
             }],

@@ -1,8 +1,8 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-export function DocumentSkeleton() {
+export function InvoiceSkeleton() {
   return (
-    <div className="document-skeleton" aria-busy="true">
+    <div className="invoice-skeleton" aria-busy="true">
       <Skeleton className="h-6 w-48" />
       <Skeleton className="mt-8 h-4 w-3/4" />
       <Skeleton className="mt-3 h-4 w-full" />

@@ -1,17 +1,17 @@
 import { fetchEmpty, fetchJson } from '@/api/client'
-import type { DocumentErpEntry } from '@/api/documents'
+import type { InvoiceErpEntry } from '@/api/invoices'
 
-export interface ErpLinkedDocument {
+export interface ErpLinkedInvoice {
   id: string
   name: string
 }
 
-export interface ErpEntry extends DocumentErpEntry {
+export interface ErpEntry extends InvoiceErpEntry {
   id: string
 }
 
 export interface ErpEntryDetail extends ErpEntry {
-  documents: ErpLinkedDocument[]
+  invoices: ErpLinkedInvoice[]
 }
 
 export interface ErpSnapshot {

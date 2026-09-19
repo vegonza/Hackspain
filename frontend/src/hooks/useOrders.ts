@@ -104,7 +104,7 @@ export function useOrders() {
       order_id: t('orders.id'), supplier_id: t('orders.supplier'), tax_id: t('orders.taxId'),
       amount: t('orders.amount'), status: t('orders.status'), date: t('orders.date'),
       save: t('orders.save'), saving: t('orders.saving'), cancel: t('common.cancel'), close: t('common.close'),
-      empty: t('orders.empty'), failed: t('documents.requestFailed'), retry: t('orders.retry'),
+      empty: t('orders.empty'), failed: t('invoices.requestFailed'), retry: t('orders.retry'),
     },
   }
 }

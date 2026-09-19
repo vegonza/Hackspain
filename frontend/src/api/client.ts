@@ -5,7 +5,7 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
     const response = await fetch(`${API_BASE}${url}`, options)
     if (!response.ok) {
       if (response.status >= 500 || !response.headers.get('content-type')?.includes('application/json')) {
-        throw new Error(i18n.t('documents.requestFailed'))
+        throw new Error(i18n.t('invoices.requestFailed'))
       }
       const error: { detail: unknown } = await response.json()
       const message = error.detail === 'supplier_has_orders'
@@ -21,16 +21,16 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
         : error.detail === 'supplier_not_found'
           ? i18n.t('suppliers.notFound')
         : error.detail === 'invalid_pdf'
-        ? i18n.t('documents.invalidPdf')
-        : error.detail === 'document_processing'
-          ? i18n.t('documents.processingConflict')
+        ? i18n.t('invoices.invalidPdf')
+        : error.detail === 'invoice_processing'
+          ? i18n.t('invoices.processingConflict')
         : error.detail === 'duplicate_pdf'
-          ? i18n.t('documents.duplicatePdf')
+          ? i18n.t('invoices.duplicatePdf')
         : error.detail === 'ocr_failed'
-          ? i18n.t('documents.ocrFailed')
+          ? i18n.t('invoices.ocrFailed')
           : error.detail === 'extraction_failed'
-            ? i18n.t('documents.extractionFailed')
-          : i18n.t('documents.requestFailed')
+            ? i18n.t('invoices.extractionFailed')
+          : i18n.t('invoices.requestFailed')
       throw new Error(message)
     }
     return response
@@ -38,7 +38,7 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
     if (error instanceof DOMException && error.name === 'AbortError') throw error
     toast.error(error instanceof Error && !(error instanceof TypeError) && !(error instanceof SyntaxError)
       ? error.message
-      : i18n.t('documents.requestFailed'))
+      : i18n.t('invoices.requestFailed'))
     throw error
   }
 }

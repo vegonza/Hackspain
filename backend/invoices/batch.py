@@ -2,7 +2,7 @@ import hashlib
 import re
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from pipeline.text_1 import extract_text
 from pipeline.extraction_3.extraction import InvoiceExtraction
@@ -20,27 +20,29 @@ class OrderReferences(BaseModel):
 
 
 class BatchIndex(BaseModel):
-    documents: dict[str, OrderReferences]
+    model_config = ConfigDict(validate_by_name=True)
 
-    def other_documents(self, order: str, current: str) -> list[str]:
-        return sorted(name for name, record in self.documents.items() if name != current and order in record.orders)
+    invoices: dict[str, OrderReferences] = Field(alias="documents")
+
+    def other_invoices(self, order: str, current: str) -> list[str]:
+        return sorted(name for name, record in self.invoices.items() if name != current and order in record.orders)
 
 
 def refresh_order_index(source: Path, index_path: Path, extracted: Path) -> BatchIndex:
-    index = BatchIndex.model_validate_json(index_path.read_text()) if index_path.exists() else BatchIndex(documents={})
+    index = BatchIndex.model_validate_json(index_path.read_text()) if index_path.exists() else BatchIndex(invoices={})
     files = sorted(source.glob("*.pdf"))
     names = {path.name for path in files}
-    for removed in index.documents.keys() - names:
-        del index.documents[removed]
+    for removed in index.invoices.keys() - names:
+        del index.invoices[removed]
     changed = 0
     for path in files:
         pdf_bytes = path.read_bytes()
         digest = hashlib.sha256(pdf_bytes).hexdigest()
         extraction_path = extracted / path.stem / "features.json"
         extraction_digest = hashlib.sha256(extraction_path.read_bytes()).hexdigest() if extraction_path.exists() else ""
-        if path.name not in index.documents or index.documents[path.name].sha256 != digest or index.documents[path.name].features_sha256 != extraction_digest:
+        if path.name not in index.invoices or index.invoices[path.name].sha256 != digest or index.invoices[path.name].features_sha256 != extraction_digest:
             text = extract_text(pdf_bytes)
-            index.documents[path.name] = OrderReferences(
+            index.invoices[path.name] = OrderReferences(
                 sha256=digest,
                 features_sha256=extraction_digest,
                 orders=sorted({match.upper() for match in ORDER_LABEL.findall(text)}),
@@ -50,10 +52,10 @@ def refresh_order_index(source: Path, index_path: Path, extracted: Path) -> Batc
         if extraction_path.exists():
             extraction = InvoiceExtraction.model_validate_json(extraction_path.read_text())
             if extraction.purchase_order:
-                record = index.documents[path.name]
+                record = index.invoices[path.name]
                 record.orders = sorted(set(record.orders) | {extraction.purchase_order})
     temporary = index_path.with_suffix(".tmp")
-    temporary.write_text(index.model_dump_json(indent=2))
+    temporary.write_text(index.model_dump_json(indent=2, by_alias=True))
     temporary.replace(index_path)
     logger.info("[BATCH] Indexed %s PDFs; refreshed %s native order references", len(files), changed)
     return index

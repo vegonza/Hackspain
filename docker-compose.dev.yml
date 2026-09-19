@@ -69,7 +69,7 @@ services:
   worker:
     build:
       context: ./backend
-    command: ["python", "-m", "documents.worker"]
+    command: ["python", "-m", "invoices.worker"]
     stop_grace_period: 240s
     restart: unless-stopped
     env_file:
@@ -79,7 +79,7 @@ services:
       TZ: Europe/Madrid
       ERP_BASE_URL: http://erp:8009
       REDIS_URL: redis://redis:6379/0
-      DOCUMENT_WORKERS: "5"
+      INVOICE_WORKERS: "5"
     depends_on:
       erp:
         condition: service_healthy

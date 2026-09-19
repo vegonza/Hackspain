@@ -16,7 +16,7 @@ def extracted_items(items: list[InvoiceLine]) -> InvoiceExtraction:
 
 
 class InvoiceExtractionTests(unittest.TestCase):
-    def test_system_prompt_is_loaded_for_each_extraction_without_interpreting_document_braces(self) -> None:
+    def test_system_prompt_is_loaded_for_each_extraction_without_interpreting_invoice_braces(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             prompts = Path(temporary)
             system = prompts / "extractor.md"
@@ -27,14 +27,14 @@ class InvoiceExtractionTests(unittest.TestCase):
             ):
                 run = factory.return_value.__enter__.return_value.run
                 run.return_value = extracted_items([])
-                extract_invoice("Native", "Nota {document_text}", [b"page"])
+                extract_invoice("Native", "Nota {invoice_text}", [b"page"])
                 system.write_text("# Role\n\nExtract printed facts only.\n", encoding="utf-8")
-                extract_invoice("Native", "Nota {document_text}", [b"page"])
+                extract_invoice("Native", "Nota {invoice_text}", [b"page"])
         first, second = run.call_args_list
         self.assertEqual(first.args[0], "# Role\n\nExtract invoice facts.")
         self.assertEqual(second.args[0], "# Role\n\nExtract printed facts only.")
         self.assertEqual(second.args[1],
-                         'Extract the invoice fields from these text sources and the attached page images: {"native_text": "Native", "ocr_markdown": "Nota {document_text}"}')
+                         'Extract the invoice fields from these text sources and the attached page images: {"native_text": "Native", "ocr_markdown": "Nota {invoice_text}"}')
 
     def test_normalizes_summary_decimals_without_changing_printed_values(self) -> None:
         extracted = extracted_items([])

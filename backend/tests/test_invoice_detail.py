@@ -7,13 +7,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from pipeline.extraction_3.extraction import InvoiceExtraction
-from documents.repository import read_document_detail, save_document_extraction
-from documents.router import router
+from invoices.repository import read_invoice_detail, save_invoice_extraction
+from invoices.router import router
 from shared.retries import RetryState
 
 
-class DocumentDetailTests(unittest.TestCase):
-    def test_open_document_preserves_all_existing_database_stages(self) -> None:
+class InvoiceDetailTests(unittest.TestCase):
+    def test_open_invoice_preserves_all_existing_database_stages(self) -> None:
         identifier = uuid4()
         database, redis = MagicMock(), MagicMock()
         database.rpc.return_value.execute.return_value.data = {
@@ -43,14 +43,14 @@ class DocumentDetailTests(unittest.TestCase):
         app = FastAPI()
         app.include_router(router)
         with (
-            patch("documents.repository.get_client", return_value=database),
-            patch("documents.repository.get_redis", return_value=redis),
+            patch("invoices.repository.get_client", return_value=database),
+            patch("invoices.repository.get_redis", return_value=redis),
             patch("pipeline.results.download_file", side_effect=artifacts.__getitem__),
             patch("pipeline.extraction_3.extraction.create_extractor") as extract,
             TestClient(app) as client,
         ):
-            response = client.get(f"/api/documents/{identifier}")
-            repeated = client.get(f"/api/documents/{identifier}")
+            response = client.get(f"/api/invoices/{identifier}")
+            repeated = client.get(f"/api/invoices/{identifier}")
             self.assertEqual(response.json(), repeated.json())
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["finished_at"], "2026-09-19T10:00:20Z")
@@ -76,20 +76,20 @@ class DocumentDetailTests(unittest.TestCase):
             "stages": [{"document_id": str(identifier), "stage": "extraction", "status": "error", "cost_usd": "0.008"}],
         }
         redis.__enter__.return_value.hget.return_value = RetryState(attempts=2, next_attempt=2000000000).model_dump_json()
-        with patch("documents.repository.get_client", return_value=client), patch("documents.repository.get_redis", return_value=redis):
-            detail = read_document_detail(identifier)
+        with patch("invoices.repository.get_client", return_value=client), patch("invoices.repository.get_redis", return_value=redis):
+            detail = read_invoice_detail(identifier)
         client.rpc.assert_called_once_with("get_document_detail", {"p_document_id": str(identifier)})
         client.table.assert_not_called()
         self.assertEqual(detail.status, "queued")
         self.assertEqual(detail.retry_attempts, 2)
         self.assertEqual(str(detail.stages[0].cost_usd), "0.008")
 
-    def test_missing_or_archived_document_returns_404_without_redis(self) -> None:
+    def test_missing_or_archived_invoice_returns_404_without_redis(self) -> None:
         client = MagicMock()
         client.rpc.return_value.execute.return_value.data = None
-        with patch("documents.repository.get_client", return_value=client), patch("documents.repository.get_redis") as redis:
+        with patch("invoices.repository.get_client", return_value=client), patch("invoices.repository.get_redis") as redis:
             with self.assertRaises(HTTPException) as error:
-                read_document_detail(uuid4())
+                read_invoice_detail(uuid4())
         self.assertEqual(error.exception.status_code, 404)
         redis.assert_not_called()
 
@@ -103,8 +103,8 @@ class DocumentDetailTests(unittest.TestCase):
         )
         identifier = uuid4()
         client = MagicMock()
-        with patch("documents.repository.get_client", return_value=client):
-            save_document_extraction(identifier, "invoice.pdf", extraction)
+        with patch("invoices.repository.get_client", return_value=client):
+            save_invoice_extraction(identifier, "invoice.pdf", extraction)
         payload = client.table.return_value.update.call_args.args[0]
         self.assertEqual(payload["invoice_date"], "31/02/2026")
         self.assertEqual(payload["total"], "149382714704937.5952")
@@ -118,8 +118,8 @@ class DocumentDetailTests(unittest.TestCase):
             iban="", invoice_date="", purchase_order="", line_items=[],
             tax_base="", vat_rate="", vat_amount="", total="", notes=[], uncertainties=["Importes ilegibles"],
         )
-        with patch("documents.repository.get_client") as client:
-            save_document_extraction(uuid4(), "invoice.pdf", extraction)
+        with patch("invoices.repository.get_client") as client:
+            save_invoice_extraction(uuid4(), "invoice.pdf", extraction)
         payload = client.return_value.table.return_value.update.call_args.args[0]
         for field in ("tax_base", "vat_rate", "vat_amount", "total"):
             self.assertIsNone(payload[field])

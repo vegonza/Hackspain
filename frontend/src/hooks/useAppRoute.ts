@@ -1,25 +1,25 @@
 import { useSyncExternalStore, type MouseEvent } from 'react'
 
 export type AppRoute =
-  | { view: 'documents'; documentId: string | null }
-  | { view: 'usage' | 'orders' | 'suppliers' | 'not-found'; documentId: null }
-  | { view: 'erp'; documentId: null; entryId: string | null }
+  | { view: 'invoices'; invoiceId: string | null }
+  | { view: 'usage' | 'orders' | 'suppliers' | 'not-found'; invoiceId: null }
+  | { view: 'erp'; invoiceId: null; entryId: string | null }
 
 export function parseRoute(path: string): AppRoute {
-  if (path === '/' || path === '/docs') return { view: 'documents', documentId: null }
-  if (path === '/orders') return { view: 'orders', documentId: null }
-  if (path === '/suppliers') return { view: 'suppliers', documentId: null }
-  if (path === '/cost') return { view: 'usage', documentId: null }
-  if (path === '/erp') return { view: 'erp', documentId: null, entryId: null }
+  if (path === '/' || path === '/invoices') return { view: 'invoices', invoiceId: null }
+  if (path === '/orders') return { view: 'orders', invoiceId: null }
+  if (path === '/suppliers') return { view: 'suppliers', invoiceId: null }
+  if (path === '/cost') return { view: 'usage', invoiceId: null }
+  if (path === '/erp') return { view: 'erp', invoiceId: null, entryId: null }
   const entry = /^\/erp\/([^/]+)$/.exec(path)
-  if (entry !== null) return { view: 'erp', documentId: null, entryId: entry[1] }
-  const match = /^\/docs\/([^/]+)$/.exec(path)
-  if (match !== null) return { view: 'documents', documentId: match[1] }
-  return { view: 'not-found', documentId: null }
+  if (entry !== null) return { view: 'erp', invoiceId: null, entryId: entry[1] }
+  const match = /^\/invoices\/([^/]+)$/.exec(path)
+  if (match !== null) return { view: 'invoices', invoiceId: match[1] }
+  return { view: 'not-found', invoiceId: null }
 }
 
-export function documentPath(id: string): string {
-  return `/docs/${id}`
+export function invoicePath(id: string): string {
+  return `/invoices/${id}`
 }
 
 export function erpEntryPath(id: string): string {

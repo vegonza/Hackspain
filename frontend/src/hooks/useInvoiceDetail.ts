@@ -1,11 +1,11 @@
 import { useCallback, useRef, useState } from 'react'
-import { fetchDocument, fetchPdfUrl, type Document, type DocumentDetail, type StageId } from '@/api/documents'
+import { fetchInvoice, fetchPdfUrl, type Invoice, type InvoiceDetail, type StageId } from '@/api/invoices'
 
-export type DocumentTab = 'pdf' | 'erp' | StageId
+export type InvoiceTab = 'pdf' | 'erp' | StageId
 
-export function useDocumentDetail(documentId: string | null) {
-  const [sourceTab, setSourceTab] = useState<DocumentTab>('pdf')
-  const [detail, setDetail] = useState<DocumentDetail | null>(null)
+export function useInvoiceDetail(invoiceId: string | null) {
+  const [sourceTab, setSourceTab] = useState<InvoiceTab>('pdf')
+  const [detail, setDetail] = useState<InvoiceDetail | null>(null)
   const [requestedId, setRequestedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
@@ -15,21 +15,21 @@ export function useDocumentDetail(documentId: string | null) {
   const mountedId = useRef<string | null>(null)
 
   const refreshDetail = useCallback(async (): Promise<void> => {
-    if (documentId === null || mountedId.current !== documentId) return
+    if (invoiceId === null || mountedId.current !== invoiceId) return
     const request = requestVersion.current
     const version = ++detailVersion.current
     try {
-      const result = await fetchDocument(documentId)
+      const result = await fetchInvoice(invoiceId)
       if (request === requestVersion.current && version === detailVersion.current) setDetail(result)
     } finally {
       if (request === requestVersion.current && version === detailVersion.current) setLoading(false)
     }
-  }, [documentId])
+  }, [invoiceId])
 
-  const updateMetrics = useCallback((documents: Document[]): void => {
+  const updateMetrics = useCallback((invoices: Invoice[]): void => {
     setDetail(current => {
       if (current === null) return null
-      const summary = documents.find(document => document.id === current.id)
+      const summary = invoices.find(invoice => invoice.id === current.id)
       if (summary === undefined) return current
       return {
         ...current, total_cost_usd: summary.total_cost_usd, finished_at: summary.finished_at,
@@ -43,10 +43,10 @@ export function useDocumentDetail(documentId: string | null) {
   }, [])
 
   const mountDetail = useCallback((node: HTMLDivElement | null) => {
-    if (node === null || documentId === null) return
+    if (node === null || invoiceId === null) return
     const request = ++requestVersion.current
-    mountedId.current = documentId
-    setRequestedId(documentId)
+    mountedId.current = invoiceId
+    setRequestedId(invoiceId)
     setSourceTab('pdf')
     setDetail(null)
     setPdfUrl(null)
@@ -54,7 +54,7 @@ export function useDocumentDetail(documentId: string | null) {
     setPdfLoading(true)
     void Promise.allSettled([
       refreshDetail(),
-      fetchPdfUrl(documentId).then(({ url }) => {
+      fetchPdfUrl(invoiceId).then(({ url }) => {
         if (request === requestVersion.current) setPdfUrl(url)
       }).finally(() => {
         if (request === requestVersion.current) setPdfLoading(false)
@@ -64,15 +64,15 @@ export function useDocumentDetail(documentId: string | null) {
       ++requestVersion.current
       mountedId.current = null
     }
-  }, [documentId, refreshDetail])
+  }, [invoiceId, refreshDetail])
 
   return {
-    sourceTab: requestedId === documentId ? sourceTab : 'pdf' as DocumentTab,
+    sourceTab: requestedId === invoiceId ? sourceTab : 'pdf' as InvoiceTab,
     onSourceTab: setSourceTab,
-    selected: detail !== null && detail.id === documentId ? detail : null,
-    loading: documentId !== null && (requestedId !== documentId || loading),
-    pdfLoading: documentId !== null && (requestedId !== documentId || pdfLoading),
-    pdfUrl: requestedId === documentId ? pdfUrl : null,
+    selected: detail !== null && detail.id === invoiceId ? detail : null,
+    loading: invoiceId !== null && (requestedId !== invoiceId || loading),
+    pdfLoading: invoiceId !== null && (requestedId !== invoiceId || pdfLoading),
+    pdfUrl: requestedId === invoiceId ? pdfUrl : null,
     mountDetail, refreshDetail, updateMetrics,
   }
 }

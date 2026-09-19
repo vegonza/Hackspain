@@ -24,7 +24,7 @@ class UsageSummary(BaseModel):
     calls: int
     pages: int
     cost_usd: Decimal
-    average_document_cost_usd: Decimal
+    average_invoice_cost_usd: Decimal = Field(validation_alias="average_document_cost_usd")
 
 
 class UsageResponse(BaseModel):

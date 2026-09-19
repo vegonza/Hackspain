@@ -7,7 +7,7 @@ export function Markdown({ content }: { content: string }) {
   return (
     <div className="markdown">
       <ReactMarkdown remarkPlugins={plugins} components={{
-        img: ({ src, alt }) => typeof src === 'string' && src.startsWith('/api/documents/')
+        img: ({ src, alt }) => typeof src === 'string' && src.startsWith('/api/invoices/')
           ? <img src={src} alt={alt} /> : <span>{alt}</span>,
       }}>
         {content}

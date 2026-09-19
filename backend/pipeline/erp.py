@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from documents.repository import DocumentDetails
+from invoices.repository import InvoiceDetails
 from erp import sync_erp_snapshot
 from shared.logger import get_logger
 from shared.redis import get_redis
@@ -14,9 +14,9 @@ def latest_snapshot_id() -> UUID | None:
     return UUID(rows[0]["id"]) if rows else None
 
 
-def bind_snapshot(document: DocumentDetails) -> None:
-    """Pin one saved snapshot for the document and reuse it across retries."""
-    if document.erp_snapshot_id is not None:
+def bind_snapshot(invoice_record: InvoiceDetails) -> None:
+    """Pin one saved snapshot for the invoice and reuse it across retries."""
+    if invoice_record.erp_snapshot_id is not None:
         return
     snapshot_id = latest_snapshot_id()
     if snapshot_id is None:
@@ -24,15 +24,15 @@ def bind_snapshot(document: DocumentDetails) -> None:
             snapshot_id = latest_snapshot_id()
             if snapshot_id is None:
                 snapshot_id = sync_erp_snapshot()
-    get_client().table("documents").update({"erp_snapshot_id": str(snapshot_id)}).eq("id", str(document.id)).execute()
-    document.erp_snapshot_id = snapshot_id
-    logger.info("[PIPELINE] Linked ERP snapshot %s to %s", snapshot_id, document.name)
+    get_client().table("documents").update({"erp_snapshot_id": str(snapshot_id)}).eq("id", str(invoice_record.id)).execute()
+    invoice_record.erp_snapshot_id = snapshot_id
+    logger.info("[PIPELINE] Linked ERP snapshot %s to %s", snapshot_id, invoice_record.name)
 
 
-def match_entry(document: DocumentDetails, purchase_order: str) -> None:
-    """Link only an unambiguous order match within the document's pinned snapshot."""
-    assert document.erp_snapshot_id is not None
-    entries = get_client().table("erp_entries").select("id").eq("snapshot_id", str(document.erp_snapshot_id)).eq("order_id", purchase_order).limit(2).execute().data if purchase_order else []
+def match_entry(invoice_record: InvoiceDetails, purchase_order: str) -> None:
+    """Link only an unambiguous order match within the invoice's pinned snapshot."""
+    assert invoice_record.erp_snapshot_id is not None
+    entries = get_client().table("erp_entries").select("id").eq("snapshot_id", str(invoice_record.erp_snapshot_id)).eq("order_id", purchase_order).limit(2).execute().data if purchase_order else []
     entry_id = entries[0]["id"] if len(entries) == 1 else None
-    get_client().table("documents").update({"erp_entry_id": entry_id}).eq("id", str(document.id)).execute()
-    logger.info("[PIPELINE] ERP order match for %s: %s", document.name, "unique" if entry_id is not None else "missing or ambiguous")
+    get_client().table("documents").update({"erp_entry_id": entry_id}).eq("id", str(invoice_record.id)).execute()
+    logger.info("[PIPELINE] ERP order match for %s: %s", invoice_record.name, "unique" if entry_id is not None else "missing or ambiguous")

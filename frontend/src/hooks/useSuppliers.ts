@@ -96,7 +96,7 @@ export function useSuppliers() {
       supplier_id: t('suppliers.id'), legal_name: t('suppliers.name'), tax_id: t('suppliers.taxId'),
       iban: t('suppliers.iban'), city: t('suppliers.city'), payment_terms_days: t('suppliers.terms'),
       days: t('suppliers.days'), save: t('suppliers.save'), saving: t('suppliers.saving'), cancel: t('common.cancel'), close: t('common.close'),
-      empty: t('suppliers.empty'), failed: t('documents.requestFailed'), retry: t('suppliers.retry'),
+      empty: t('suppliers.empty'), failed: t('invoices.requestFailed'), retry: t('suppliers.retry'),
     },
   }
 }

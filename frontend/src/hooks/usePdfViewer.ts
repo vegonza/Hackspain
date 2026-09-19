@@ -82,7 +82,7 @@ export function usePdfViewer(url: string) {
 
   function onError() {
     setFailed(true)
-    toast.error(t('documents.pdfError'))
+    toast.error(t('invoices.pdfError'))
   }
 
   const pages = Array.from({ length: pageCount }, (_, index) => ({
@@ -95,6 +95,6 @@ export function usePdfViewer(url: string) {
   return {
     containerRef, setInner, file: url, pageWidth, pages, pageCount, currentPage, failed,
     zoom, zoomIn, zoomOut, zoomMin: ZOOM_MIN, zoomMax: ZOOM_MAX, onLoadSuccess, onPageLoad, onError,
-    labels: { loading: t('documents.loading'), error: t('documents.pdfError'), zoomIn: t('documents.zoomIn'), zoomOut: t('documents.zoomOut') },
+    labels: { loading: t('invoices.loading'), error: t('invoices.pdfError'), zoomIn: t('invoices.zoomIn'), zoomOut: t('invoices.zoomOut') },
   }
 }

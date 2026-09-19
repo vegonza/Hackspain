@@ -3,10 +3,10 @@ import time
 from shared.logger import get_logger
 from shared.redis import get_redis
 
-QUEUE = "documents:queue"
-PROCESSING = "documents:processing"
-RETRIES = "documents:retries"
-SCHEDULED = "documents:scheduled"
+QUEUE = "invoices:queue"
+PROCESSING = "invoices:processing"
+RETRIES = "invoices:retries"
+SCHEDULED = "invoices:scheduled"
 logger = get_logger()
 
 
@@ -23,7 +23,7 @@ def promote_retries() -> None:
         """, 2, SCHEDULED, QUEUE, time.time())
 
 
-def enqueue(document_id: str, name: str) -> None:
+def enqueue(invoice_id: str, name: str) -> None:
     with get_redis() as redis:
-        redis.lpush(QUEUE, document_id)
-    logger.info("[QUEUE] Queued %s (%s)", name, document_id)
+        redis.lpush(QUEUE, invoice_id)
+    logger.info("[QUEUE] Queued %s (%s)", name, invoice_id)

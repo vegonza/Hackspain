@@ -24,7 +24,7 @@ export function ErpTable({ onRefresh, refreshing, loading, failed, rows, summary
   ] as const
   return (
     <>
-      <header className="documents-toolbar">
+      <header className="invoices-toolbar">
         <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />
         {summary !== null && <span className="shrink-0 text-sm text-muted-foreground">{summary}</span>}
         <Button size="sm" className="table-add-button" onClick={onRefresh} disabled={loading || refreshing} aria-busy={refreshing}>
@@ -32,8 +32,8 @@ export function ErpTable({ onRefresh, refreshing, loading, failed, rows, summary
           {refreshing ? labels.refreshing : labels.refresh}
         </Button>
       </header>
-      <div className="documents-table-scroll">
-        <table className="documents-table" style={{ minWidth: 1170 }} aria-busy={loading}>
+      <div className="invoices-table-scroll">
+        <table className="invoices-table" style={{ minWidth: 1170 }} aria-busy={loading}>
           <colgroup>{columns.map(column => <col key={column.column} style={{ width: column.width }} />)}</colgroup>
           <TableHeader className="[&_tr]:border-b-0"><TableRow className="hover:bg-transparent">
             {columns.map(column => <SortableTableHead key={column.column} column={column.column} label={column.label} icon={column.icon}
@@ -41,16 +41,16 @@ export function ErpTable({ onRefresh, refreshing, loading, failed, rows, summary
               className={cn('sticky top-0 z-20 border-b bg-muted', column.column === 'entry' && 'left-0 z-30')} />)}
           </TableRow></TableHeader>
           <TableBody>
-            {rows.map(row => <TableRow key={row.id} className="document-table-row" data-openable="true" onClick={() => onSelect(row.id)}>
-              <TableCell><Tooltip text={row.entryId} onlyWhenTruncated asChild><a className="document-table-name" href={row.href} onClick={onEntryLink}>{row.entryId}</a></Tooltip></TableCell>
+            {rows.map(row => <TableRow key={row.id} className="invoice-table-row" data-openable="true" onClick={() => onSelect(row.id)}>
+              <TableCell><Tooltip text={row.entryId} onlyWhenTruncated asChild><a className="invoice-table-name" href={row.href} onClick={onEntryLink}>{row.entryId}</a></Tooltip></TableCell>
               <TableCell>{row.orderId}</TableCell>
               <TableCell>{row.supplierId}</TableCell>
               <TableCell>{row.taxId}</TableCell>
-              <TableCell><Badge variant="secondary" className="document-table-status">{row.statusLabel}</Badge></TableCell>
+              <TableCell><Badge variant="secondary" className="invoice-table-status">{row.statusLabel}</Badge></TableCell>
               <TableCell className="text-muted-foreground">{row.dateLabel}</TableCell>
               <TableCell><span className="tabular-nums">{row.amountLabel}</span></TableCell>
               <TableCell>{row.warningLabels.length === 0 ? <span className="text-muted-foreground">—</span>
-                : <Tooltip text={row.warningLabels.join('; ')} asChild><Badge variant="destructive" className="document-table-status"><CircleAlert size={13} />{row.warningLabels.length}</Badge></Tooltip>}</TableCell>
+                : <Tooltip text={row.warningLabels.join('; ')} asChild><Badge variant="destructive" className="invoice-table-status"><CircleAlert size={13} />{row.warningLabels.length}</Badge></Tooltip>}</TableCell>
             </TableRow>)}
             {loading && <TableSkeleton columns={columns.length} />}
             {!loading && !failed && rows.length === 0 && <TableRow className="hover:bg-transparent"><TableCell colSpan={columns.length} className="h-40 text-center text-muted-foreground">{search.trim() ? labels.noResults : labels.emptySnapshot}</TableCell></TableRow>}
