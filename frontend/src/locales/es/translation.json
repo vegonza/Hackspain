@@ -32,7 +32,7 @@
     "deleteConfirmation": "¿Eliminar «{{name}}»?",
     "noMarkdown": "El PDF está guardado, pero no se pudo extraer su Markdown.",
     "invalidPdf": "Selecciona un archivo PDF válido.",
-    "duplicatePdf": "Este PDF ya está subido, aunque tenga otro nombre.",
+    "duplicatePdf": "Este PDF ya está subido.",
     "ocrFailed": "El PDF se ha guardado, pero ha fallado el OCR. Comprueba la clave de Mistral y la conexión.",
     "requestFailed": "No se ha podido completar la solicitud. Comprueba la conexión con el servidor."
   },
