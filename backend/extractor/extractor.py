@@ -46,6 +46,7 @@ class ExtractionManager:
         self, instruction: str, content: str, result_type: type[Result],
         usage: UsageRecord | None = None,
         page_images: Sequence[bytes] = (),
+        *, model: str = MODEL,
     ) -> Result:
         user_content: list[ChatCompletionContentPartParam] = [{"type": "text", "text": content}]
         for number, image in enumerate(page_images, start=1):
@@ -57,7 +58,7 @@ class ExtractionManager:
                 }},
             ])
         result = self.client.chat.completions.create(
-            model=MODEL,
+            model=model,
             stream=False,
             messages=[
                 {"role": "system", "content": instruction},
@@ -89,7 +90,7 @@ class ExtractionManager:
         if function.name != result_type.__name__:
             raise ValueError(f"Unexpected output tool: {function.name}")
         parsed = result_type.model_validate_json(function.arguments)
-        logger.info("[EXTRACTION] Extracted %s with %s", result_type.__name__, MODEL)
+        logger.info("[EXTRACTION] Extracted %s with %s", result_type.__name__, model)
         return parsed
 
 

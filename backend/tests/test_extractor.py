@@ -72,6 +72,12 @@ class RequiredOutputToolTests(unittest.TestCase):
         self.assertEqual(self.usage.usage[0].provider, "OpenAI")
         self.assertEqual(self.usage.usage[0].cost, Decimal("0.001"))
 
+    def test_classification_model_is_independent_of_extraction_model(self) -> None:
+        self.manager.run("Review notes", "Notes", ExtractedText, model="openai/gpt-5.6-luna")
+        self.assertEqual(json.loads(self.requests[-1].content)["model"], "openai/gpt-5.6-luna")
+        self.manager.run("Extract invoice", "Invoice", ExtractedText)
+        self.assertEqual(json.loads(self.requests[-1].content)["model"], "google/gemini-3.8-flash")
+
     def test_requires_exactly_one_call_without_using_message_content_or_making_another_request(self) -> None:
         for calls in ([], [tool_call('{"text":"One"}'), tool_call('{"text":"Two"}')]):
             with self.subTest(calls=len(calls)):

@@ -4,6 +4,7 @@ services:
   erp:
     build:
       context: ./infra/erp
+    command: ["--lote2", "/challenge/erp_export_lote2.csv"]
     init: true
     restart: unless-stopped
     volumes:

@@ -96,6 +96,6 @@ class RedoTests(unittest.TestCase):
             reset_invoice(self.document.id, self.document.name)
         database.table.assert_called_once_with("documents")
         fields = database.table.return_value.update.call_args.args[0]
-        self.assertEqual(set(fields), (set(InvoiceExtraction.model_fields) - {"notes", "uncertainties"}) | {"status", "pages", "erp_entry_id", "payment_decision", "started_at", "finished_at", "duration_ms", "result_path"})
+        self.assertEqual(set(fields), (set(InvoiceExtraction.model_fields) - {"notes", "uncertainties"}) | {"status", "pages", "exchange_rate", "erp_snapshot_id", "erp_entry_id", "payment_decision", "started_at", "finished_at", "duration_ms", "result_path"})
         self.assertEqual(fields["status"], "queued")
         self.assertTrue(all(value is None for key, value in fields.items() if key not in {"status", "pages"}))

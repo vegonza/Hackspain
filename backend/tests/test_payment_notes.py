@@ -33,6 +33,7 @@ class PaymentNotesTests(unittest.TestCase):
         with patch("invoices.payment_notes.create_extractor") as factory:
             factory.return_value.__enter__.return_value.run.return_value = review
             result = review_payment_notes(["Pago a 30 días. Pedido anulado."], {})
+        self.assertEqual(factory.return_value.__enter__.return_value.run.call_args.kwargs["model"], "openai/gpt-5.6-luna")
         self.assertEqual(result.concerns[0].evidence, "Pago a 30 días. Pedido anulado.")
 
 
