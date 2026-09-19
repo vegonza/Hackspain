@@ -14,6 +14,7 @@ from extractor.extraction import InvoiceExtraction
 from shared.logger import get_logger
 from erp import ErpEntry
 from rules.models import Decision
+from rules.currency import reconciliation_rate
 
 
 INVOICE_VIRTUAL_FIELDS = {"payment_decision", "retry_attempts", "last_error", "next_retry_at", "total_cost_usd", "total_duration_ms", "finished_at"}
@@ -93,7 +94,7 @@ def reset_invoice(invoice_id: UUID, name: str) -> None:
     client = get_client()
     fields = {field: None for field in InvoiceExtraction.model_fields if field not in {"notes", "uncertainties"}}
     client.table("documents").update({
-        **fields, "exchange_rate": None, "exchange_rate_date": None, "status": "queued", "pages": 0, "erp_entry_id": None, "payment_decision": None,
+        **fields, "exchange_rate": None, "status": "queued", "pages": 0, "erp_entry_id": None, "payment_decision": None,
         "started_at": None, "finished_at": None, "duration_ms": None, "result_path": None,
     }).eq("id", str(invoice_id)).is_("deleted_at", "null").execute()
     get_logger().info("[INVOICES] Reset processing results for %s", name)
@@ -123,6 +124,8 @@ def save_invoice_extraction(invoice_id: UUID, name: str, extraction: InvoiceExtr
     """Store searchable invoice fields; the extraction artifact retains notes and uncertainties."""
     fields = extraction.model_dump(mode="json", exclude={"notes", "uncertainties"})
     fields["supplier_nif"] = normalize_tax_id(extraction.supplier_nif)
+    rate = reconciliation_rate(extraction.currency)
+    fields["exchange_rate"] = str(rate) if rate is not None else None
     for amount in ("tax_base", "vat_rate", "vat_amount", "total"):
         if fields[amount] == "":
             fields[amount] = None

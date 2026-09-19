@@ -23,7 +23,6 @@ CREATE TABLE IF NOT EXISTS public.documents (
     total NUMERIC,
     currency TEXT,
     exchange_rate NUMERIC,
-    exchange_rate_date DATE,
     tax_base_eur NUMERIC GENERATED ALWAYS AS (round(tax_base * exchange_rate, 2)) STORED,
     vat_amount_eur NUMERIC GENERATED ALWAYS AS (round(vat_amount * exchange_rate, 2)) STORED,
     total_eur NUMERIC GENERATED ALWAYS AS (round(total * exchange_rate, 2)) STORED,

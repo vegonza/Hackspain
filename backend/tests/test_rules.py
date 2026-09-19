@@ -113,3 +113,45 @@ class RulesTests(unittest.TestCase):
         self.assertEqual(self.classification(), 'ESCALAR')
         self.context.entries = []
         self.assertEqual(self.classification(), 'ESCALAR')
+
+    def test_fixed_rates_reconcile_original_amounts_with_euro_references(self) -> None:
+        for currency, original, euros in (
+            ('EUR', '1500.40', '1500.40'), ('USD', '2450', '2254'),
+            ('GBP', '2900', '3393'), ('CHF', '4200', '4410'),
+            ('JPY', '850000', '5244.50'), ('BRL', '15500', '2500'),
+        ):
+            with self.subTest(currency=currency):
+                invoice = self.context.invoice
+                invoice.currency = currency
+                invoice.tax_base = invoice.total = original
+                invoice.vat_rate = invoice.vat_amount = '0'
+                invoice.line_items = [InvoiceLine(description='Servicio', amount=original)]
+                self.context.order.amount = Decimal(euros)
+                self.context.entries[0].amount = Decimal(euros)
+                self.assertEqual(self.classification(), 'PAGAR')
+                self.assertEqual(invoice.total, original)
+                self.context.order.amount += Decimal('1')
+                self.assertEqual(self.classification(), 'ESCALAR')
+                self.context.order.amount = Decimal(euros)
+                self.context.entries[0].amount += Decimal('1')
+                self.assertEqual(self.classification(), 'ESCALAR')
+
+    def test_unsupported_or_missing_currency_escalates_even_when_raw_amounts_match(self) -> None:
+        for currency in ('MXN', ''):
+            with self.subTest(currency=currency):
+                self.context.invoice.currency = currency
+                self.context.entries[0].status = 'PENDIENTE'
+                self.assertEqual(self.classification(), 'ESCALAR')
+                self.context.entries[0].status = 'PAGADA'
+                self.assertEqual(self.classification(), 'NO_PAGAR')
+
+    def test_yen_arithmetic_uses_euro_tolerance_without_rounding_away_errors(self) -> None:
+        invoice = self.context.invoice
+        invoice.currency = 'JPY'
+        invoice.tax_base = invoice.total = '850000'
+        invoice.vat_rate = invoice.vat_amount = '0'
+        self.context.order.amount = self.context.entries[0].amount = Decimal('5244.50')
+        invoice.line_items = [InvoiceLine(description='Servicio', amount='850001')]
+        self.assertEqual(self.classification(), 'PAGAR')
+        invoice.line_items[0].amount = '850002'
+        self.assertEqual(self.classification(), 'ESCALAR')

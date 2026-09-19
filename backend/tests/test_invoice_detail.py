@@ -100,7 +100,7 @@ class InvoiceDetailTests(unittest.TestCase):
         payload = client.table.return_value.update.call_args.args[0]
         self.assertEqual(payload["invoice_date"], "31/02/2026")
         self.assertEqual(payload["total"], "149382714704937.5952")
-        self.assertEqual(set(payload), (set(InvoiceExtraction.model_fields) - {"notes", "uncertainties"}) | {"payment_decision"})
+        self.assertEqual(set(payload), (set(InvoiceExtraction.model_fields) - {"notes", "uncertainties"}) | {"payment_decision", "exchange_rate"})
         client.table.return_value.update.return_value.eq.assert_called_once_with("id", str(identifier))
         self.assertEqual(InvoiceExtraction.model_validate_json(extraction.model_dump_json()), extraction)
 
@@ -116,3 +116,17 @@ class InvoiceDetailTests(unittest.TestCase):
         for field in ("tax_base", "vat_rate", "vat_amount", "total"):
             self.assertIsNone(payload[field])
             self.assertEqual(getattr(extraction, field), "")
+
+    def test_fixed_exchange_rate_is_saved_without_inventing_a_date(self) -> None:
+        from tests.test_features import extracted_items
+
+        extraction = extracted_items([])
+        for currency, rate in (("USD", "0.92"), ("EUR", "1"), ("MXN", None), ("", None)):
+            with self.subTest(currency=currency), patch("invoices.repository.get_client") as client:
+                extraction.currency = currency
+                save_invoice_extraction(uuid4(), "invoice.pdf", extraction)
+                payload = client.return_value.table.return_value.update.call_args.args[0]
+                self.assertEqual(payload["exchange_rate"], rate)
+                self.assertNotIn("exchange_rate_date", payload)
+                self.assertEqual(payload["total"], extraction.total)
+                self.assertNotIn("total_eur", payload)

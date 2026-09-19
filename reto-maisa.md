@@ -80,6 +80,16 @@ DEBÉIS MOSTRAR
 
 Qué cambia, cómo seguís su impacto y cuáles son los límites del sistema. No se puntúa un conteo de aciertos: se evalúan arquitectura, observabilidad y recuperación.
 
++40 FACTURITAS · LOTE SORPRESA
+
+## Albertito te toca a la puerta
+
+El primo de Alberto ha encontrado debajo de la mesa donde tiene el Thinkpad del 2011 corriendo el ERP un CD con nuevos CSVs y unas facturas nuevas que te obliga a procesar, además te ha parecido escuchar que se ha caído un café por ahí...
+
+INSTRUCCIONES
+
+Haceos pull del repo del hackaton y disfrutad de los nuevos ficheros en lote_2_sorpresa. En él encontraréis los CSVs erp_export_lote2, pedidos_nuevos.csv y proveedores_nuevos.csv, además de 40 nuevas facturitas.
+
 TRIBUNAL · 100 PUNTOS + 10 DE BONUS
 
 ## Criterios de evaluación
@@ -270,14 +280,6 @@ Estamos para ayudaros
 Somos el equipo de Maisa. Acercaos al espacio del track para resolver dudas, consultar una decisión de diseño o hacer un simulacro breve de defensa.
 
 No hace falta tenerlo todo resuelto para preguntar.
-
-MAISA · PREMIOS
-
-Primer premio
-
-## Viaje a nuestras oficinas en Valencia
-
-Para vivir la experiencia Maisa.
 
 ## Empezad el reto.
 
