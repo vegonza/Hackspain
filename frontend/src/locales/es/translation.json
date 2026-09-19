@@ -6,7 +6,13 @@
     "cancel": "Cancelar"
   },
   "documents": {
-    "library": "Facturas",
+    "library": "Documentos",
+    "search": "Buscar documentos…",
+    "back": "Volver a documentos",
+    "status": "Estado",
+    "pages": "Páginas",
+    "created": "Fecha de subida",
+    "noResults": "No hay documentos que coincidan con la búsqueda.",
     "document": "Documento",
     "upload": "Subir PDF",
     "uploading": "Subiendo",

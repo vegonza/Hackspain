@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, type ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { formatDateLong } from '@/lib/format'
 import { toast } from 'sonner'
 import { deleteDocument, fetchStageCosts, retryDocument, fetchDocument, fetchDocuments, fetchPdfUrl, uploadDocument, type Document, type DocumentDetail, type StageId } from '@/api/documents'
 
@@ -7,6 +8,7 @@ interface UploadingFile { id: string; name: string }
 
 export function useDocuments(initialDocuments: Document[]) {
   const { t } = useTranslation()
+  const [search, setSearch] = useState('')
   const [view, setView] = useState<'documents' | 'usage'>('documents')
   const [documents, setDocuments] = useState(initialDocuments)
   const [uploads, setUploads] = useState<UploadingFile[]>([])
@@ -108,6 +110,17 @@ export function useDocuments(initialDocuments: Document[]) {
     }
   }, [t, updateDocuments])
 
+  function onBack(): void {
+    ++selectionRequest.current
+    activeId.current = null
+    setSelectedId(null)
+    setSelected(null)
+    setPdfUrl(null)
+    setLoading(false)
+    setPdfLoading(false)
+    setView('documents')
+  }
+
   async function onUpload(event: ChangeEvent<HTMLInputElement>): Promise<void> {
     const files = Array.from(event.target.files || [])
     event.target.value = ''
@@ -118,7 +131,8 @@ export function useDocuments(initialDocuments: Document[]) {
     setView('documents')
     const pending = valid.map(file => ({ id: `upload-${crypto.randomUUID()}`, name: file.name, file }))
     setUploads(current => [...pending, ...current])
-    void selectDocument(pending[0].id)
+    onBack()
+    setSearch('')
     const tasks = pending.values()
     async function transfer(): Promise<void> {
       for (const item of tasks) {
@@ -192,6 +206,8 @@ export function useDocuments(initialDocuments: Document[]) {
     statusLabel: document.status !== 'uploading' && document.next_retry_at !== null
       ? t('documents.retryQueued') : t(`documents.${document.status}`),
     deleteConfirmation: t('documents.deleteConfirmation', { name: document.name }),
+    dateLabel: document.status === 'uploading' ? '—' : formatDateLong(document.created_at, 'es-ES'),
+    pagesLabel: document.status === 'uploading' || document.pages === 0 ? '—' : String(document.pages),
     errorMessage: document.status === 'error' ? t('documents.error') : '',
   }))
 
@@ -228,17 +244,19 @@ export function useDocuments(initialDocuments: Document[]) {
   return {
     stages, activeStage, totalCost, erpRows,
     documents: rows,
+    filteredDocuments: rows.filter(document => document.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())),
+    search, onSearch: setSearch, onBack,
     selected,
     selectedId, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments,
     onRetry, retrying,
     selectedRow: rows.find(document => document.id === selectedId),
-    uploadSelected: rows.some(document => document.id === selectedId && document.status === 'uploading'),
-    view, onUsage: () => setView('usage'),
+    view, onUsage: () => { onBack(); setView('usage') },
     onUpload, onDelete, onSelect: (id: string) => { setView('documents'); return selectDocument(id) }, onSourceTab: setSourceTab,
     labels: {
       erp: t('erp.title'),
       totalCost: t('usage.totalCost'), pipeline: t('pipeline.title'), waiting: t('pipeline.waiting'), appName: t('app.name'), upload: t('documents.upload'),
-      library: t('documents.library'),
+      library: t('documents.library'), search: t('documents.search'), back: t('documents.back'),
+      errorStatus: t('pipeline.status.error'), status: t('documents.status'), pages: t('documents.pages'), created: t('documents.created'), noResults: t('documents.noResults'),
       emptyList: t('documents.emptyList'), emptyTitle: t('documents.emptyTitle'),
       emptyDescription: t('documents.emptyDescription'), pdf: t('documents.pdf'),
       markdown: t('documents.markdown'), noMarkdown: t('documents.noMarkdown'),

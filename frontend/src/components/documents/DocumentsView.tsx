@@ -1,17 +1,16 @@
+import { DocumentsTable } from '@/components/documents/DocumentsTable'
 import { MarkdownDiff } from '@/components/documents/MarkdownDiff'
 import { DocumentErp } from '@/components/documents/DocumentErp'
 import { DocumentPipeline } from '@/components/documents/DocumentPipeline'
 import { Skeleton } from '@/components/ui/skeleton'
-import { DollarSign, LoaderCircle, Upload } from 'lucide-react'
+import { ArrowLeft, FileText, DollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import { UsageView } from '@/components/usage/UsageView'
 import type { useUsage } from '@/hooks/useUsage'
 import logo from '@/assets/logo.svg'
 import type { useDocuments } from '@/hooks/useDocuments'
-import { ReviewSkeleton } from '@/components/documents/ReviewSkeleton'
 import { Markdown } from '@/components/documents/Markdown'
-import { DeleteButton } from '@/components/ui/delete-button'
 import { PdfViewer } from '@/components/documents/PdfViewer'
 import { InvoiceFeatures } from '@/components/documents/InvoiceFeatures'
 import { InvoiceFeaturesSkeleton } from '@/components/documents/InvoiceFeaturesSkeleton'
@@ -19,44 +18,22 @@ import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
 
 type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsage> }
 
-export function DocumentsView({ erpRows, stages, activeStage, totalCost, documents, selected, selectedId, selectedRow, loading, pdfUrl, pdfLoading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage, onRetry, retrying }: Props) {
+export function DocumentsView({ erpRows, stages, activeStage, totalCost, filteredDocuments, search, onSearch, onBack, selected, selectedRow, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage, onRetry, retrying }: Props) {
   return (
     <div className="app-shell" ref={watchDocuments}>
-      <header className="app-header">
-        <img className="brand-logo" src={logo} alt={labels.appName} />
-        {view === 'usage' && <h1>{labels.usage}</h1>}
-        <label className="upload-button">
-          <Upload size={15} />{labels.upload}
-          <input type="file" accept="application/pdf,.pdf" multiple onChange={onUpload} aria-label={labels.upload} />
-        </label>
-      </header>
         <main className="review-layout">
           <aside className="sidebar">
-            <nav className="document-list" aria-label={labels.library}>
-              {documents.length === 0 && <p className="empty-list">{labels.emptyList}</p>}
-              {documents.map(document => (
-                <div key={document.id} className="document-row" data-selected={view === 'documents' && selectedId === document.id}>
-                  <Button variant="sidebar" size="sidebar" className="document-item" aria-current={view === 'documents' && selectedId === document.id ? 'true' : undefined}
-                    onClick={() => void onSelect(document.id)}>
-                    {(document.pending || document.status === 'error') && <span className="document-leading">
-                      {document.pending ? <Tooltip text={document.statusLabel} asChild><span className="flex"><LoaderCircle size={15} className="upload-spinner" aria-label={document.statusLabel} /></span></Tooltip>
-                        : <Tooltip text={document.errorMessage || labels.error} asChild><span className="error-dot" aria-label={labels.error} /></Tooltip>}
-                    </span>}
-                    <Tooltip text={document.name} onlyWhenTruncated asChild><span className="document-name">{document.name}</span></Tooltip>
-                  </Button>
-                  {!document.pending && <DeleteButton label={labels.delete} confirmation={document.deleteConfirmation}
-                    disabled={deleting} onDelete={() => void onDelete(document.id)} />}
-                </div>
-              ))}
+            <div className="sidebar-brand"><img className="brand-logo" src={logo} alt={labels.appName} /></div>
+            <nav className="sidebar-navigation" aria-label={labels.appName}>
+              <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'documents' ? 'bg-selected hover:bg-selected' : ''}`} aria-current={view === 'documents' ? 'page' : undefined} onClick={onBack}><FileText /><span>{labels.library}</span></Button>
+              <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'usage' ? 'bg-selected hover:bg-selected' : ''}`} aria-current={view === 'usage' ? 'page' : undefined} onClick={onUsage}><DollarSign /><span>{labels.usage}</span></Button>
             </nav>
-            <Button variant="sidebar" size="sidebar" className={`sidebar-usage mt-3 [&>svg]:text-muted-foreground ${view === 'usage' ? 'bg-selected hover:bg-selected' : ''}`} aria-current={view === 'usage' ? 'page' : undefined} onClick={onUsage}><DollarSign /><span>{labels.usage}</span></Button>
           </aside>
-          {view === 'usage' ? <UsageView {...usage} /> : uploadSelected ? (
-            <ReviewSkeleton label={labels.loading} />
-          ) : selectedRow ? (
+          {view === 'usage' ? <UsageView {...usage} /> : selectedRow ? (
             <div className="review-desk">
               <section className="viewer-panel" aria-label={sourceTab === 'pdf' ? labels.pdf : labels.markdown}>
                 <header className="source-header">
+                  <Button variant="ghost" size="icon-sm" onClick={onBack} aria-label={labels.back} title={labels.back}><ArrowLeft size={16} /></Button>
                   <Tooltip text={selectedRow.name} onlyWhenTruncated asChild><h2>{selectedRow.name}</h2></Tooltip>
                   {selectedRow.status === 'error' && <Button variant="outline" size="sm" disabled={retrying} onClick={() => void onRetry(selectedRow.id)}>{labels.retry}</Button>}
                   <div className="source-tabs" role="group" aria-label={labels.document}>
@@ -90,7 +67,7 @@ export function DocumentsView({ erpRows, stages, activeStage, totalCost, documen
                 <DocumentErp title={labels.erp} loading={loading} rows={erpRows} />
               </section>
             </div>
-          ) : <div className="empty-review"><p>{labels.emptyDescription}</p></div>}
+          ) : <DocumentsTable onUpload={onUpload} rows={filteredDocuments} search={search} onSearch={onSearch} onSelect={onSelect} onDelete={onDelete} deleting={deleting} labels={labels} />}
         </main>
     </div>
   )
