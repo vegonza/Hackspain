@@ -1,12 +1,10 @@
-from datetime import datetime
-from pathlib import Path
+from datetime import datetime, timezone
 from typing import Literal
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import HTTPException
 from pydantic import BaseModel
-
-DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+from shared.storage import get_client
 
 
 class Document(BaseModel):
@@ -17,18 +15,25 @@ class Document(BaseModel):
     pages: int = 0
 
 
-def document_directory(document_id: UUID) -> Path:
-    directory = DATA_DIR / str(document_id)
-    if not (directory / "metadata.json").is_file():
+def read_document(document_id: UUID) -> Document:
+    rows = get_client().table("documents").select("*").eq("id", str(document_id)).is_("deleted_at", "null").execute().data
+    if not rows:
         raise HTTPException(status_code=404, detail="document_not_found")
-    return directory
+    return Document.model_validate(rows[0])
 
 
-def read_document(directory: Path) -> Document:
-    return Document.model_validate_json((directory / "metadata.json").read_text())
+def list_documents() -> list[Document]:
+    documents: list[Document] = []
+    while True:
+        rows = get_client().table("documents").select("*").is_("deleted_at", "null").order("created_at", desc=True).order("id").range(len(documents), len(documents) + 999).execute().data
+        documents.extend(Document.model_validate(row) for row in rows)
+        if len(rows) < 1000:
+            return documents
 
 
-def write_document(directory: Path, document: Document) -> None:
-    temporary = directory / f"metadata-{uuid4()}.tmp"
-    temporary.write_text(document.model_dump_json(), encoding="utf-8")
-    temporary.replace(directory / "metadata.json")
+def write_document(document: Document) -> None:
+    get_client().table("documents").upsert(document.model_dump(mode="json")).execute()
+
+
+def archive_document(document_id: UUID) -> None:
+    get_client().table("documents").update({"deleted_at": datetime.now(timezone.utc).isoformat()}).eq("id", str(document_id)).execute()

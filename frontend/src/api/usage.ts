@@ -1,0 +1,24 @@
+import { fetchJson } from '@/api/client'
+
+export interface UsageRecord {
+  id: string
+  created_at: string
+  document_name: string
+  document_id: string
+  provider: 'mistral' | 'openrouter'
+  model: string
+  operation: string
+  usage: { model: string; provider: string; cost: string; details: Record<string, unknown> }[]
+}
+
+export interface UsageResponse {
+  records: UsageRecord[]
+  total: number
+  page_size: number
+  summary: { calls: number; pages: number; cost_usd: string; average_daily_cost_usd: string }
+  daily: { date: string; calls: number; cost_usd: string; operations: Record<string, string> }[]
+}
+
+export function fetchUsage(page: number): Promise<UsageResponse> {
+  return fetchJson(`/usage?page=${page}`)
+}

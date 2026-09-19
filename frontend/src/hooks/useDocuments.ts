@@ -7,6 +7,7 @@ interface UploadingFile { id: string; name: string }
 
 export function useDocuments(initialDocuments: Document[]) {
   const { t } = useTranslation()
+  const [view, setView] = useState<'documents' | 'usage'>('documents')
   const [documents, setDocuments] = useState(initialDocuments)
   const [uploads, setUploads] = useState<UploadingFile[]>([])
   const [selected, setSelected] = useState<DocumentDetail | null>(null)
@@ -99,6 +100,7 @@ export function useDocuments(initialDocuments: Document[]) {
     const valid = files.filter(file => file.name.toLowerCase().endsWith('.pdf'))
     if (valid.length !== files.length) toast.error(t('documents.invalidPdf'))
     if (valid.length === 0) return
+    setView('documents')
     const pending = valid.map(file => ({ id: `upload-${crypto.randomUUID()}`, name: file.name, file }))
     setUploads(current => [...pending, ...current])
     void selectDocument(pending[0].id)
@@ -164,7 +166,8 @@ export function useDocuments(initialDocuments: Document[]) {
     selected, selectedId, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments,
     selectedRow: rows.find(document => document.id === selectedId),
     uploadSelected: rows.some(document => document.id === selectedId && document.pending),
-    onUpload, onDelete, onSelect: selectDocument, onSourceTab: setSourceTab,
+    view, onUsage: () => setView('usage'),
+    onUpload, onDelete, onSelect: (id: string) => { setView('documents'); return selectDocument(id) }, onSourceTab: setSourceTab,
     labels: {
       appName: t('app.name'), upload: t('documents.upload'),
       library: t('documents.library'),
@@ -176,6 +179,7 @@ export function useDocuments(initialDocuments: Document[]) {
       delete: t('documents.delete'),
       document: t('documents.document'),
       pdfError: t('documents.pdfError'),
+      usage: t('usage.title'),
     },
     featureLabels: {
       invoiceNumber: t('features.invoiceNumber'), invoiceDate: t('features.invoiceDate'),

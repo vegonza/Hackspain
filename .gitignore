@@ -2,6 +2,7 @@
 /500-sombras-de-alberto/
 /invoice_review.csv
 /backend/data/
+/database/migration_*.sql
 
 # Environment files and credentials
 .env

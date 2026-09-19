@@ -5,6 +5,7 @@ from typing import Literal
 from fastapi import FastAPI
 from pydantic import BaseModel
 from documents.router import router as documents_router
+from usage.router import router as usage_router
 from shared.logger import setup_logger
 
 environment = os.environ["ENV"]
@@ -24,6 +25,7 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
 )
 app.include_router(documents_router)
+app.include_router(usage_router)
 
 
 @app.get("/api/health")

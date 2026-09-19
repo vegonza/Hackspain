@@ -1,4 +1,7 @@
-import { LoaderCircle, Upload } from 'lucide-react'
+import { DollarSign, LoaderCircle, Upload } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { UsageView } from '@/components/usage/UsageView'
+import type { useUsage } from '@/hooks/useUsage'
 import logo from '@/assets/logo.svg'
 import type { useDocuments } from '@/hooks/useDocuments'
 import { ReviewSkeleton } from '@/components/documents/ReviewSkeleton'
@@ -9,15 +12,15 @@ import { InvoiceFeatures } from '@/components/documents/InvoiceFeatures'
 import { InvoiceFeaturesSkeleton } from '@/components/documents/InvoiceFeaturesSkeleton'
 import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
 
-type Props = ReturnType<typeof useDocuments>
+type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsage> }
 
-export function DocumentsView({ documents, selected, selectedId, selectedRow, loading, pdfUrl, pdfLoading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels }: Props) {
+export function DocumentsView({ documents, selected, selectedId, selectedRow, loading, pdfUrl, pdfLoading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage }: Props) {
   return (
     <div className="app-shell" ref={watchDocuments}>
       <header className="app-header">
         <img className="brand-logo" src={logo} alt={labels.appName} />
         <span className="header-divider" />
-        <h1>{labels.library}</h1>
+        <h1>{view === 'usage' ? labels.usage : labels.library}</h1>
         <span className="document-count">{documents.length}</span>
         <label className="upload-button">
           <Upload size={15} />{labels.upload}
@@ -29,20 +32,21 @@ export function DocumentsView({ documents, selected, selectedId, selectedRow, lo
             <nav className="document-list" aria-label={labels.library}>
               {documents.length === 0 && <p className="empty-list">{labels.emptyList}</p>}
               {documents.map(document => (
-                <div key={document.id} className="document-row" data-selected={selectedId === document.id}>
-                  <button className="document-item" aria-current={selectedId === document.id ? 'true' : undefined}
+                <div key={document.id} className="document-row" data-selected={view === 'documents' && selectedId === document.id}>
+                  <Button variant="sidebar" size="sidebar" className="document-item" aria-current={view === 'documents' && selectedId === document.id ? 'true' : undefined}
                     onClick={() => void onSelect(document.id)}>
                     <span className="document-name" title={document.name}>{document.name}</span>
                     {document.pending && <LoaderCircle size={15} className="upload-spinner" aria-label={document.statusLabel} />}
                     {document.status === 'error' && <span className="error-dot" title={labels.error} />}
-                  </button>
+                  </Button>
                   {!document.pending && <DeleteButton label={labels.delete} confirmation={document.deleteConfirmation}
                     disabled={deleting} onDelete={() => void onDelete(document.id)} />}
                 </div>
               ))}
             </nav>
+            <Button variant="sidebar" size="sidebar" className={`mt-3 [&>svg]:text-muted-foreground ${view === 'usage' ? 'bg-selected hover:bg-selected' : ''}`} aria-current={view === 'usage' ? 'page' : undefined} onClick={onUsage}><DollarSign /><span>{labels.usage}</span></Button>
           </aside>
-          {uploadSelected ? (
+          {view === 'usage' ? <UsageView {...usage} /> : uploadSelected ? (
             <ReviewSkeleton label={labels.loading} />
           ) : selectedRow ? (
             <div className="review-desk">

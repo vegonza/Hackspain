@@ -33,6 +33,15 @@
     "ocrFailed": "El PDF se ha guardado, pero ha fallado el OCR. Comprueba la clave de Mistral y la conexión.",
     "requestFailed": "No se ha podido completar la solicitud. Comprueba la conexión con el servidor."
   },
+  "usage": {
+    "title": "Uso", "cost": "Coste", "calls": "Llamadas", "pages": "Páginas procesadas",
+    "totalCost": "Coste total", "dailyCost": "Coste medio diario",
+    "providers": { "mistral": "Mistral", "openrouter": "OpenRouter" },
+    "breakdown": { "pages_processed": "Páginas", "prompt_tokens": "Tokens de entrada", "completion_tokens": "Tokens de salida", "total_tokens": "Tokens totales" },
+    "history": "Registro de llamadas", "records_one": "{{count}} registro", "records_other": "{{count}} registros", "date": "Fecha", "document": "Documento", "model": "Modelo",
+    "provider": "Proveedor", "operation": "Operación",
+    "empty": "No hay llamadas registradas.", "previous": "Anterior", "next": "Siguiente"
+  },
   "features": {
     "invoiceNumber": "Número de factura",
     "invoiceDate": "Fecha",

@@ -4,6 +4,9 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
   try {
     const response = await fetch(`${API_BASE}${url}`, options)
     if (!response.ok) {
+      if (response.status >= 500 || !response.headers.get('content-type')?.includes('application/json')) {
+        throw new Error(i18n.t('documents.requestFailed'))
+      }
       const error: { detail: unknown } = await response.json()
       const message = error.detail === 'invalid_pdf'
         ? i18n.t('documents.invalidPdf')
@@ -15,7 +18,7 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
     return response
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error
-    toast.error(error instanceof Error && !(error instanceof TypeError)
+    toast.error(error instanceof Error && !(error instanceof TypeError) && !(error instanceof SyntaxError)
       ? error.message
       : i18n.t('documents.requestFailed'))
     throw error

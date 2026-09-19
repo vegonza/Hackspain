@@ -1,23 +1,28 @@
 import base64
 import os
+from decimal import Decimal
 
 from mistralai.client import Mistral
 from shared.logger import get_logger
 from shared.storage import upload_file
+from shared.usage import UsageEntry, track_usage
 
 logger = get_logger()
 OCR_MODEL = "mistral-ocr-latest"
 OCR_TIMEOUT_MS = 180_000
+OCR_COST_PER_PAGE = Decimal("0.004")
 MISTRAL_API_KEY = os.environ["MISTRAL_API_KEY"]
 
 
-def extract_markdown(pdf_bytes: bytes, document_id: str) -> tuple[str, int]:
+def extract_markdown(pdf_bytes: bytes, document_id: str, document_name: str) -> tuple[str, int]:
     """Extract page Markdown with Mistral OCR and store images in the private bucket."""
     if not MISTRAL_API_KEY.strip():
         raise ValueError("MISTRAL_API_KEY is empty")
 
     encoded = base64.b64encode(pdf_bytes).decode("utf-8")
-    with Mistral(api_key=MISTRAL_API_KEY, timeout_ms=OCR_TIMEOUT_MS) as client:
+    with Mistral(api_key=MISTRAL_API_KEY, timeout_ms=OCR_TIMEOUT_MS) as client, track_usage(
+        "mistral", OCR_MODEL, "ocr", document_id, document_name,
+    ) as usage:
         response = client.ocr.process(
             document={
                 "type": "document_url",
@@ -26,6 +31,12 @@ def extract_markdown(pdf_bytes: bytes, document_id: str) -> tuple[str, int]:
             model=OCR_MODEL,
             include_image_base64=True,
         )
+        usage.usage = [UsageEntry(
+            model=OCR_MODEL, provider="mistral",
+            cost=Decimal(response.usage_info.pages_processed) * OCR_COST_PER_PAGE,
+            details={**response.usage_info.model_dump(mode="json"),
+                     "cost_per_page_usd": str(OCR_COST_PER_PAGE), "cost_estimated": True},
+        )]
 
     pages: list[str] = []
     for page in response.pages:
