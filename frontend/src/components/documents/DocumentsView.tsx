@@ -38,16 +38,18 @@ export function DocumentsView({ erpRows, stages, activeStage, totalCost, documen
                 <div key={document.id} className="document-row" data-selected={view === 'documents' && selectedId === document.id}>
                   <Button variant="sidebar" size="sidebar" className="document-item" aria-current={view === 'documents' && selectedId === document.id ? 'true' : undefined}
                     onClick={() => void onSelect(document.id)}>
+                    {(document.pending || document.status === 'error') && <span className="document-leading">
+                      {document.pending ? <Tooltip text={document.statusLabel} asChild><span className="flex"><LoaderCircle size={15} className="upload-spinner" aria-label={document.statusLabel} /></span></Tooltip>
+                        : <Tooltip text={document.errorMessage || labels.error} asChild><span className="error-dot" aria-label={labels.error} /></Tooltip>}
+                    </span>}
                     <Tooltip text={document.name} onlyWhenTruncated asChild><span className="document-name">{document.name}</span></Tooltip>
-                    {document.pending && <Tooltip text={document.statusLabel} asChild><span className="ml-auto flex"><LoaderCircle size={15} className="upload-spinner" aria-label={document.statusLabel} /></span></Tooltip>}
-                    {document.status === 'error' && <Tooltip text={document.errorMessage || labels.error} asChild><span className="error-dot" aria-label={labels.error} /></Tooltip>}
                   </Button>
                   {!document.pending && <DeleteButton label={labels.delete} confirmation={document.deleteConfirmation}
                     disabled={deleting} onDelete={() => void onDelete(document.id)} />}
                 </div>
               ))}
             </nav>
-            <Button variant="sidebar" size="sidebar" className={`mt-3 [&>svg]:text-muted-foreground ${view === 'usage' ? 'bg-selected hover:bg-selected' : ''}`} aria-current={view === 'usage' ? 'page' : undefined} onClick={onUsage}><DollarSign /><span>{labels.usage}</span></Button>
+            <Button variant="sidebar" size="sidebar" className="sidebar-usage" aria-current={view === 'usage' ? 'page' : undefined} onClick={onUsage}><DollarSign /><span>{labels.usage}</span></Button>
           </aside>
           {view === 'usage' ? <UsageView {...usage} /> : uploadSelected ? (
             <ReviewSkeleton label={labels.loading} />
