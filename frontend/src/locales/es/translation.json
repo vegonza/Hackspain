@@ -39,7 +39,7 @@
   "usage": {
     "pendingError": "{{count}} registros de consumo pendientes de guardar tras un error.",
     "title": "Consumo", "cost": "Coste", "calls": "Llamadas", "pages": "Páginas procesadas",
-    "totalCost": "Coste total", "dailyCost": "Coste medio diario",
+    "totalCost": "Coste total", "documentCost": "Coste medio por documento",
     "providers": { "mistral": "Mistral", "openrouter": "OpenRouter" },
     "breakdown": { "pages_processed": "Páginas", "prompt_tokens": "Tokens de entrada", "completion_tokens": "Tokens de salida", "total_tokens": "Tokens totales" },
     "history": "Registro de llamadas", "records_one": "{{count}} registro", "records_other": "{{count}} registros", "date": "Fecha", "document": "Documento", "model": "Modelo",
@@ -58,5 +58,31 @@
     "vatRate": "IVA",
     "vatAmount": "Cuota de IVA",
     "total": "Total"
+  },
+  "pipeline": {
+    "durationMilliseconds": "{{value}} ms",
+    "durationSeconds": "{{value}} s",
+    "durationMinutes": "{{minutes}} min {{seconds}} s",
+    "diff": { "title": "OCR → Markdown combinado", "removed": "Eliminado", "added": "Añadido" },
+    "title": "Proceso",
+    "waiting": "El resultado aparecerá al completar esta etapa.",
+    "stages": {
+      "ocr": "OCR",
+      "text": "Texto",
+      "merge": "Combinado"
+    },
+    "status": {
+      "queued": "En cola",
+      "processing": "Procesando",
+      "ready": "Completado",
+      "error": "Error",
+      "retrying": "Esperando reintento",
+      "unavailable": "Sin conectar"
+    },
+    "description": {
+      "ocr": "Markdown extraído con OCR",
+      "text": "Texto extraído del PDF sin IA",
+      "merge": "Markdown combinado a partir del OCR y del texto"
+    }
   }
 }

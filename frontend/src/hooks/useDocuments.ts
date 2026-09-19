@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState, type ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { deleteDocument, retryDocument, fetchDocument, fetchDocuments, fetchPdfUrl, uploadDocument, type Document, type DocumentDetail } from '@/api/documents'
+import { deleteDocument, fetchStageCosts, retryDocument, fetchDocument, fetchDocuments, fetchPdfUrl, uploadDocument, type Document, type DocumentDetail, type StageId } from '@/api/documents'
 
 interface UploadingFile { id: string; name: string }
 
@@ -17,7 +17,7 @@ export function useDocuments(initialDocuments: Document[]) {
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [retrying, setRetrying] = useState(false)
-  const [sourceTab, setSourceTab] = useState<'pdf' | 'markdown'>('pdf')
+  const [sourceTab, setSourceTab] = useState<'pdf' | StageId>('pdf')
   const selectionRequest = useRef(0)
   const activeId = useRef<string | null>(null)
   const documentsRef = useRef(initialDocuments)
@@ -74,11 +74,25 @@ export function useDocuments(initialDocuments: Document[]) {
               if (old && old.status !== document.status && document.status === 'error') {
                 toast.error(t('documents.processingFailed', { name: document.name }))
               }
-              if (document.id === activeId.current && old && old.status !== document.status
-                && (document.status === 'ready' || document.status === 'error')) {
-                void selectDocument(document.id)
-              }
             }
+            const id = activeId.current
+            const request = selectionRequest.current
+            const wasProcessing = previous.some(document => document.id === id && (document.status === 'queued' || document.status === 'processing'))
+            if (id !== null && wasProcessing) {
+              const detail = await fetchDocument(id)
+              if (active && request === selectionRequest.current && revision === listRevision.current) setSelected(detail)
+            }
+          }
+        }
+        const id = activeId.current
+        const request = selectionRequest.current
+        if (id !== null && !id.startsWith('upload-')) {
+          const costs = await fetchStageCosts(id)
+          if (active && request === selectionRequest.current) {
+            setSelected(current => current === null ? null : {
+              ...current,
+              stages: current.stages.map(stage => stage.id in costs ? { ...stage, cost_usd: costs[stage.id] } : stage),
+            })
           }
         }
       } catch {
@@ -92,7 +106,7 @@ export function useDocuments(initialDocuments: Document[]) {
       active = false
       clearTimeout(timer)
     }
-  }, [selectDocument, t, updateDocuments])
+  }, [t, updateDocuments])
 
   async function onUpload(event: ChangeEvent<HTMLInputElement>): Promise<void> {
     const files = Array.from(event.target.files || [])
@@ -113,8 +127,7 @@ export function useDocuments(initialDocuments: Document[]) {
           ++listRevision.current
           updateDocuments([document, ...documentsRef.current.filter(existing => existing.id !== document.id)])
           if (activeId.current === item.id) {
-            activeId.current = document.id
-            setSelectedId(document.id)
+            void selectDocument(document.id)
           }
         } catch {
           if (activeId.current === item.id) {
@@ -160,6 +173,9 @@ export function useDocuments(initialDocuments: Document[]) {
       const document = await retryDocument(id)
       ++listRevision.current
       updateDocuments(documentsRef.current.map(item => item.id === id ? document : item))
+      const request = selectionRequest.current
+      const detail = await fetchDocument(id)
+      if (activeId.current === id && request === selectionRequest.current) setSelected(detail)
     } catch {
       // The API client displays the error.
     } finally {
@@ -179,17 +195,35 @@ export function useDocuments(initialDocuments: Document[]) {
     errorMessage: document.status === 'error' ? t('documents.error') : '',
   }))
 
+  const stages = selected === null ? [] : selected.stages.map(stage => ({
+    ...stage,
+    label: t(`pipeline.stages.${stage.id}`),
+    statusLabel: t(`pipeline.status.${stage.status}`),
+    description: t(`pipeline.description.${stage.id}`),
+    costLabel: stage.cost_usd === null ? null : `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(Number(stage.cost_usd))}`,
+    durationLabel: stage.duration_ms === null ? null : stage.duration_ms < 1000
+      ? t('pipeline.durationMilliseconds', { value: stage.duration_ms })
+      : stage.duration_ms < 60000
+        ? t('pipeline.durationSeconds', { value: (stage.duration_ms / 1000).toFixed(1) })
+        : t('pipeline.durationMinutes', { minutes: Math.floor(stage.duration_ms / 60000), seconds: Math.floor(stage.duration_ms % 60000 / 1000) }),
+  }))
+  const knownCosts = stages.filter(stage => stage.cost_usd !== null)
+  const totalCost = knownCosts.length === 0 ? '—' : `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(knownCosts.reduce((sum, stage) => sum + Number(stage.cost_usd), 0))}`
+  const activeStage = stages.find(stage => stage.id === sourceTab)
+
   return {
+    stages, activeStage, totalCost,
     documents: rows,
     selected,
     selectedId, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments,
     onRetry, retrying,
     selectedRow: rows.find(document => document.id === selectedId),
-    uploadSelected: rows.some(document => document.id === selectedId && document.pending),
+    uploadSelected: rows.some(document => document.id === selectedId && document.status === 'uploading'),
     view, onUsage: () => setView('usage'),
     onUpload, onDelete, onSelect: (id: string) => { setView('documents'); return selectDocument(id) }, onSourceTab: setSourceTab,
     labels: {
-      appName: t('app.name'), upload: t('documents.upload'),
+      diff: { title: t('pipeline.diff.title'), removed: t('pipeline.diff.removed'), added: t('pipeline.diff.added') },
+      totalCost: t('usage.totalCost'), pipeline: t('pipeline.title'), waiting: t('pipeline.waiting'), appName: t('app.name'), upload: t('documents.upload'),
       library: t('documents.library'),
       emptyList: t('documents.emptyList'), emptyTitle: t('documents.emptyTitle'),
       emptyDescription: t('documents.emptyDescription'), pdf: t('documents.pdf'),

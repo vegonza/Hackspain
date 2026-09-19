@@ -33,6 +33,7 @@ AS $$
         SELECT
             (log.created_at AT TIME ZONE 'UTC')::date AS day,
             log.operation,
+            log.document_id,
             amounts.cost,
             amounts.pages
         FROM public.usage_log AS log
@@ -47,7 +48,7 @@ AS $$
         SELECT COUNT(*) AS calls,
             COALESCE(SUM(cost), 0) AS cost,
             COALESCE(SUM(pages), 0) AS pages,
-            GREATEST(1, (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::date - MIN(day) + 1) AS days
+            COUNT(DISTINCT document_id) AS documents
         FROM call_totals
     ),
     operation_totals AS (
@@ -80,7 +81,7 @@ AS $$
             'calls', totals.calls,
             'pages', totals.pages,
             'cost_usd', totals.cost::text,
-            'average_daily_cost_usd', (totals.cost / totals.days)::text
+            'average_document_cost_usd', COALESCE(totals.cost / NULLIF(totals.documents, 0), 0)::text
         ),
         'daily', COALESCE(
             (SELECT jsonb_agg(to_jsonb(daily_rows) ORDER BY date) FROM daily_rows),

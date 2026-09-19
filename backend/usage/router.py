@@ -24,7 +24,7 @@ class UsageSummary(BaseModel):
     calls: int
     pages: int
     cost_usd: Decimal
-    average_daily_cost_usd: Decimal
+    average_document_cost_usd: Decimal
 
 
 class UsageResponse(BaseModel):

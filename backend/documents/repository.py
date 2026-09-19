@@ -8,6 +8,7 @@ from shared.storage import get_client
 from shared.redis import get_redis
 from shared.retries import RetryState
 from documents.queue import RETRIES
+from documents.stages import StageDetail
 
 
 class Document(BaseModel):
@@ -69,3 +70,19 @@ def write_document(document: Document) -> None:
 
 def archive_document(document_id: UUID) -> None:
     get_client().table("documents").update({"deleted_at": datetime.now(timezone.utc).isoformat()}).eq("id", str(document_id)).execute()
+
+
+class DocumentSnapshot(Document):
+    stages: list[StageDetail]
+
+
+def read_document_detail(document_id: UUID) -> DocumentSnapshot:
+    """Read document metadata, stage results and aggregated costs in one DB call."""
+    payload = get_client().rpc("get_document_detail", {"p_document_id": str(document_id)}).execute().data
+    if payload is None:
+        raise HTTPException(status_code=404, detail="document_not_found")
+    document = DocumentSnapshot.model_validate(payload)
+    with get_redis() as redis:
+        state = redis.hget(RETRIES, str(document_id))
+    with_retry_state(document, RetryState.model_validate_json(state) if state is not None else RetryState())
+    return document

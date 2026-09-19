@@ -11,6 +11,7 @@ from redis.lock import Lock
 from documents.queue import PROCESSING, QUEUE, RETRIES, SCHEDULED, promote_retries
 from documents.repository import read_document, write_document
 from documents.processor import extract_markdown
+from documents.stages import start_stage, finish_stage, fail_stage
 from shared.logger import setup_logger
 from shared.redis import get_redis
 from shared.storage import download_file, upload_file
@@ -38,9 +39,20 @@ def process_document(document_id: str) -> None:
     document.status = "processing"
     write_document(document)
     logger.info("[QUEUE] Processing %s", document.name)
-    pdf = download_file(f"{document_id}/original.pdf")
-    markdown, pages = extract_markdown(pdf, document_id, document.name)
-    upload_file(f"{document_id}/document.md", markdown.encode("utf-8"), "text/markdown; charset=utf-8")
+    start_stage(document.id, document.name, "ocr")
+    started = time.perf_counter()
+    try:
+        pdf = download_file(f"{document_id}/original.pdf")
+        markdown, pages = extract_markdown(pdf, document_id, document.name)
+        result_path = f"{document_id}/document.md"
+        upload_file(result_path, markdown.encode("utf-8"), "text/markdown; charset=utf-8")
+        finish_stage(document.id, document.name, "ocr", round((time.perf_counter() - started) * 1000), result_path)
+    except Exception:
+        try:
+            fail_stage(document.id, document.name, "ocr", round((time.perf_counter() - started) * 1000))
+        except Exception:
+            logger.exception("[PIPELINE] Could not save failed stage for %s", document.name)
+        raise
     document.pages = pages
     document.status = "ready"
     write_document(document)

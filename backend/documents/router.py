@@ -9,25 +9,29 @@ from postgrest.exceptions import APIError
 
 from documents.queue import enqueue, RETRIES, SCHEDULED, QUEUE
 from shared.redis import get_redis
-from documents.repository import Document, archive_document, read_document, write_document, create_document, find_document_by_hash
+from documents.repository import DocumentSnapshot, read_document_detail, Document, archive_document, read_document, write_document, create_document, find_document_by_hash
 from documents.repository import list_documents as read_documents
+from documents.pipeline import DocumentStage, document_stages
+from documents.stages import read_stage_costs
+from decimal import Decimal
 from documents.features import InvoiceFeatures, extract_invoice_features
 from shared.logger import get_logger
-from shared.storage import download_file, invalidate_document_urls, signed_url, upload_file, delete_file
+from shared.storage import invalidate_document_urls, signed_url, upload_file, delete_file
 
 logger = get_logger()
 router = APIRouter(prefix="/api/documents")
 
 
 class DocumentDetail(Document):
-    markdown: str
+    stages: list[DocumentStage]
     features: InvoiceFeatures | None
 
 
-def document_detail(document: Document) -> DocumentDetail:
-    markdown = download_file(f"{document.id}/document.md").decode("utf-8") if document.status == "ready" else ""
-    features = extract_invoice_features(markdown) if document.status == "ready" else None
-    return DocumentDetail(**document.model_dump(), markdown=markdown, features=features)
+def document_detail(document: DocumentSnapshot) -> DocumentDetail:
+    stages = document_stages(document, document.stages)
+    markdown = stages[0].content
+    features = extract_invoice_features(markdown) if markdown is not None else None
+    return DocumentDetail(**document.model_dump(exclude={"stages"}), stages=stages, features=features)
 
 
 @router.get("")
@@ -70,7 +74,7 @@ def upload_document(file: UploadFile) -> Document:
 
 @router.get("/{document_id}")
 def get_document(document_id: UUID) -> DocumentDetail:
-    return document_detail(read_document(document_id))
+    return document_detail(read_document_detail(document_id))
 
 
 @router.delete("/{document_id}")
@@ -117,3 +121,9 @@ def get_image(document_id: UUID, filename: str) -> RedirectResponse:
     if not filename.startswith("page-") or not filename.endswith(".jpg") or Path(filename).name != filename:
         raise HTTPException(status_code=404, detail="image_not_found")
     return RedirectResponse(signed_url(f"{document_id}/{filename}"), headers={"Cache-Control": "no-store"})
+
+
+@router.get("/{document_id}/stage-costs")
+def get_stage_costs(document_id: UUID) -> dict[str, Decimal]:
+    read_document(document_id)
+    return read_stage_costs(document_id)

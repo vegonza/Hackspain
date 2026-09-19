@@ -12,8 +12,29 @@ export interface Document {
   next_retry_at: string | null
 }
 
+export type StageId = 'ocr' | 'text' | 'merge'
+export type StageStatus = 'queued' | 'processing' | 'ready' | 'error' | 'retrying' | 'unavailable'
+
+export interface DiffLine {
+  kind: 'equal' | 'removed' | 'added'
+  text: string
+  before: number | null
+  after: number | null
+}
+
+export interface DocumentStage {
+  id: StageId
+  status: StageStatus
+  depends_on: StageId[]
+  format: 'markdown' | 'text'
+  duration_ms: number | null
+  cost_usd: string | null
+  content: string | null
+  diff: DiffLine[] | null
+}
+
 export interface DocumentDetail extends Document {
-  markdown: string
+  stages: DocumentStage[]
   features: InvoiceFeatures | null
 }
 
@@ -60,4 +81,8 @@ export function uploadDocument(file: File): Promise<Document> {
   const body = new FormData()
   body.append('file', file)
   return fetchJson<Document>('/documents', { method: 'POST', body })
+}
+
+export function fetchStageCosts(id: string): Promise<Record<string, string>> {
+  return fetchJson(`/documents/${id}/stage-costs`)
 }

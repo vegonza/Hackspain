@@ -1,3 +1,6 @@
+import { MarkdownDiff } from '@/components/documents/MarkdownDiff'
+import { DocumentPipeline } from '@/components/documents/DocumentPipeline'
+import { Skeleton } from '@/components/ui/skeleton'
 import { DollarSign, LoaderCircle, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -15,7 +18,7 @@ import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
 
 type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsage> }
 
-export function DocumentsView({ documents, selected, selectedId, selectedRow, loading, pdfUrl, pdfLoading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage, onRetry, retrying }: Props) {
+export function DocumentsView({ stages, activeStage, totalCost, documents, selected, selectedId, selectedRow, loading, pdfUrl, pdfLoading, uploadSelected, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage, onRetry, retrying }: Props) {
   return (
     <div className="app-shell" ref={watchDocuments}>
       <header className="app-header">
@@ -57,7 +60,7 @@ export function DocumentsView({ documents, selected, selectedId, selectedRow, lo
                   {selectedRow.status === 'error' && <Button variant="outline" size="sm" disabled={retrying} onClick={() => void onRetry(selectedRow.id)}>{labels.retry}</Button>}
                   <div className="source-tabs" role="group" aria-label={labels.document}>
                     <button aria-pressed={sourceTab === 'pdf'} onClick={() => onSourceTab('pdf')}>{labels.pdf}</button>
-                    <button aria-pressed={sourceTab === 'markdown'} onClick={() => onSourceTab('markdown')}>{labels.markdown}</button>
+                    {stages.map(stage => <button key={stage.id} aria-pressed={sourceTab === stage.id} onClick={() => onSourceTab(stage.id)}>{stage.label}</button>)}
                   </div>
                 </header>
                 <div className="source-body" hidden={sourceTab !== 'pdf'}>
@@ -67,11 +70,17 @@ export function DocumentsView({ documents, selected, selectedId, selectedRow, lo
                     </div>
                   ) : <p className="markdown-error">{labels.pdfError}</p>}
                 </div>
-                {sourceTab === 'markdown' && <div className="markdown-scroll">
-                  {loading ? <DocumentSkeleton /> : selected && selected.status === 'ready' ? <Markdown content={selected.markdown} /> : <p className="markdown-error">{labels.noMarkdown}</p>}
+                {sourceTab !== 'pdf' && <div className="markdown-scroll">
+                  {loading || (activeStage && (activeStage.status === 'processing' || activeStage.status === 'retrying')) ? <DocumentSkeleton />
+                    : activeStage && activeStage.diff !== null ? <MarkdownDiff lines={activeStage.diff} labels={labels.diff} />
+                    : activeStage && activeStage.content !== null ? activeStage.format === 'markdown'
+                      ? <Markdown content={activeStage.content} /> : <pre className="extracted-text">{activeStage.content}</pre>
+                    : activeStage && <div className="stage-empty"><h3>{activeStage.label}</h3><p>{activeStage.description}</p>{activeStage.status !== 'unavailable' && <span>{activeStage.statusLabel}</span>}<p>{activeStage.status === 'error' ? labels.error : activeStage.status !== 'unavailable' ? labels.waiting : ''}</p></div>}
                 </div>}
               </section>
               <section className="features-panel" aria-label={labels.features} aria-busy={loading}>
+                {loading ? <div className="pipeline-skeleton"><Skeleton className="h-3 w-20" />{[0, 1, 2].map(index => <Skeleton key={index} className="h-12 w-full" />)}</div>
+                  : <DocumentPipeline totalCost={totalCost} totalLabel={labels.totalCost} title={labels.pipeline} stages={stages} selected={sourceTab} onSelect={onSourceTab} />}
                 <header className="review-header"><h2>{labels.features}</h2></header>
                 {selectedRow.status === 'error' && selectedRow.errorMessage && <p role="alert" className="markdown-error">{selectedRow.errorMessage}</p>}
                 {loading ? <InvoiceFeaturesSkeleton /> : selected && selected.features ?

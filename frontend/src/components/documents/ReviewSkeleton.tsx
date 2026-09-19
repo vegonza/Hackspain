@@ -22,6 +22,7 @@ export function ReviewSkeleton({ label }: { label: string }) {
         </div>
       </section>
       <section className="features-panel" aria-hidden="true">
+        <div className="pipeline-skeleton"><Skeleton className="h-3 w-20" />{[0, 1, 2].map(index => <Skeleton key={index} className="h-12 w-full" />)}</div>
         <header className="review-header"><Skeleton className="h-3 w-24" /></header>
         <InvoiceFeaturesSkeleton />
       </section>

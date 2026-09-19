@@ -16,7 +16,7 @@ export interface UsageResponse {
   total: number
   failed_pending: number
   page_size: number
-  summary: { calls: number; pages: number; cost_usd: string; average_daily_cost_usd: string }
+  summary: { calls: number; pages: number; cost_usd: string; average_document_cost_usd: string }
   daily: { date: string; calls: number; cost_usd: string; operations: Record<string, string> }[]
 }
 

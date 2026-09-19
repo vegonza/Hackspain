@@ -56,7 +56,7 @@ export function useUsage() {
     pages: data === null ? 1 : Math.max(1, Math.ceil(data.total / data.page_size)),
     stats: data === null ? [] : [
       { label: t('usage.totalCost'), value: money(data.summary.cost_usd) },
-      { label: t('usage.dailyCost'), value: money(data.summary.average_daily_cost_usd) },
+      { label: t('usage.documentCost'), value: money(data.summary.average_document_cost_usd) },
       { label: t('usage.pages'), value: String(data.summary.pages) },
     ],
     daily: data === null ? [] : data.daily.map(day => ({ ...day, cost: Number(day.cost_usd),
