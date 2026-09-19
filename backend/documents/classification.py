@@ -7,7 +7,7 @@ from typing import Literal
 import openpyxl
 from pydantic import BaseModel
 
-from pipeline.extraction_4.features import InvoiceFeatures
+from pipeline.extraction_4.extraction import InvoiceExtraction
 from documents.payment_notes import review_payment_notes
 from erp import ErpEntry
 
@@ -39,7 +39,7 @@ class PaymentRules:
         self.entries = entries
         self.evaluation_date = evaluation_date
 
-    def classify(self, invoice: InvoiceFeatures, duplicate_order: bool = False) -> Decision:
+    def classify(self, invoice: InvoiceExtraction, duplicate_order: bool = False) -> Decision:
         checks: dict[str, bool] = {}
         reasons = list(invoice.uncertainties)
 

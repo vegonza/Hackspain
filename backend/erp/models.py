@@ -30,7 +30,7 @@ class ErpPage(BaseModel):
     entries: list[ErpEntry]
 
 
-class ErpStatus(BaseModel):
+class ErpSourceState(BaseModel):
     version: str = Field(min_length=1)
     uptime_seconds: int = Field(ge=0)
     entry_count: int = Field(ge=0)
@@ -39,6 +39,6 @@ class ErpStatus(BaseModel):
 
 class ErpSnapshot(BaseModel):
     fetched_at: datetime
-    status_before: ErpStatus
-    status_after: ErpStatus
+    status_before: ErpSourceState
+    status_after: ErpSourceState
     entries: list[ErpEntry]

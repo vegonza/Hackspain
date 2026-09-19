@@ -5,7 +5,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from pipeline.text_1 import extract_text
-from pipeline.extraction_4.features import InvoiceFeatures
+from pipeline.extraction_4.extraction import InvoiceExtraction
 from shared.logger import get_logger
 
 logger = get_logger()
@@ -36,22 +36,22 @@ def refresh_order_index(source: Path, index_path: Path, extracted: Path) -> Batc
     for path in files:
         pdf_bytes = path.read_bytes()
         digest = hashlib.sha256(pdf_bytes).hexdigest()
-        features_path = extracted / path.stem / "features.json"
-        features_digest = hashlib.sha256(features_path.read_bytes()).hexdigest() if features_path.exists() else ""
-        if path.name not in index.documents or index.documents[path.name].sha256 != digest or index.documents[path.name].features_sha256 != features_digest:
+        extraction_path = extracted / path.stem / "features.json"
+        extraction_digest = hashlib.sha256(extraction_path.read_bytes()).hexdigest() if extraction_path.exists() else ""
+        if path.name not in index.documents or index.documents[path.name].sha256 != digest or index.documents[path.name].features_sha256 != extraction_digest:
             text = extract_text(pdf_bytes)
             index.documents[path.name] = OrderReferences(
                 sha256=digest,
-                features_sha256=features_digest,
+                features_sha256=extraction_digest,
                 orders=sorted({match.upper() for match in ORDER_LABEL.findall(text)}),
                 native_text_available=bool(text.strip()),
             )
             changed += 1
-        if features_path.exists():
-            features = InvoiceFeatures.model_validate_json(features_path.read_text())
-            if features.purchase_order:
+        if extraction_path.exists():
+            extraction = InvoiceExtraction.model_validate_json(extraction_path.read_text())
+            if extraction.purchase_order:
                 record = index.documents[path.name]
-                record.orders = sorted(set(record.orders) | {features.purchase_order})
+                record.orders = sorted(set(record.orders) | {extraction.purchase_order})
     temporary = index_path.with_suffix(".tmp")
     temporary.write_text(index.model_dump_json(indent=2))
     temporary.replace(index_path)

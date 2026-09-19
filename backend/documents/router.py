@@ -9,11 +9,11 @@ from postgrest.exceptions import APIError
 
 from documents.queue import enqueue, RETRIES, SCHEDULED, QUEUE
 from shared.redis import get_redis
-from documents.repository import DocumentSnapshot, read_document_detail, Document, archive_document, read_document, write_document, create_document, find_document_by_hash
+from documents.repository import DocumentDetails, read_document_detail, Document, archive_document, read_document, write_document, create_document, find_document_by_hash
 from documents.repository import list_documents as read_documents
 from pipeline.results import DocumentStage, document_stages
 from erp import ErpEntry
-from pipeline.extraction_4.features import InvoiceFeatures
+from pipeline.extraction_4.extraction import InvoiceExtraction
 from shared.logger import get_logger
 from shared.storage import invalidate_document_urls, signed_url, upload_file, delete_file
 
@@ -23,16 +23,16 @@ router = APIRouter(prefix="/api/documents")
 
 class DocumentDetail(Document):
     stages: list[DocumentStage]
-    features: InvoiceFeatures | None
+    extraction: InvoiceExtraction | None
     erp_snapshot_id: UUID | None
     erp: ErpEntry | None
 
 
-def document_detail(document: DocumentSnapshot) -> DocumentDetail:
+def document_detail(document: DocumentDetails) -> DocumentDetail:
     stages = document_stages(document, document.stages)
-    extraction = next(stage.content for stage in stages if stage.id == "extraction")
-    features = InvoiceFeatures.model_validate_json(extraction) if extraction is not None else None
-    return DocumentDetail(**document.model_dump(exclude={"stages"}), stages=stages, features=features)
+    extraction_json = next(stage.content for stage in stages if stage.id == "extraction")
+    extraction = InvoiceExtraction.model_validate_json(extraction_json) if extraction_json is not None else None
+    return DocumentDetail(**document.model_dump(exclude={"stages"}), stages=stages, extraction=extraction)
 
 
 @router.get("")

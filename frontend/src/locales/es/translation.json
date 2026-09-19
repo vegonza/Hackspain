@@ -29,8 +29,8 @@
     "zoomIn": "Ampliar",
     "zoomOut": "Reducir",
     "markdown": "Markdown",
-    "features": "Datos extraídos",
-    "noFeatures": "No hay datos extraídos para este documento.",
+    "extraction": "Datos extraídos",
+    "noExtraction": "No hay datos extraídos para este documento.",
     "error": "Error al procesar el documento. Vuelve a reintentarlo",
     "retry": "Reintentar",
     "retryQueued": "Esperando reintento",
@@ -52,7 +52,7 @@
     "provider": "Proveedor", "operation": "Operación",
     "empty": "No hay llamadas registradas.", "previous": "Anterior", "next": "Siguiente"
   },
-  "features": {
+  "extraction": {
     "unavailable": "No disponible",
     "invoiceNumber": "Número de factura",
     "invoiceDate": "Fecha",

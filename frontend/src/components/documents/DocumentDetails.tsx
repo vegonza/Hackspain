@@ -5,8 +5,8 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { DocumentErp } from '@/components/documents/DocumentErp'
 import { DocumentPipeline } from '@/components/documents/DocumentPipeline'
 import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
-import { InvoiceFeatures } from '@/components/documents/InvoiceFeatures'
-import { InvoiceFeaturesSkeleton } from '@/components/documents/InvoiceFeaturesSkeleton'
+import { InvoiceExtraction } from '@/components/documents/InvoiceExtraction'
+import { InvoiceExtractionSkeleton } from '@/components/documents/InvoiceExtractionSkeleton'
 import { Markdown } from '@/components/documents/Markdown'
 import { MarkdownDiff } from '@/components/documents/MarkdownDiff'
 import { PdfViewer } from '@/components/documents/PdfViewer'
@@ -14,13 +14,13 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import type { useDocuments } from '@/hooks/useDocuments'
 
 type Props = Pick<ReturnType<typeof useDocuments>,
-  'mountDetail' | 'documentName' | 'selectedId' | 'selected' | 'loading' | 'featuresLoading' |
-  'pdfUrl' | 'pdfLoading' | 'sourceTab' | 'activeStage' | 'diffLabel' | 'emptyMessage' | 'labels' | 'featureLabels' |
+  'mountDetail' | 'documentName' | 'selectedId' | 'selected' | 'loading' | 'extractionLoading' |
+  'pdfUrl' | 'pdfLoading' | 'sourceTab' | 'activeStage' | 'diffLabel' | 'emptyMessage' | 'labels' | 'extractionLabels' |
   'canRetry' | 'onRetrySelected' | 'retrying' | 'stageNavigation' | 'metricsLoading' | 'totalDuration' | 'totalCost' |
   'onNavigate' | 'onSourceTab' | 'erpRows' | 'featureAmounts'>
 
-export function DocumentDetails({ mountDetail, documentName, selectedId, selected, loading, featuresLoading,
-  pdfUrl, pdfLoading, sourceTab, activeStage, diffLabel, emptyMessage, labels, featureLabels, canRetry, onRetrySelected,
+export function DocumentDetails({ mountDetail, documentName, selectedId, selected, loading, extractionLoading,
+  pdfUrl, pdfLoading, sourceTab, activeStage, diffLabel, emptyMessage, labels, extractionLabels, canRetry, onRetrySelected,
   retrying, stageNavigation, metricsLoading, onNavigate, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts }: Props) {
   return (
     <div className="review-desk" ref={mountDetail}>
@@ -52,9 +52,9 @@ export function DocumentDetails({ mountDetail, documentName, selectedId, selecte
           </div>
           {sourceTab === 'erp' && <div className="markdown-scroll"><DocumentErp title={labels.erpData} loading={loading} rows={erpRows} /></div>}
           {sourceTab !== 'pdf' && sourceTab !== 'erp' && <div className={`markdown-scroll${emptyMessage !== null ? ' document-empty-view' : ''}`}>
-            {sourceTab === 'extraction' && featuresLoading ? <InvoiceFeaturesSkeleton title={labels.features} />
+            {sourceTab === 'extraction' && extractionLoading ? <InvoiceExtractionSkeleton title={labels.extraction} />
               : loading || (activeStage && (activeStage.status === 'processing' || activeStage.status === 'retrying')) ? <DocumentSkeleton />
-              : sourceTab === 'extraction' && selected !== null && selected.features !== null && featureAmounts !== null ? <InvoiceFeatures title={labels.features} features={selected.features} amounts={featureAmounts} labels={featureLabels} />
+              : sourceTab === 'extraction' && selected !== null && selected.extraction !== null && featureAmounts !== null ? <InvoiceExtraction title={labels.extraction} extraction={selected.extraction} amounts={featureAmounts} labels={extractionLabels} />
               : emptyMessage !== null ? <div className="document-empty" role="status"><FileText size={32} strokeWidth={1.5} aria-hidden="true" /><p>{emptyMessage}</p></div>
               : activeStage && activeStage.diff !== null ? <MarkdownDiff lines={activeStage.diff} label={diffLabel} />
               : activeStage && activeStage.content !== null ? activeStage.format === 'markdown'

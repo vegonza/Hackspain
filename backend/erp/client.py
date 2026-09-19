@@ -10,7 +10,7 @@ from xml.etree import ElementTree
 import httpx
 
 from erp.errors import ErpProtocolError, ErpResponseError
-from erp.models import ErpEntry, ErpPage, ErpSnapshot, ErpStatus
+from erp.models import ErpEntry, ErpPage, ErpSnapshot, ErpSourceState
 from erp.parsing import parse_entry
 from erp.pages import parse_page
 from erp.rate_limit import RateLimiter
@@ -184,7 +184,7 @@ class ErpClient:
         logger.info("[ERP] Retrieved page %s/%s (%s entries)", number, page.total_pages, len(page.entries))
         return page
 
-    def get_status(self) -> ErpStatus:
+    def get_status(self) -> ErpSourceState:
         return self._get("/erp/estado", parse_status, authenticated=False)
 
     def get_snapshot(self) -> ErpSnapshot:

@@ -3,14 +3,14 @@ from unittest.mock import Mock
 
 from erp.client import ErpClient
 from erp.errors import ErpProtocolError
-from erp.models import ErpEntry, ErpPage, ErpStatus
+from erp.models import ErpEntry, ErpPage, ErpSourceState
 from erp.snapshots import download_snapshot
 
 
 class SnapshotTests(unittest.TestCase):
     def setUp(self) -> None:
         self.client = Mock(spec=ErpClient)
-        self.status = ErpStatus(version='2.3.1', uptime_seconds=100, entry_count=3, update_loaded=False)
+        self.status = ErpSourceState(version='2.3.1', uptime_seconds=100, entry_count=3, update_loaded=False)
         self.entry = ErpEntry(entry_id='AS-1', supplier_id='P1', tax_id='B1', order_id='PO1',
                               status='PENDIENTE', raw_date='12/01/2026', raw_amount='1,00')
         self.first = ErpPage(number=1, total_pages=2, total_entries=3, page_size=2,

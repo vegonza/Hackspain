@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 from openai.types.chat import ChatCompletion
 
 from documents.router import document_detail
-from pipeline.extraction_4.features import InvoiceFeatures, SourcedInvoiceLine
+from pipeline.extraction_4.extraction import InvoiceExtraction, SourcedInvoiceLine
 from pipeline.extraction_4.extractor import PROMPTS_DIRECTORY
 from pipeline.extraction_4.processor import process
 from pipeline.results import document_stages
@@ -31,7 +31,7 @@ class ExtractionTests(unittest.TestCase):
             self.markdown, self.corrections,
         ]))
         self.enterContext(patch("pipeline.extraction_4.processor.upload_file", self.events.upload))
-        self.enterContext(patch("pipeline.extraction_4.processor.save_document_features", self.events.save_features))
+        self.enterContext(patch("pipeline.extraction_4.processor.save_document_extraction", self.events.save_extraction))
         self.enterContext(patch("pipeline.extraction_4.processor.match_entry", self.events.match_entry))
         self.enterContext(patch("documents.stages.start_stage"))
         self.enterContext(patch("documents.stages.finish_stage", self.events.finish))
@@ -47,7 +47,7 @@ class ExtractionTests(unittest.TestCase):
             "usage": {"cost": "0.002", "prompt_tokens": 300, "completion_tokens": 120, "total_tokens": 420},
             "choices": [{"index": 0, "finish_reason": "tool_calls", "message": {"role": "assistant", "content": None, "tool_calls": [{
                 "id": "call-1", "type": "function",
-                "function": {"name": "SourcedInvoiceFeatures", "arguments": self.result.model_dump_json()},
+                "function": {"name": "SourcedInvoiceExtraction", "arguments": self.result.model_dump_json()},
             }]}}],
         })
 
@@ -59,10 +59,10 @@ class ExtractionTests(unittest.TestCase):
             f"{self.document.id}/merge/document.md", f"{self.document.id}/merge/corrections.json",
         ])
         artifacts = {call.args[0]: call.args[1] for call in self.events.upload.call_args_list}
-        features = InvoiceFeatures.model_validate_json(artifacts[f"{prefix}/features.json"])
-        self.assertEqual(features.line_items[0].amount, "31.50")
-        self.assertEqual(features.notes, ["Pago a 30 días"])
-        self.assertEqual(features.uncertainties, ["Firma ilegible", "Sello ilegible"])
+        extraction = InvoiceExtraction.model_validate_json(artifacts[f"{prefix}/features.json"])
+        self.assertEqual(extraction.line_items[0].amount, "31.50")
+        self.assertEqual(extraction.notes, ["Pago a 30 días"])
+        self.assertEqual(extraction.uncertainties, ["Firma ilegible", "Sello ilegible"])
         metadata = json.loads(artifacts[f"{prefix}/extraction.json"])
         self.assertEqual(metadata["merged_sha256"], sha256(self.markdown).hexdigest())
         self.assertEqual(metadata["corrections_sha256"], sha256(self.corrections).hexdigest())
@@ -70,9 +70,9 @@ class ExtractionTests(unittest.TestCase):
         self.events.finish.assert_called_once_with(
             self.document.id, self.document.name, "extraction", 1500, f"{prefix}/features.json",
         )
-        self.events.save_features.assert_called_once_with(self.document.id, self.document.name, features)
-        self.events.match_entry.assert_called_once_with(self.document, features.purchase_order)
-        self.assertEqual([call[0] for call in self.events.mock_calls], ["upload", "upload", "save_features", "match_entry", "finish"])
+        self.events.save_extraction.assert_called_once_with(self.document.id, self.document.name, extraction)
+        self.events.match_entry.assert_called_once_with(self.document, extraction.purchase_order)
+        self.assertEqual([call[0] for call in self.events.mock_calls], ["upload", "upload", "save_extraction", "match_entry", "finish"])
         self.client_factory.assert_called_once_with(
             base_url="https://openrouter.ai/api/v1/", api_key="test-key", timeout=180, max_retries=0,
         )
@@ -94,13 +94,13 @@ class ExtractionTests(unittest.TestCase):
                          ("extraction", "openrouter", str(self.document.id)))
         self.assertEqual(usage.usage[0].cost, Decimal("0.002"))
 
-    def test_invalid_source_reference_fails_without_publishing_features_and_keeps_usage(self) -> None:
+    def test_invalid_source_reference_fails_without_publishing_extraction_and_keeps_usage(self) -> None:
         self.result.line_items[0].source_line = 2
         self.prepare_response()
         with self.assertRaisesRegex(ValueError, "source references"):
             process(self.document)
         self.events.upload.assert_not_called()
-        self.events.save_features.assert_not_called()
+        self.events.save_extraction.assert_not_called()
         self.events.finish.assert_not_called()
         self.events.fail.assert_called_once_with(self.document.id, self.document.name, "extraction", 1500)
         usage = UsageRecord.model_validate_json(self.redis.hset.call_args.args[2])
@@ -114,11 +114,11 @@ class ExtractionTests(unittest.TestCase):
         self.events.finish.assert_not_called()
         self.events.fail.assert_called_once()
         self.redis.hset.assert_called_once()
-        self.events.save_features.assert_not_called()
+        self.events.save_extraction.assert_not_called()
 
     def test_database_failure_keeps_usage_and_does_not_mark_extraction_ready(self) -> None:
         self.prepare_response()
-        self.events.save_features.side_effect = ConnectionError("database")
+        self.events.save_extraction.side_effect = ConnectionError("database")
         with self.assertRaises(ConnectionError):
             process(self.document)
         self.events.finish.assert_not_called()
@@ -154,7 +154,7 @@ class ExtractionWiringTests(unittest.TestCase):
         ocr.assert_not_called()
         merge.assert_not_called()
 
-    def test_pending_extraction_is_read_only_and_has_no_invented_features(self) -> None:
+    def test_pending_extraction_is_read_only_and_has_no_invented_extraction(self) -> None:
         document = queued_document()
         for stage in document.stages[:3]:
             stage.status = "ready"
@@ -163,11 +163,11 @@ class ExtractionWiringTests(unittest.TestCase):
         document.next_retry_at = document.created_at
         with (
             patch("pipeline.results.download_file", return_value=b"Invoice"),
-            patch("pipeline.extraction_4.features.create_extractor") as extract,
+            patch("pipeline.extraction_4.extraction.create_extractor") as extract,
         ):
             detail = document_detail(document)
             stages = document_stages(document, document.stages)
-        self.assertIsNone(detail.features)
+        self.assertIsNone(detail.extraction)
         self.assertEqual([stage.status for stage in stages], ["ready", "ready", "ready", "retrying"])
         self.assertEqual(stages[3].depends_on, ["merge"])
         extract.assert_not_called()

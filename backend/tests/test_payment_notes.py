@@ -9,7 +9,7 @@ import openpyxl
 
 from documents.classification import PaymentRules
 from erp import ErpEntry
-from pipeline.extraction_4.features import InvoiceFeatures, InvoiceLine
+from pipeline.extraction_4.extraction import InvoiceExtraction, InvoiceLine
 from documents.payment_notes import PaymentConcern, PaymentNotesReview, SourcedPaymentConcern, SourcedPaymentNotesReview, review_payment_notes
 
 
@@ -38,7 +38,7 @@ class PaymentNotesTests(unittest.TestCase):
 
 class PaymentPolicyTests(unittest.TestCase):
     def test_payment_restriction_escalates_but_never_overrides_paid_erp(self) -> None:
-        invoice = InvoiceFeatures(
+        invoice = InvoiceExtraction(
             invoice_number="INV-1", supplier_name="Proveedor", supplier_nif="B12345678",
             iban="ES123", invoice_date="2026-01-01", purchase_order="PO-2026-0001",
             line_items=[InvoiceLine(description="Servicio", amount="100")],

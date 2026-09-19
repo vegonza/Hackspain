@@ -211,29 +211,29 @@ export function useDocuments() {
     description: t(`pipeline.description.${stage.id}`),
   }))
   const erp = selected === null ? null : selected.erp
-  const features = selected === null ? null : selected.features
-  const featureMoney = (value: string): string => value === '' ? t('features.unavailable')
+  const extraction = selected === null ? null : selected.extraction
+  const featureMoney = (value: string): string => value === '' ? t('extraction.unavailable')
     : new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(Number(value))
-  const featureAmounts = features === null ? null : {
-    taxBase: featureMoney(features.tax_base),
-    vatRate: features.vat_rate === '' ? t('features.unavailable') : `${features.vat_rate}%`,
-    vatAmount: featureMoney(features.vat_amount),
-    total: featureMoney(features.total),
-    lineItems: features.line_items.map(line => `${line.description} · ${featureMoney(line.amount)}`).join(', '),
+  const featureAmounts = extraction === null ? null : {
+    taxBase: featureMoney(extraction.tax_base),
+    vatRate: extraction.vat_rate === '' ? t('extraction.unavailable') : `${extraction.vat_rate}%`,
+    vatAmount: featureMoney(extraction.vat_amount),
+    total: featureMoney(extraction.total),
+    lineItems: extraction.line_items.map(line => `${line.description} · ${featureMoney(line.amount)}`).join(', '),
   }
   const erpMoney = (value: number) => `${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)} €`
-  const difference = erp !== null && erp.amount !== null && features !== null && features.total !== ''
-    ? Number(features.total) - Number(erp.amount) : null
+  const difference = erp !== null && erp.amount !== null && extraction !== null && extraction.total !== ''
+    ? Number(extraction.total) - Number(erp.amount) : null
   const erpRows = [
     { label: t('erp.status'), value: erp === null ? t('erp.notLinked')
       : erp.status === 'PENDIENTE' || erp.status === 'PAGADA' ? t(`erp.states.${erp.status}`) : erp.status },
-    { label: t('erp.expectedAmount'), value: erp === null || erp.amount === null ? t('features.unavailable') : erpMoney(Number(erp.amount)) },
-    { label: t('erp.difference'), value: difference === null ? t('features.unavailable') : erpMoney(difference) },
+    { label: t('erp.expectedAmount'), value: erp === null || erp.amount === null ? t('extraction.unavailable') : erpMoney(Number(erp.amount)) },
+    { label: t('erp.difference'), value: difference === null ? t('extraction.unavailable') : erpMoney(difference) },
     { label: t('erp.entry'), value: erp === null ? '—' : erp.entry_id },
     { label: t('erp.purchaseOrder'), value: erp === null ? '—' : erp.order_id },
     { label: t('erp.supplier'), value: erp === null ? '—' : erp.supplier_id },
     { label: t('erp.nif'), value: erp === null ? '—' : erp.tax_id },
-    { label: t('erp.registeredAt'), value: erp === null || erp.date === null ? t('features.unavailable') : new Date(`${erp.date}T00:00:00`).toLocaleDateString('es-ES') },
+    { label: t('erp.registeredAt'), value: erp === null || erp.date === null ? t('extraction.unavailable') : new Date(`${erp.date}T00:00:00`).toLocaleDateString('es-ES') },
     ...(erp === null ? [] : [
       { label: t('erp.rawAmount'), value: erp.raw_amount },
       { label: t('erp.rawDate'), value: erp.raw_date },
@@ -264,14 +264,14 @@ export function useDocuments() {
       ? activeStage.diff.some(line => line.kind !== 'equal') ? null : t('pipeline.diffUnchanged')
       : activeStage.content === null || activeStage.content.trim() === '' ? t('pipeline.noText') : null
     : null
-  const featuresLoading = loading || (selected !== null && selected.features === null && isProcessing(selected))
+  const extractionLoading = loading || (selected !== null && selected.extraction === null && isProcessing(selected))
 
   return {
     stageNavigation, metricsLoading, activeStage, diffLabel, emptyMessage, erpRows, totalDuration, totalCost,
     filteredDocuments, documentsLoading, sortColumn, sortDirection, onToggleSort,
     search, onSearch: setSearch, onDocumentLink, onNavigate: followLink,
     selected, selectedId, mountDetail, featureAmounts,
-    loading, featuresLoading, pdfUrl, pdfLoading, deleting, sourceTab, onSourceTab, watchDocuments,
+    loading, extractionLoading, pdfUrl, pdfLoading, deleting, sourceTab, onSourceTab, watchDocuments,
     retrying,
     canRetry: (selected !== null && selected.status === 'error') || (selectedRow !== undefined && selectedRow.status === 'error'),
     onRetrySelected: () => { if (selectedId !== null) void onRetry(selectedId) },
@@ -284,7 +284,7 @@ export function useDocuments() {
       library: t('documents.library'), search: t('documents.search'), back: t('documents.back'),
       errorStatus: t('pipeline.status.error'), status: t('documents.status'), created: t('documents.created'), noResults: t('documents.noResults'),
       emptyList: t('documents.emptyList'), pdf: t('documents.pdf'),
-      features: t('documents.features'), noFeatures: t('documents.noFeatures'),
+      extraction: t('documents.extraction'), noExtraction: t('documents.noExtraction'),
       error: t('documents.error'), loading: t('documents.loading'),
       delete: t('documents.delete'),
       document: t('documents.document'),
@@ -293,13 +293,13 @@ export function useDocuments() {
       usage: t('usage.title'),
       retry: t('documents.retry'),
     },
-    featureLabels: {
-      notes: t('features.notes'), uncertainties: t('features.uncertainties'),
-      invoiceNumber: t('features.invoiceNumber'), invoiceDate: t('features.invoiceDate'),
-      purchaseOrder: t('features.purchaseOrder'), supplierName: t('features.supplierName'),
-      supplierNif: t('features.supplierNif'), iban: t('features.iban'),
-      lineItems: t('features.lineItems'), taxBase: t('features.taxBase'),
-      vatRate: t('features.vatRate'), vatAmount: t('features.vatAmount'), total: t('features.total'),
+    extractionLabels: {
+      notes: t('extraction.notes'), uncertainties: t('extraction.uncertainties'),
+      invoiceNumber: t('extraction.invoiceNumber'), invoiceDate: t('extraction.invoiceDate'),
+      purchaseOrder: t('extraction.purchaseOrder'), supplierName: t('extraction.supplierName'),
+      supplierNif: t('extraction.supplierNif'), iban: t('extraction.iban'),
+      lineItems: t('extraction.lineItems'), taxBase: t('extraction.taxBase'),
+      vatRate: t('extraction.vatRate'), vatAmount: t('extraction.vatAmount'), total: t('extraction.total'),
     },
   }
 }

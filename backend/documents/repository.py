@@ -9,7 +9,7 @@ from shared.storage import get_client
 from shared.redis import get_redis
 from shared.retries import RetryState
 from documents.queue import RETRIES
-from pipeline.extraction_4.features import InvoiceFeatures
+from pipeline.extraction_4.extraction import InvoiceExtraction
 from shared.logger import get_logger
 from documents.stages import StageDetail, StageId
 from erp import ErpEntry
@@ -95,18 +95,18 @@ def archive_document(document_id: UUID) -> None:
     get_client().table("documents").update({"deleted_at": datetime.now(timezone.utc).isoformat()}).eq("id", str(document_id)).execute()
 
 
-class DocumentSnapshot(Document):
+class DocumentDetails(Document):
     stages: list[StageDetail]
     erp_snapshot_id: UUID | None = None
     erp: ErpEntry | None = None
 
 
-def read_document_detail(document_id: UUID) -> DocumentSnapshot:
+def read_document_detail(document_id: UUID) -> DocumentDetails:
     """Read document metadata, stage results and aggregated costs in one DB call."""
     payload = get_client().rpc("get_document_detail", {"p_document_id": str(document_id)}).execute().data
     if payload is None:
         raise HTTPException(status_code=404, detail="document_not_found")
-    document = DocumentSnapshot.model_validate(payload)
+    document = DocumentDetails.model_validate(payload)
     with get_redis() as redis:
         state = redis.hget(RETRIES, str(document_id))
     with_retry_state(document, RetryState.model_validate_json(state) if state is not None else RetryState())
@@ -115,9 +115,9 @@ def read_document_detail(document_id: UUID) -> DocumentSnapshot:
     return document
 
 
-def save_document_features(document_id: UUID, name: str, features: InvoiceFeatures) -> None:
+def save_document_extraction(document_id: UUID, name: str, extraction: InvoiceExtraction) -> None:
     """Store searchable invoice fields; the stage artifact retains notes and uncertainties."""
-    fields = features.model_dump(mode="json", exclude={"notes", "uncertainties"})
+    fields = extraction.model_dump(mode="json", exclude={"notes", "uncertainties"})
     for amount in ("tax_base", "vat_rate", "vat_amount", "total"):
         if fields[amount] == "":
             fields[amount] = None

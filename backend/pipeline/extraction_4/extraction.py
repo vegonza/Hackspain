@@ -12,7 +12,7 @@ class InvoiceLine(BaseModel):
     amount: str
 
 
-class InvoiceFeatures(BaseModel):
+class InvoiceExtraction(BaseModel):
     model_config = ConfigDict(extra="forbid")
     invoice_number: str
     supplier_name: str
@@ -36,7 +36,7 @@ class SourcedInvoiceLine(BaseModel):
     description: str
 
 
-class SourcedInvoiceFeatures(InvoiceFeatures):
+class SourcedInvoiceExtraction(InvoiceExtraction):
     line_items: list[SourcedInvoiceLine]
 
 
@@ -49,7 +49,7 @@ def normalize_decimal(value: str) -> str:
     return value.replace(",", ".")
 
 
-def extract_invoice_features(markdown: str, usage: UsageRecord | None = None) -> InvoiceFeatures:
+def extract_invoice(markdown: str, usage: UsageRecord | None = None) -> InvoiceExtraction:
     lines = markdown.splitlines()
     numeric_tokens = [re.findall(
         r"(?<![\w.,])[-+]?(?:\d{1,3}(?:[ \u00a0\u202f]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)*)(?![\w.,])",
@@ -63,7 +63,7 @@ def extract_invoice_features(markdown: str, usage: UsageRecord | None = None) ->
     instruction = load_prompt("extractor.md")
     content = f"Extract the invoice fields from this combined document:\n\n{numbered}"
     with create_extractor() as extractor:
-        extracted = extractor.run(instruction, content, SourcedInvoiceFeatures, usage=usage)
+        extracted = extractor.run(instruction, content, SourcedInvoiceExtraction, usage=usage)
     items: list[InvoiceLine] = []
     previous_line = 0
     for item in extracted.line_items:
@@ -77,4 +77,4 @@ def extract_invoice_features(markdown: str, usage: UsageRecord | None = None) ->
         items.append(InvoiceLine(description=item.description, amount=normalized))
         previous_line = item.source_line
     totals = {field: normalize_decimal(getattr(extracted, field)) for field in ("tax_base", "vat_rate", "vat_amount", "total")}
-    return InvoiceFeatures.model_validate({**extracted.model_dump(exclude={"line_items"}), **totals, "line_items": items})
+    return InvoiceExtraction.model_validate({**extracted.model_dump(exclude={"line_items"}), **totals, "line_items": items})

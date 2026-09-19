@@ -57,7 +57,7 @@ export interface DocumentErpEntry {
 
 export interface DocumentDetail extends Document {
   stages: DocumentStage[]
-  features: InvoiceFeatures | null
+  extraction: InvoiceExtraction | null
   erp: DocumentErpEntry | null
   erp_snapshot_id: string | null
 }
@@ -67,7 +67,7 @@ export interface InvoiceLine {
   amount: string
 }
 
-export interface InvoiceFeatures {
+export interface InvoiceExtraction {
   invoice_number: string
   supplier_name: string
   supplier_nif: string

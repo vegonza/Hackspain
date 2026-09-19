@@ -8,7 +8,7 @@ from unittest.mock import patch
 import openpyxl
 
 from documents.classification import PaymentRules
-from pipeline.extraction_4.features import InvoiceFeatures, InvoiceLine
+from pipeline.extraction_4.extraction import InvoiceExtraction, InvoiceLine
 from documents.payment_notes import PaymentConcern, PaymentNotesReview
 from erp import ErpEntry
 
@@ -33,7 +33,7 @@ class ClassificationTests(unittest.TestCase):
             entry_id="AS-NEW", order_id="PO-2026-9999", supplier_id="NEW", tax_id="B12345678",
             raw_amount="121,00", amount=Decimal("121.00"), status="PENDIENTE", raw_date="01/09/2026",
         )], date(2026, 9, 19))
-        self.invoice = InvoiceFeatures(
+        self.invoice = InvoiceExtraction(
             invoice_number="NEW-1", supplier_name="Proveedor Nuevo", supplier_nif="B12345678",
             iban="ES001234", invoice_date="2026-09-01", purchase_order="PO-2026-9999",
             line_items=[InvoiceLine(description="Servicio", amount="100.00")],

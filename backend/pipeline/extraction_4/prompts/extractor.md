@@ -62,6 +62,6 @@ For this charge, return `description: "Servicio"`, `source_line: 12`, and `amoun
 
 # Required output
 
-Call `SourcedInvoiceFeatures` exactly once with all fields required by its schema. Produce the extraction through the tool arguments, without a separate prose answer or a Markdown code block.
+Call `SourcedInvoiceExtraction` exactly once with all fields required by its schema. Produce the extraction through the tool arguments, without a separate prose answer or a Markdown code block.
 
 Before calling the tool, verify that every line-item reference exists, the items follow source order, each selected token is the corresponding extended amount, and no printed values were changed to satisfy expected totals.

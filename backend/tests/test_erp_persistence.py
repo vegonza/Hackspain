@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 from erp.errors import ErpProtocolError
-from erp.models import ErpEntry, ErpSnapshot, ErpStatus
+from erp.models import ErpEntry, ErpSnapshot, ErpSourceState
 from erp.repository import save_snapshot
 from erp.service import sync_erp_snapshot
 from erp.warnings import ErpWarning
@@ -13,7 +13,7 @@ from erp.warnings import ErpWarning
 
 class ErpPersistenceTests(unittest.TestCase):
     def test_rpc_keeps_precision_duplicates_originals_and_warnings(self) -> None:
-        state = ErpStatus(version='2.3.1', uptime_seconds=100, entry_count=2, update_loaded=True)
+        state = ErpSourceState(version='2.3.1', uptime_seconds=100, entry_count=2, update_loaded=True)
         entry = ErpEntry(entry_id='AS-1', supplier_id='P1', tax_id='', order_id='PO1',
                          status='PENDIENTE', raw_date='bad date', raw_amount='1.234,56789',
                          amount=Decimal('1234.56789'), warnings=[ErpWarning.INVALID_DATE])

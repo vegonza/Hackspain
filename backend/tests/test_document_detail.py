@@ -6,8 +6,8 @@ from uuid import uuid4
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from pipeline.extraction_4.features import InvoiceFeatures
-from documents.repository import read_document_detail, save_document_features
+from pipeline.extraction_4.extraction import InvoiceExtraction
+from documents.repository import read_document_detail, save_document_extraction
 from documents.router import router
 from shared.retries import RetryState
 
@@ -34,20 +34,20 @@ class DocumentDetailTests(unittest.TestCase):
             ],
         }
         redis.__enter__.return_value.hget.return_value = None
-        features = InvoiceFeatures(
+        extraction = InvoiceExtraction(
             invoice_number="INV-1", supplier_name="Proveedor", supplier_nif="N-1", iban="Account",
             invoice_date="2026-01-01", purchase_order="PO-1", line_items=[],
             tax_base="10", vat_rate="21", vat_amount="2.10", total="12.10", notes=[], uncertainties=[],
         )
         artifacts = {"document.md": b"# Invoice", "native.txt": b"Invoice", "merge/document.md": b"# Invoice",
-                     "extraction/features.json": features.model_dump_json().encode("utf-8")}
+                     "extraction/features.json": extraction.model_dump_json().encode("utf-8")}
         app = FastAPI()
         app.include_router(router)
         with (
             patch("documents.repository.get_client", return_value=database),
             patch("documents.repository.get_redis", return_value=redis),
             patch("pipeline.results.download_file", side_effect=artifacts.__getitem__),
-            patch("pipeline.extraction_4.features.create_extractor") as extract,
+            patch("pipeline.extraction_4.extraction.create_extractor") as extract,
             TestClient(app) as client,
         ):
             response = client.get(f"/api/documents/{identifier}")
@@ -67,7 +67,7 @@ class DocumentDetailTests(unittest.TestCase):
         self.assertEqual(stages[2]["diff"][0]["text"], "# Invoice")
         self.assertEqual(stages[3]["depends_on"], ["merge"])
         self.assertEqual(stages[3]["cost_usd"], "0.002")
-        self.assertEqual(response.json()["features"], features.model_dump())
+        self.assertEqual(response.json()["extraction"], extraction.model_dump())
         extract.assert_not_called()
 
     def test_single_rpc_with_redis_retry_overlay(self) -> None:
@@ -98,7 +98,7 @@ class DocumentDetailTests(unittest.TestCase):
         redis.assert_not_called()
 
     def test_result_preserves_raw_date_and_decimal_precision(self) -> None:
-        features = InvoiceFeatures(
+        extraction = InvoiceExtraction(
             invoice_number="F-1", supplier_name="Proveedor", supplier_nif="B12345678",
             iban="ES123", invoice_date="31/02/2026", purchase_order="PO-1",
             line_items=[], tax_base="123456789012345.12", vat_rate="21",
@@ -108,23 +108,23 @@ class DocumentDetailTests(unittest.TestCase):
         identifier = uuid4()
         client = MagicMock()
         with patch("documents.repository.get_client", return_value=client):
-            save_document_features(identifier, "invoice.pdf", features)
+            save_document_extraction(identifier, "invoice.pdf", extraction)
         payload = client.table.return_value.update.call_args.args[0]
         self.assertEqual(payload["invoice_date"], "31/02/2026")
         self.assertEqual(payload["total"], "149382714704937.5952")
-        self.assertEqual(set(payload), set(InvoiceFeatures.model_fields) - {"notes", "uncertainties"})
+        self.assertEqual(set(payload), set(InvoiceExtraction.model_fields) - {"notes", "uncertainties"})
         client.table.return_value.update.return_value.eq.assert_called_once_with("id", str(identifier))
-        self.assertEqual(InvoiceFeatures.model_validate_json(features.model_dump_json()), features)
+        self.assertEqual(InvoiceExtraction.model_validate_json(extraction.model_dump_json()), extraction)
 
     def test_missing_amounts_are_stored_as_null_without_changing_the_artifact_fields(self) -> None:
-        features = InvoiceFeatures(
+        extraction = InvoiceExtraction(
             invoice_number="F-1", supplier_name="Proveedor", supplier_nif="B12345678",
             iban="", invoice_date="", purchase_order="", line_items=[],
             tax_base="", vat_rate="", vat_amount="", total="", notes=[], uncertainties=["Importes ilegibles"],
         )
         with patch("documents.repository.get_client") as client:
-            save_document_features(uuid4(), "invoice.pdf", features)
+            save_document_extraction(uuid4(), "invoice.pdf", extraction)
         payload = client.return_value.table.return_value.update.call_args.args[0]
         for field in ("tax_base", "vat_rate", "vat_amount", "total"):
             self.assertIsNone(payload[field])
-            self.assertEqual(getattr(features, field), "")
+            self.assertEqual(getattr(extraction, field), "")

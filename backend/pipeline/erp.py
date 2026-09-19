@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from documents.repository import DocumentSnapshot
+from documents.repository import DocumentDetails
 from erp import sync_erp_snapshot
 from shared.logger import get_logger
 from shared.redis import get_redis
@@ -14,7 +14,7 @@ def latest_snapshot_id() -> UUID | None:
     return UUID(rows[0]["id"]) if rows else None
 
 
-def bind_snapshot(document: DocumentSnapshot) -> None:
+def bind_snapshot(document: DocumentDetails) -> None:
     """Pin one saved snapshot for the document and reuse it across retries."""
     if document.erp_snapshot_id is not None:
         return
@@ -29,7 +29,7 @@ def bind_snapshot(document: DocumentSnapshot) -> None:
     logger.info("[PIPELINE] Linked ERP snapshot %s to %s", snapshot_id, document.name)
 
 
-def match_entry(document: DocumentSnapshot, purchase_order: str) -> None:
+def match_entry(document: DocumentDetails, purchase_order: str) -> None:
     """Link only an unambiguous order match within the document's pinned snapshot."""
     assert document.erp_snapshot_id is not None
     entries = get_client().table("erp_entries").select("id").eq("snapshot_id", str(document.erp_snapshot_id)).eq("order_id", purchase_order).limit(2).execute().data if purchase_order else []

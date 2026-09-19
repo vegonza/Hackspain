@@ -8,14 +8,14 @@ from uuid import uuid4
 from pipeline import ocr_2 as ocr_phase, text_1 as text_phase
 from pipeline.runner import run_pipeline
 from pipeline.results import document_stages
-from documents.repository import DocumentSnapshot, write_document
+from documents.repository import DocumentDetails, write_document
 from documents.stages import StageDetail, stage_attempt
 from documents.worker import process_document
 from shared.retries import RetryState
 
-def queued_document() -> DocumentSnapshot:
+def queued_document() -> DocumentDetails:
     identifier = uuid4()
-    return DocumentSnapshot(
+    return DocumentDetails(
         id=identifier, name="invoice.pdf", sha256="a" * 64,
         created_at=datetime.now(timezone.utc),
         stages=[StageDetail(document_id=identifier, stage=stage, status="unavailable" if stage in ("merge", "extraction") else "queued") for stage in ("text", "ocr", "merge", "extraction")],
@@ -42,7 +42,7 @@ class StageDurationTests(unittest.TestCase):
         document = queued_document()
         saved: list[str] = []
 
-        def capture(value: DocumentSnapshot) -> None:
+        def capture(value: DocumentDetails) -> None:
             saved.append(value.status)
 
         with (
