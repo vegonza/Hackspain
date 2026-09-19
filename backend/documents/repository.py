@@ -9,6 +9,8 @@ from shared.storage import get_client
 from shared.redis import get_redis
 from shared.retries import RetryState
 from documents.queue import RETRIES
+from documents.features import InvoiceFeatures
+from shared.logger import get_logger
 from documents.stages import StageDetail, StageId
 
 
@@ -87,6 +89,7 @@ def archive_document(document_id: UUID) -> None:
 
 
 class DocumentSnapshot(Document):
+    features: InvoiceFeatures | None
     stages: list[StageDetail]
 
 
@@ -95,8 +98,15 @@ def read_document_detail(document_id: UUID) -> DocumentSnapshot:
     payload = get_client().rpc("get_document_detail", {"p_document_id": str(document_id)}).execute().data
     if payload is None:
         raise HTTPException(status_code=404, detail="document_not_found")
-    document = DocumentSnapshot.model_validate(payload)
+    features = InvoiceFeatures.model_validate(payload) if payload["line_items"] is not None else None
+    document = DocumentSnapshot.model_validate({**payload, "features": features})
     with get_redis() as redis:
         state = redis.hget(RETRIES, str(document_id))
     with_retry_state(document, RetryState.model_validate_json(state) if state is not None else RetryState())
     return document
+
+
+def save_document_features(document_id: UUID, name: str, features: InvoiceFeatures) -> None:
+    """Persist the pipeline's complete structured result without changing processing metadata."""
+    get_client().table("documents").update(features.model_dump(mode="json")).eq("id", str(document_id)).is_("deleted_at", "null").execute()
+    get_logger().info("[DOCUMENTS] Saved extracted data for %s", name)

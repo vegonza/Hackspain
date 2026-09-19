@@ -15,15 +15,16 @@ class DocumentListMetricsTests(unittest.TestCase):
             "id": str(identifier), "name": "invoice.pdf", "sha256": "a" * 64,
             "created_at": datetime.now(timezone.utc).isoformat(), "status": "processing",
             "total_cost_usd": "0.0047", "total_duration_ms": 9860,
-            "current_stages": ["ocr", "text"],
-            "stage_metrics": [{"stage": "ocr", "cost_usd": "0.004", "duration_ms": 8420}],
+            "current_stages": ["ocr", "extraction"],
+            "stage_metrics": [{"stage": "extraction", "cost_usd": "0.004", "duration_ms": 8420}],
         }]
         redis.__enter__.return_value.hmget.return_value = [None]
         with patch("documents.repository.get_client", return_value=client), patch("documents.repository.get_redis", return_value=redis):
             result = list_documents()
         client.rpc.assert_called_once_with("get_documents", {"p_offset": 0, "p_limit": 1000})
         self.assertEqual(result[0].total_cost_usd, Decimal("0.0047"))
-        self.assertEqual(result[0].current_stages, ["ocr", "text"])
+        self.assertEqual(result[0].current_stages, ["ocr", "extraction"])
+        self.assertEqual(result[0].stage_metrics[0].stage, "extraction")
         self.assertEqual(result[0].stage_metrics[0].duration_ms, 8420)
 
     def test_aggregated_metrics_are_not_written_into_documents(self) -> None:

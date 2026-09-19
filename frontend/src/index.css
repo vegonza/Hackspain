@@ -201,7 +201,7 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .document-erp { margin-top: 8px; padding-top: 4px; border-top: 1px solid var(--border); }
 
 
-.sidebar-brand { display: flex; align-items: center; height: 56px; flex-shrink: 0; padding: 0 16px; }
+.sidebar-brand { display: flex; align-items: center; height: 48px; flex-shrink: 0; padding: 0 16px; border-bottom: 1px solid var(--border); }
 .sidebar-navigation { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px 10px; }
 .sidebar-link { color: #171717; }
 .sidebar-link > svg { color: var(--muted-foreground); }

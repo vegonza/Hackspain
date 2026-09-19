@@ -16,7 +16,7 @@ export interface Document {
   next_retry_at: string | null
 }
 
-export type StageId = 'ocr' | 'text' | 'merge'
+export type StageId = 'ocr' | 'text' | 'merge' | 'extraction'
 export type StageStatus = 'queued' | 'processing' | 'ready' | 'error' | 'retrying' | 'unavailable'
 
 export interface DiffLine {

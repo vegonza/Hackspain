@@ -6,6 +6,17 @@ CREATE TABLE IF NOT EXISTS public.documents (
     status TEXT NOT NULL DEFAULT 'queued'
         CHECK (status IN ('queued', 'processing', 'ready', 'error')),
     pages INTEGER NOT NULL DEFAULT 0 CHECK (pages >= 0),
+    invoice_number TEXT,
+    supplier_name TEXT,
+    supplier_nif TEXT,
+    iban TEXT,
+    invoice_date TEXT,
+    purchase_order TEXT,
+    line_items JSONB,
+    tax_base NUMERIC,
+    vat_rate NUMERIC,
+    vat_amount NUMERIC,
+    total NUMERIC,
     deleted_at TIMESTAMPTZ
 );
 

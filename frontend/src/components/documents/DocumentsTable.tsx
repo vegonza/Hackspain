@@ -8,11 +8,11 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { Tooltip } from '@/components/ui/tooltip'
 import { DeleteButton } from '@/components/ui/delete-button'
 
-type Props = Pick<ReturnType<typeof useDocuments>, 'onUpload' | 'search' | 'onSearch' | 'onSelect' | 'onDelete' | 'deleting' | 'labels'> & {
+type Props = Pick<ReturnType<typeof useDocuments>, 'sortColumn' | 'sortDirection' | 'onToggleSort' | 'onUpload' | 'search' | 'onSearch' | 'onSelect' | 'onDelete' | 'deleting' | 'labels'> & {
   rows: ReturnType<typeof useDocuments>['filteredDocuments']
 }
 
-export function DocumentsTable({ onUpload, rows, search, onSearch, onSelect, onDelete, deleting, labels }: Props) {
+export function DocumentsTable({ sortColumn, sortDirection, onToggleSort, onUpload, rows, search, onSearch, onSelect, onDelete, deleting, labels }: Props) {
   return (
     <section className="documents-browser" aria-label={labels.library}>
       <header className="documents-toolbar">
@@ -26,7 +26,7 @@ export function DocumentsTable({ onUpload, rows, search, onSearch, onSelect, onD
         <table className="documents-table">
           <colgroup><col /><col style={{ width: '180px' }} /><col style={{ width: '130px' }} /><col style={{ width: '130px' }} /><col style={{ width: '210px' }} /><col style={{ width: '48px' }} /></colgroup>
           <TableHeader className="[&_tr]:border-b-0"><TableRow className="hover:bg-transparent">
-            <DocumentsTableHead label={labels.document} icon={FileText} stickyLeft /><DocumentsTableHead label={labels.status} icon={ListChecks} /><DocumentsTableHead label={labels.totalCost} icon={DollarSign} /><DocumentsTableHead label={labels.totalTime} icon={Timer} /><DocumentsTableHead label={labels.created} icon={Clock} /><TableHead className="sticky top-0 z-20 border-b bg-muted"><span className="sr-only">{labels.delete}</span></TableHead>
+            <DocumentsTableHead column="name" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.document} icon={FileText} stickyLeft /><DocumentsTableHead column="status" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.status} icon={ListChecks} /><DocumentsTableHead column="cost" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.totalCost} icon={DollarSign} /><DocumentsTableHead column="duration" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.totalTime} icon={Timer} /><DocumentsTableHead column="created" sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} label={labels.created} icon={Clock} /><TableHead className="sticky top-0 z-20 border-b bg-muted"><span className="sr-only">{labels.delete}</span></TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {rows.map(document => <TableRow key={document.id} className="document-table-row" data-openable={document.canOpen} onClick={() => { if (document.canOpen) void onSelect(document.id) }}>

@@ -18,7 +18,7 @@ import { DocumentSkeleton } from '@/components/documents/DocumentSkeleton'
 
 type Props = ReturnType<typeof useDocuments> & { usage: ReturnType<typeof useUsage> }
 
-export function DocumentsView({ erpRows, stages, activeStage, totalCost, totalDuration, filteredDocuments, search, onSearch, onBack, selected, selectedRow, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage, onRetry, retrying }: Props) {
+export function DocumentsView({ erpRows, stages, activeStage, totalCost, totalDuration, sortColumn, sortDirection, onToggleSort, filteredDocuments, search, onSearch, onBack, selected, selectedRow, loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments, onSourceTab, onUpload, onDelete, onSelect, labels, featureLabels, view, onUsage, usage, onRetry, retrying }: Props) {
   return (
     <div className="app-shell" ref={watchDocuments}>
         <main className="review-layout">
@@ -69,7 +69,7 @@ export function DocumentsView({ erpRows, stages, activeStage, totalCost, totalDu
                 <DocumentErp title={labels.erp} loading={loading} rows={erpRows} />
               </section>
             </div>
-          ) : <DocumentsTable onUpload={onUpload} rows={filteredDocuments} search={search} onSearch={onSearch} onSelect={onSelect} onDelete={onDelete} deleting={deleting} labels={labels} />}
+          ) : <DocumentsTable sortColumn={sortColumn} sortDirection={sortDirection} onToggleSort={onToggleSort} onUpload={onUpload} rows={filteredDocuments} search={search} onSearch={onSearch} onSelect={onSelect} onDelete={onDelete} deleting={deleting} labels={labels} />}
         </main>
     </div>
   )

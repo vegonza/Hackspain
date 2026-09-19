@@ -6,11 +6,26 @@ import { deleteDocument, retryDocument, fetchDocument, fetchDocuments, fetchPdfU
 
 const isProcessing = (document: Document) => document.status === 'queued' || document.status === 'processing'
 
+export type DocumentSortColumn = 'name' | 'status' | 'cost' | 'duration' | 'created'
+
 interface UploadingFile { id: string; name: string }
 
 export function useDocuments(initialDocuments: Document[]) {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
+  const [sortColumn, setSortColumn] = useState<DocumentSortColumn | null>(null)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const onToggleSort = (column: DocumentSortColumn) => {
+    if (sortColumn !== column) {
+      setSortColumn(column)
+      setSortDirection('asc')
+    } else if (sortDirection === 'asc') {
+      setSortDirection('desc')
+    } else {
+      setSortColumn(null)
+      setSortDirection('asc')
+    }
+  }
   const [view, setView] = useState<'documents' | 'usage'>('documents')
   const [documents, setDocuments] = useState(initialDocuments)
   const [uploads, setUploads] = useState<UploadingFile[]>([])
@@ -218,6 +233,26 @@ export function useDocuments(initialDocuments: Document[]) {
     errorMessage: document.status === 'error' ? t('documents.error') : '',
   }))
 
+  const sortValue = (row: typeof rows[number]): string | number | null => {
+    switch (sortColumn) {
+      case 'name': return row.name
+      case 'status': return row.statusLabel
+      case 'cost': return row.total_cost_usd === null ? null : Number(row.total_cost_usd)
+      case 'duration': return row.total_duration_ms
+      case 'created': return row.status === 'uploading' ? null : Date.parse(row.created_at)
+      default: return null
+    }
+  }
+  const filteredDocuments = rows.filter(document => document.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))
+  if (sortColumn !== null) filteredDocuments.sort((a, b) => {
+    const left = sortValue(a), right = sortValue(b)
+    if (left === null) return right === null ? 0 : 1
+    if (right === null) return -1
+    const comparison = typeof left === 'number' && typeof right === 'number'
+      ? left - right : String(left).localeCompare(String(right), 'es', { numeric: true, sensitivity: 'base' })
+    return sortDirection === 'asc' ? comparison : -comparison
+  })
+
   const stages = selected === null ? [] : selected.stages.map(stage => ({
     ...stage,
     label: t(`pipeline.stages.${stage.id}`),
@@ -252,7 +287,7 @@ export function useDocuments(initialDocuments: Document[]) {
 
   return {
     stages, activeStage, totalCost, totalDuration, erpRows,
-    filteredDocuments: rows.filter(document => document.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())),
+    filteredDocuments, sortColumn, sortDirection, onToggleSort,
     search, onSearch: setSearch, onBack,
     selected,
     loading, pdfUrl, pdfLoading, deleting, sourceTab, watchDocuments,

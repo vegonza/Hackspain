@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION public.get_documents(p_offset INTEGER DEFAULT 0, p_limit INTEGER DEFAULT 1000)
 RETURNS JSONB LANGUAGE sql STABLE SET search_path = public AS $$
 WITH page AS MATERIALIZED (
-    SELECT * FROM public.documents WHERE deleted_at IS NULL
+    SELECT id, name, sha256, created_at, status, pages FROM public.documents WHERE deleted_at IS NULL
     ORDER BY created_at DESC, id LIMIT p_limit OFFSET p_offset
 ), costs AS (
     SELECT u.document_id, u.operation, SUM((entry->>'cost')::numeric) AS cost
@@ -19,8 +19,8 @@ WITH page AS MATERIALIZED (
     SELECT document_id,
         SUM(cost)::text AS total_cost_usd, SUM(duration_ms)::bigint AS total_duration_ms,
         jsonb_agg(jsonb_build_object('stage', stage, 'cost_usd', cost::text, 'duration_ms', duration_ms)
-            ORDER BY CASE stage WHEN 'ocr' THEN 0 WHEN 'text' THEN 1 ELSE 2 END) AS stage_metrics,
-        COALESCE(jsonb_agg(stage ORDER BY CASE stage WHEN 'ocr' THEN 0 WHEN 'text' THEN 1 ELSE 2 END)
+            ORDER BY CASE stage WHEN 'ocr' THEN 0 WHEN 'text' THEN 1 WHEN 'merge' THEN 2 ELSE 3 END) AS stage_metrics,
+        COALESCE(jsonb_agg(stage ORDER BY CASE stage WHEN 'ocr' THEN 0 WHEN 'text' THEN 1 WHEN 'merge' THEN 2 ELSE 3 END)
             FILTER (WHERE status IN ('processing', 'queued', 'error')), '[]'::jsonb) AS current_stages
     FROM metrics GROUP BY document_id
 )

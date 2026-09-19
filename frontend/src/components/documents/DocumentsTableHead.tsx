@@ -1,15 +1,19 @@
 import type { LucideIcon } from 'lucide-react'
+import type { DocumentSortColumn } from '@/hooks/useDocuments'
+import { SortableTableHead } from '@/components/ui/sortable-table-head'
 import { cn } from '@/lib/utils'
 
-type Props = { label: string; icon: LucideIcon; stickyLeft?: boolean }
+type Props = {
+  label: string
+  icon: LucideIcon
+  stickyLeft?: boolean
+  column: DocumentSortColumn
+  sortColumn: DocumentSortColumn | null
+  sortDirection: 'asc' | 'desc'
+  onToggleSort: (column: DocumentSortColumn) => void
+}
 
-export function DocumentsTableHead({ label, icon: Icon, stickyLeft = false }: Props) {
-  return (
-    <th className={cn('sticky top-0 z-20 border-b bg-muted px-2 py-2 text-left text-sm font-medium text-foreground', stickyLeft && 'left-0 z-30')}>
-      <div className="flex h-8 items-center gap-1 whitespace-nowrap">
-        <Icon className="size-3.5 shrink-0 text-muted-foreground" />
-        <span>{label}</span>
-      </div>
-    </th>
-  )
+export function DocumentsTableHead({ label, icon, stickyLeft = false, column, sortColumn, sortDirection, onToggleSort }: Props) {
+  return <SortableTableHead column={column} label={label} icon={icon} activeColumn={sortColumn} direction={sortDirection} onToggle={onToggleSort}
+    className={cn('sticky top-0 z-20 border-b bg-muted', stickyLeft && 'left-0 z-30')} />
 }
