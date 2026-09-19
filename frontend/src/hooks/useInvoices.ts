@@ -8,6 +8,7 @@ import { invoiceErrorKey } from '@/hooks/invoiceError'
 import { invoiceMetrics } from '@/hooks/invoiceMetrics'
 import { deleteInvoice, redoInvoice, retryInvoice, fetchInvoices, uploadInvoice, type Invoice } from '@/api/invoices'
 import { formatAmount, formatStatus } from '@/lib/format'
+import { isSupportedInvoiceFile } from '@/lib/invoiceFiles'
 
 const isProcessing = (document: Invoice) => document.status === 'queued' || document.status === 'processing'
 
@@ -128,8 +129,8 @@ export function useInvoices() {
     const files = Array.from(event.target.files || [])
     event.target.value = ''
     if (files.length === 0) return
-    const valid = files.filter(file => file.name.toLowerCase().endsWith('.pdf'))
-    if (valid.length !== files.length) toast.error(t('invoices.invalidPdf'))
+    const valid = files.filter(file => isSupportedInvoiceFile(file.name))
+    if (valid.length !== files.length) toast.error(t('invoices.unsupportedFileType'))
     if (valid.length === 0) return
     const pending = valid.map(file => ({ id: `upload-${crypto.randomUUID()}`, name: file.name, created_at: new Date().toISOString(), file }))
     setUploads(current => [...pending, ...current])

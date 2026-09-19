@@ -11,6 +11,7 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { Tooltip } from '@/components/ui/tooltip'
 import { ConfirmButton } from '@/components/ui/confirm-button'
 import { TableSkeleton } from '@/components/ui/table/table-skeleton'
+import { invoiceFileAccept } from '@/lib/invoiceFiles'
 
 export type InvoicesTableProps = Pick<ReturnType<typeof useInvoices>, 'invoicesLoading' | 'sortColumn' | 'sortDirection' | 'onToggleSort' | 'onUpload' | 'search' | 'onSearch' | 'onSelect' | 'onInvoiceLink' | 'onDelete' | 'deleting' | 'labels'> & {
   table: ReturnType<typeof useInvoiceTable>
@@ -24,7 +25,7 @@ export function InvoicesTable({ invoicesLoading, sortColumn, sortDirection, onTo
       <TableToolbar pagination={pagination} loading={invoicesLoading} actions={
         <Button asChild size="sm" className="table-add-button"><label className="upload-button">
           <Upload size={15} />{labels.upload}
-          <input type="file" accept="application/pdf,.pdf" multiple onChange={onUpload} aria-label={labels.upload} />
+          <input type="file" accept={invoiceFileAccept} multiple onChange={onUpload} aria-label={labels.upload} />
         </label></Button>
       }>
         <SearchInput value={search} onChange={onSearch} placeholder={labels.search} collapsible={false} />

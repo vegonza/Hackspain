@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from hashlib import sha256
+from pathlib import Path
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, UploadFile
@@ -7,6 +8,7 @@ from postgrest.exceptions import APIError
 from pydantic import ValidationError
 
 from invoices.queue import enqueue, RETRIES, SCHEDULED, QUEUE, PROCESSING
+from invoices.conversion import SUPPORTED_EXTENSIONS, to_pdf
 from shared.redis import get_redis
 from invoices.repository import InvoiceDetails, read_invoice_detail, Invoice, archive_invoice, read_invoice, write_invoice, create_invoice, find_invoice_by_hash
 from invoices.repository import list_invoices as read_invoices
@@ -54,14 +56,15 @@ def list_invoices() -> list[Invoice]:
 @router.post("", status_code=202)
 def upload_invoice(file: UploadFile) -> Invoice:
     name = file.filename
-    pdf_bytes = file.file.read()
-    if not name or not name.lower().endswith(".pdf") or not pdf_bytes.startswith(b"%PDF-"):
-        raise HTTPException(status_code=400, detail="invalid_pdf")
+    if not name or Path(name).suffix.lower() not in SUPPORTED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="unsupported_file_type")
+    source_bytes = file.file.read()
 
-    digest = sha256(pdf_bytes).hexdigest()
+    digest = sha256(source_bytes).hexdigest()
     if find_invoice_by_hash(digest):
-        logger.info("[INVOICES] Rejected duplicate PDF %s", name)
+        logger.info("[INVOICES] Rejected duplicate file %s", name)
         raise HTTPException(status_code=409, detail="duplicate_pdf")
+    pdf_bytes = to_pdf(source_bytes, name)
     invoice_record = Invoice(id=uuid4(), name=name, sha256=digest, created_at=datetime.now(timezone.utc))
     upload_file(f"{invoice_record.id}/original.pdf", pdf_bytes, "application/pdf")
     try:

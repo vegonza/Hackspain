@@ -22,6 +22,10 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
           ? i18n.t('suppliers.notFound')
         : error.detail === 'invalid_pdf'
         ? i18n.t('invoices.invalidPdf')
+        : error.detail === 'unsupported_file_type'
+          ? i18n.t('invoices.unsupportedFileType')
+        : error.detail === 'conversion_failed'
+          ? i18n.t('invoices.conversionFailed')
         : error.detail === 'invoice_processing'
           ? i18n.t('invoices.processingConflict')
         : error.detail === 'invalid_saved_extraction'
