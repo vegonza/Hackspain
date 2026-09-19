@@ -34,7 +34,7 @@
     "requestFailed": "No se ha podido completar la solicitud. Comprueba la conexión con el servidor."
   },
   "usage": {
-    "title": "Uso", "cost": "Coste", "calls": "Llamadas", "pages": "Páginas procesadas",
+    "title": "Consumo", "cost": "Coste", "calls": "Llamadas", "pages": "Páginas procesadas",
     "totalCost": "Coste total", "dailyCost": "Coste medio diario",
     "providers": { "mistral": "Mistral", "openrouter": "OpenRouter" },
     "breakdown": { "pages_processed": "Páginas", "prompt_tokens": "Tokens de entrada", "completion_tokens": "Tokens de salida", "total_tokens": "Tokens totales" },
