@@ -29,16 +29,3 @@ REVOKE ALL ON FUNCTION public.initialize_document_stages() FROM PUBLIC, anon, au
 CREATE OR REPLACE TRIGGER initialize_document_stages
     AFTER INSERT ON public.documents
     FOR EACH ROW EXECUTE FUNCTION public.initialize_document_stages();
-
--- Each usage operation identifies the stage that made the AI call.
-CREATE OR REPLACE FUNCTION public.get_document_stage_costs(p_document_id UUID)
-RETURNS TABLE (stage TEXT, cost_usd TEXT)
-LANGUAGE sql STABLE SET search_path = public AS $$
-    SELECT log.operation, SUM((entry->>'cost')::numeric)::text
-    FROM public.usage_log log
-    CROSS JOIN LATERAL jsonb_array_elements(log.usage) entry
-    WHERE log.document_id = p_document_id
-    GROUP BY log.operation;
-$$;
-REVOKE ALL ON FUNCTION public.get_document_stage_costs(UUID) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.get_document_stage_costs(UUID) TO service_role;

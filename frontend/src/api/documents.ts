@@ -97,7 +97,3 @@ export function uploadDocument(file: File): Promise<Document> {
   body.append('file', file)
   return fetchJson<Document>('/documents', { method: 'POST', body })
 }
-
-export function fetchStageCosts(id: string): Promise<Record<string, string>> {
-  return fetchJson(`/documents/${id}/stage-costs`)
-}

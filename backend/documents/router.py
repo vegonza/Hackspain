@@ -12,8 +12,6 @@ from shared.redis import get_redis
 from documents.repository import DocumentSnapshot, read_document_detail, Document, archive_document, read_document, write_document, create_document, find_document_by_hash
 from documents.repository import list_documents as read_documents
 from documents.pipeline import DocumentStage, document_stages
-from documents.stages import read_stage_costs
-from decimal import Decimal
 from documents.erp import DocumentErpEntry, preview_erp_entry
 from documents.features import InvoiceFeatures, extract_invoice_features
 from shared.logger import get_logger
@@ -123,9 +121,3 @@ def get_image(document_id: UUID, filename: str) -> RedirectResponse:
     if not filename.startswith("page-") or not filename.endswith(".jpg") or Path(filename).name != filename:
         raise HTTPException(status_code=404, detail="image_not_found")
     return RedirectResponse(signed_url(f"{document_id}/{filename}"), headers={"Cache-Control": "no-store"})
-
-
-@router.get("/{document_id}/stage-costs")
-def get_stage_costs(document_id: UUID) -> dict[str, Decimal]:
-    read_document(document_id)
-    return read_stage_costs(document_id)

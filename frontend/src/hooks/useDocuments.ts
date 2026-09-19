@@ -2,7 +2,9 @@ import { useCallback, useRef, useState, type ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatDateLong } from '@/lib/format'
 import { toast } from 'sonner'
-import { deleteDocument, fetchStageCosts, retryDocument, fetchDocument, fetchDocuments, fetchPdfUrl, uploadDocument, type Document, type DocumentDetail, type StageId } from '@/api/documents'
+import { deleteDocument, retryDocument, fetchDocument, fetchDocuments, fetchPdfUrl, uploadDocument, type Document, type DocumentDetail, type StageId } from '@/api/documents'
+
+const isProcessing = (document: Document) => document.status === 'queued' || document.status === 'processing'
 
 interface UploadingFile { id: string; name: string }
 
@@ -56,18 +58,33 @@ export function useDocuments(initialDocuments: Document[]) {
   }, [])
 
   const watchDocuments = useCallback((node: HTMLDivElement | null) => {
-    if (node === null) return
+    if (node === null || view !== 'documents') return
     let active = true
     let timer: ReturnType<typeof setTimeout>
     async function poll(): Promise<void> {
       try {
-        if (documentsRef.current.length > 0) {
+        if (!document.hidden && documentsRef.current.some(isProcessing)) {
           const revision = listRevision.current
           const next = await fetchDocuments()
           if (!active) return
           if (revision === listRevision.current) {
             const previous = documentsRef.current
             updateDocuments(next)
+            setSelected(current => {
+              if (current === null) return null
+              const summary = next.find(document => document.id === current.id)
+              if (summary === undefined) return current
+              return {
+                ...current,
+                total_cost_usd: summary.total_cost_usd,
+                total_duration_ms: summary.total_duration_ms,
+                stage_metrics: summary.stage_metrics,
+                stages: current.stages.map(stage => {
+                  const metric = summary.stage_metrics.find(item => item.stage === stage.id)
+                  return metric === undefined || metric.cost_usd === null ? stage : { ...stage, cost_usd: metric.cost_usd }
+                }),
+              }
+            })
             for (const document of next) {
               const old = previous.find(item => item.id === document.id)
               if (old && old.status !== document.status && document.status === 'error') {
@@ -83,21 +100,10 @@ export function useDocuments(initialDocuments: Document[]) {
             }
           }
         }
-        const id = activeId.current
-        const request = selectionRequest.current
-        if (id !== null) {
-          const costs = await fetchStageCosts(id)
-          if (active && request === selectionRequest.current) {
-            setSelected(current => current === null ? null : {
-              ...current,
-              stages: current.stages.map(stage => stage.id in costs ? { ...stage, cost_usd: costs[stage.id] } : stage),
-            })
-          }
-        }
       } catch {
         // The API client displays polling errors.
       } finally {
-        if (active) timer = setTimeout(() => void poll(), 5000)
+        if (active) timer = setTimeout(() => void poll(), 3000)
       }
     }
     void poll()
@@ -105,7 +111,7 @@ export function useDocuments(initialDocuments: Document[]) {
       active = false
       clearTimeout(timer)
     }
-  }, [t, updateDocuments])
+  }, [t, updateDocuments, view])
 
   function onBack(): void {
     ++selectionRequest.current

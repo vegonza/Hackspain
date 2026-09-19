@@ -49,8 +49,3 @@ def fail_stage(document_id: UUID, name: str, stage: StageId, duration_ms: int) -
         "status": "error", "finished_at": datetime.now(timezone.utc).isoformat(), "duration_ms": duration_ms,
     }).eq("document_id", str(document_id)).eq("stage", stage).execute()
     logger.info("[PIPELINE] Failed %s for %s after %s ms", stage, name, duration_ms)
-
-
-def read_stage_costs(document_id: UUID) -> dict[str, Decimal]:
-    rows = get_client().rpc("get_document_stage_costs", {"p_document_id": str(document_id)}).execute().data
-    return {row["stage"]: Decimal(row["cost_usd"]) for row in rows}
