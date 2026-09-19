@@ -36,6 +36,19 @@ class RulesTests(unittest.TestCase):
     def test_valid_invoice_passes_without_external_services(self) -> None:
         self.assertEqual(self.classification(), 'PAGAR')
 
+    def test_missing_invoice_identity_escalates_unless_already_paid(self) -> None:
+        for field in ('invoice_number', 'supplier_nif'):
+            for value in ('', '  ', '\t\n'):
+                with self.subTest(field=field, value=value):
+                    original = getattr(self.context.invoice, field)
+                    setattr(self.context.invoice, field, value)
+                    self.context.entries[0].status = 'PENDIENTE'
+                    self.assertEqual(self.classification(), 'ESCALAR')
+                    self.context.entries[0].status = 'PAGADA'
+                    self.assertEqual(self.classification(), 'NO_PAGAR')
+                    setattr(self.context.invoice, field, original)
+        self.context.entries[0].status = 'PENDIENTE'
+
     def test_order_claim_must_belong_to_this_invoice(self) -> None:
         for owner in (None, UUID('00000000-0000-0000-0000-000000000002')):
             with self.subTest(owner=owner):

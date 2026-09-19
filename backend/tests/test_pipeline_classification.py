@@ -37,6 +37,20 @@ class PipelineClassificationTests(unittest.TestCase):
             'p_decision': self.candidate.model_dump(mode='json', by_alias=True),
         })
 
+    def test_database_duplicate_verdict_replaces_candidate_approval(self) -> None:
+        saved = Decision(classification='ESCALAR', reasons=['Factura duplicada'],
+                         checks={'invoice_unique': False, 'order_claim': True})
+        client = MagicMock()
+        client.rpc.return_value.execute.return_value.data = saved.model_dump(mode='json', by_alias=True)
+        with (
+            patch('pipeline.classification.download_file', return_value=self.invoice.model_dump_json().encode()),
+            patch('pipeline.classification.classify_invoice', return_value=self.candidate),
+            patch('pipeline.classification.track_usage', return_value=nullcontext(None)),
+            patch('pipeline.classification.get_client', return_value=client),
+        ):
+            process(self.invoice_record)
+        self.assertEqual(self.invoice_record.payment_decision, saved)
+
     def test_retry_with_saved_decision_does_not_repeat_ai_call(self) -> None:
         self.invoice_record.payment_decision = self.candidate
         with patch('pipeline.classification.classify_invoice') as classify, patch('pipeline.classification.get_client') as client:

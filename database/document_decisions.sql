@@ -3,6 +3,10 @@ ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS claimed_by_document_id UUID R
 CREATE INDEX IF NOT EXISTS orders_claimed_document_idx ON public.orders (claimed_by_document_id)
     WHERE claimed_by_document_id IS NOT NULL;
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_approved_invoice_identity
+    ON public.documents ((upper(regexp_replace(COALESCE(supplier_nif, ''), '[[:space:]]', '', 'g'))), (upper(regexp_replace(COALESCE(invoice_number, ''), '^[[:space:]]+|[[:space:]]+$', '', 'g'))))
+    WHERE deleted_at IS NULL AND payment_decision->>'classification' = 'PAGAR';
+
 CREATE OR REPLACE FUNCTION public.release_document_order_claim()
 RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
@@ -40,16 +44,46 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.publish_payment_decision(p_document_id UUID, p_order_key TEXT, p_decision JSONB)
 RETURNS JSONB LANGUAGE plpgsql SET search_path = public AS $$
+DECLARE
+    document public.documents%ROWTYPE;
+    decision JSONB := p_decision;
+    violated_constraint TEXT;
 BEGIN
-    UPDATE public.documents SET payment_decision = p_decision
+    SELECT * INTO document FROM public.documents
     WHERE id = p_document_id AND deleted_at IS NULL
       AND public.normalize_order_key(purchase_order) = public.normalize_order_key(p_order_key)
-      AND (p_decision->>'classification' <> 'PAGAR' OR EXISTS (
-          SELECT 1 FROM public.orders WHERE public.normalize_order_key(order_id) = public.normalize_order_key(p_order_key)
-          AND claimed_by_document_id = p_document_id
-      ));
-    IF NOT FOUND THEN RAISE EXCEPTION 'Document changed or order claim was lost'; END IF;
-    RETURN p_decision;
+    FOR UPDATE;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Document changed or document was deleted'; END IF;
+
+    IF decision->>'classification' = 'PAGAR' THEN
+        IF regexp_replace(COALESCE(document.supplier_nif, ''), '[[:space:]]', '', 'g') = ''
+           OR regexp_replace(COALESCE(document.invoice_number, ''), '[[:space:]]', '', 'g') = '' THEN
+            decision := decision || jsonb_build_object(
+                'classification', 'ESCALAR',
+                'reasons', jsonb_build_array('No se puede comprobar si la factura está duplicada: falta el NIF o el número de factura.'),
+                'checks', (decision->'checks') || '{"invoice_identity": false}'::jsonb);
+        ELSE
+            PERFORM 1 FROM public.orders
+            WHERE public.normalize_order_key(order_id) = public.normalize_order_key(p_order_key)
+              AND claimed_by_document_id = p_document_id FOR UPDATE;
+            IF NOT FOUND THEN RAISE EXCEPTION 'Order claim was lost'; END IF;
+            decision := decision || jsonb_build_object(
+                'checks', (decision->'checks') || '{"invoice_identity": true, "invoice_unique": true}'::jsonb);
+        END IF;
+    END IF;
+
+    BEGIN
+        UPDATE public.documents SET payment_decision = decision WHERE id = p_document_id;
+    EXCEPTION WHEN unique_violation THEN
+        GET STACKED DIAGNOSTICS violated_constraint = CONSTRAINT_NAME;
+        IF violated_constraint <> 'idx_documents_approved_invoice_identity' THEN RAISE; END IF;
+        decision := decision || jsonb_build_object(
+            'classification', 'ESCALAR',
+            'reasons', jsonb_build_array('Ya existe otra factura aprobada para pago con este proveedor y número de factura.'),
+            'checks', (decision->'checks') || '{"invoice_unique": false}'::jsonb);
+        UPDATE public.documents SET payment_decision = decision WHERE id = p_document_id;
+    END;
+    RETURN decision;
 END;
 $$;
 

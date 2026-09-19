@@ -11,6 +11,8 @@ def identity_rules(context: RuleContext) -> list[RuleResult]:
     def check(rule: str, passed: bool, reason: str) -> None:
         results.append(RuleResult(rule=rule, passed=passed, reason=reason))
 
+    check('invoice_identity', bool(nif) and bool(invoice.invoice_number.strip()),
+          'No se puede comprobar si la factura está duplicada: falta el NIF o el número de factura.')
     check('supplier', supplier is not None and bool(nif) and supplier.tax_id == nif,
           'No se encuentra el proveedor del pedido o su NIF no coincide con la factura.')
     check('iban', supplier is not None and bool(invoice.iban.strip()) and compact_identifier(invoice.iban) == supplier.iban,

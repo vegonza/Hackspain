@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS public.documents (
     erp_entry_id UUID,
     deleted_at TIMESTAMPTZ,
     payment_decision JSONB,
+    CONSTRAINT documents_approved_invoice_identity_present
+        CHECK (deleted_at IS NOT NULL OR payment_decision->>'classification' <> 'PAGAR'
+            OR (upper(regexp_replace(COALESCE(supplier_nif, ''), '[[:space:]]', '', 'g')) <> '' AND upper(regexp_replace(COALESCE(invoice_number, ''), '^[[:space:]]+|[[:space:]]+$', '', 'g')) <> '')),
     CONSTRAINT documents_erp_entry_requires_snapshot
         CHECK (erp_entry_id IS NULL OR erp_snapshot_id IS NOT NULL),
     CONSTRAINT documents_erp_entry_snapshot_fk
