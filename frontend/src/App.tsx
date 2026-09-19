@@ -1,11 +1,11 @@
 import { Toaster } from '@/components/ui/sonner'
-import { DocumentsPage } from '@/pages/DocumentsPage'
+import { InvoicesPage } from '@/pages/InvoicesPage'
 
 export function App() {
   return (
     <>
       <Toaster position="bottom-right" duration={4000} />
-      <DocumentsPage />
+      <InvoicesPage />
     </>
   )
 }

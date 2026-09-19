@@ -12,6 +12,8 @@ export function useConfirmPopover(onConfirm: () => void, disabled: boolean) {
     setOpen(nextOpen)
   }, [])
 
+  const onFocusOutside = useCallback((event: Event): void => event.preventDefault(), [])
+
   const cancel = useCallback((): void => onOpenChange(false), [onOpenChange])
   const confirm = useCallback((): void => {
     if (disabled || !openRef.current) return
@@ -22,6 +24,7 @@ export function useConfirmPopover(onConfirm: () => void, disabled: boolean) {
   return {
     open,
     onOpenChange,
+    onFocusOutside,
     cancel,
     confirm,
     descriptionId,

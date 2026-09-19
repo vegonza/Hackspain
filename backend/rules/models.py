@@ -3,11 +3,11 @@ from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from erp import ErpEntry
 from orders.models import Order
-from pipeline.extraction_3.extraction import InvoiceExtraction
+from extractor.extraction import InvoiceExtraction
 from suppliers.models import Supplier
 
 
@@ -21,8 +21,8 @@ class ResolvedReferences(BaseModel):
 class RuleContext(ResolvedReferences):
     invoice: InvoiceExtraction
     evaluation_date: date
-    claimed_by_document_id: UUID | None = None
-    document_id: UUID
+    claimed_by_invoice_id: UUID | None = None
+    invoice_id: UUID
 
 
 class RuleResult(BaseModel):
@@ -32,10 +32,12 @@ class RuleResult(BaseModel):
 
 
 class Decision(BaseModel):
+    model_config = ConfigDict(validate_by_name=True)
+
     classification: Literal['PAGAR', 'NO_PAGAR', 'ESCALAR']
     reasons: list[str]
     checks: dict[str, bool]
     due_date: date | None = None
     supplier_name: str | None = None
-    amount: Decimal | None = None
-    claimed_by_document_id: UUID | None = None
+    amount_eur: Decimal | None = None
+    claimed_by_invoice_id: UUID | None = Field(default=None, alias="claimed_by_document_id")

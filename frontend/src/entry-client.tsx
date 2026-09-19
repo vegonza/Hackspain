@@ -8,7 +8,7 @@ import { navigate } from '@/hooks/useAppRoute'
 async function start(): Promise<void> {
   await i18nInitialized
   document.title = i18n.t('app.name')
-  if (window.location.pathname === '/') navigate('/docs', true)
+  if (window.location.pathname === '/') navigate('/invoices', true)
 
   const root = createRoot(document.getElementById('root')!)
   root.render(

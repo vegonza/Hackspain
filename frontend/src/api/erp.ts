@@ -1,17 +1,17 @@
-import { fetchJson } from '@/api/client'
-import type { DocumentErpEntry } from '@/api/documents'
+import { fetchEmpty, fetchJson } from '@/api/client'
+import type { InvoiceErpEntry } from '@/api/invoices'
 
-export interface ErpLinkedDocument {
+export interface ErpLinkedInvoice {
   id: string
   name: string
 }
 
-export interface ErpEntry extends DocumentErpEntry {
+export interface ErpEntry extends InvoiceErpEntry {
   id: string
 }
 
 export interface ErpEntryDetail extends ErpEntry {
-  documents: ErpLinkedDocument[]
+  invoices: ErpLinkedInvoice[]
 }
 
 export interface ErpSnapshot {
@@ -29,4 +29,8 @@ export function fetchErpSnapshot(): Promise<ErpSnapshot | null> {
 
 export function fetchErpEntry(id: string): Promise<ErpEntryDetail | null> {
   return fetchJson<ErpEntryDetail | null>(`/erp/entries/${id}`)
+}
+
+export function refreshErpSnapshot(): Promise<void> {
+  return fetchEmpty('/erp/snapshot', { method: 'POST' })
 }

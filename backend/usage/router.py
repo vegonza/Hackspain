@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from shared.usage import UsageRecord
 from shared.storage import get_client
@@ -10,7 +10,6 @@ from usage.worker import RETRIES
 from shared.logger import get_logger
 
 router = APIRouter(prefix="/api/usage")
-PAGE_SIZE = 25
 
 
 class DailyUsage(BaseModel):
@@ -24,22 +23,31 @@ class UsageSummary(BaseModel):
     calls: int
     pages: int
     cost_usd: Decimal
-    average_document_cost_usd: Decimal
+    average_invoice_cost_usd: Decimal = Field(validation_alias="average_document_cost_usd")
 
 
 class UsageResponse(BaseModel):
     records: list[UsageRecord]
     total: int
-    page_size: int = PAGE_SIZE
     summary: UsageSummary
     daily: list[DailyUsage]
     failed_pending: int = 0
 
 
 @router.get("")
-def get_usage(page: int = Query(default=0, ge=0)) -> UsageResponse:
-    result = get_client().rpc("get_usage_dashboard", {"p_page": page}).execute()
+def get_usage() -> UsageResponse:
+    client = get_client()
+    result = client.rpc("get_usage_dashboard", {"p_page": 0}).execute()
     response = UsageResponse.model_validate(result.data)
+    while len(response.records) < response.total:
+        last = response.records[-1]
+        created_at = last.created_at.isoformat()
+        rows = client.table("usage_log").select("*").order("created_at", desc=True).order("id", desc=True).or_(
+            f"created_at.lt.{created_at},and(created_at.eq.{created_at},id.lt.{last.id})",
+        ).limit(min(1000, response.total - len(response.records))).execute().data
+        if not rows:
+            break
+        response.records.extend(UsageRecord.model_validate(row) for row in rows)
     with get_redis() as redis:
         response.failed_pending = sum(RetryState.model_validate_json(payload).failed for payload in redis.hvals(RETRIES))
     return response

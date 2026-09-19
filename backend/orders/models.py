@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from shared.identifiers import compact_identifier, order_key
+from shared.identifiers import normalize_tax_id, order_key
 
 
 class OrderInput(BaseModel):
@@ -19,7 +19,7 @@ class OrderInput(BaseModel):
     def normalize_tax_id(cls, value: str | None) -> str | None:
         if value is None:
             return None
-        return compact_identifier(value) or None
+        return normalize_tax_id(value) or None
 
 
 class Order(OrderInput):

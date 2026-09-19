@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { fetchTreasury, type TreasuryReport } from '@/api/treasury'
-import { documentPath, followLink } from '@/hooks/useAppRoute'
+import { invoicePath, followLink } from '@/hooks/useAppRoute'
 import { buildCalendarDays, calendarMonthDate, currentCalendarMonth, localDateKey, moveCalendarMonth } from '@/hooks/treasuryCalendar'
 
 const currency = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
@@ -52,7 +52,7 @@ export function useTreasury() {
   }))
   const payments = report === null ? [] : report.payments.map(payment => ({
     ...payment,
-    href: documentPath(payment.document_id),
+    href: invoicePath(payment.document_id),
     displayAmount: currency.format(Number(payment.amount)),
   }))
   const calendarDays = buildCalendarDays(visibleMonth, report === null ? [] : report.payments, selectedDate, localDateKey(new Date())).map(day => (
@@ -88,7 +88,7 @@ export function useTreasury() {
       title: t('treasury.title'), supplier: t('treasury.supplier'),
       approvedInvoices: t('treasury.approvedInvoices'), committedAmount: t('treasury.committedAmount'),
       nextDueDate: t('treasury.nextDueDate'), empty: t('treasury.empty'),
-      failed: t('documents.requestFailed'), retry: t('treasury.retry'),
+      failed: t('invoices.requestFailed'), retry: t('treasury.retry'),
       calendarTitle: t('treasury.calendar.title'), previousMonth: t('treasury.calendar.previousMonth'),
       nextMonth: t('treasury.calendar.nextMonth'), paymentLimit: t('treasury.calendar.paymentLimit'),
       noPaymentsThisMonth: t('treasury.calendar.noPaymentsThisMonth'),

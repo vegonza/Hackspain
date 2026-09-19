@@ -1,3 +1,4 @@
+import { useTablePagination } from '@/hooks/useTablePagination'
 import { useCallback, useRef, useState, type FormEvent } from 'react'
 import { useTableSort } from '@/hooks/useTableSort'
 import { useTranslation } from 'react-i18next'
@@ -84,26 +85,29 @@ export function useOrders() {
   }
 
   const query = search.trim().toLocaleLowerCase('es-ES')
+  const filtered = sortRows(orders.filter(order => [order.order_id, order.supplier_id, order.tax_id ?? '', order.amount, order.status, order.date]
+    .some(value => value.toLocaleLowerCase('es-ES').includes(query))),
+    (row, column) => column === 'amount' ? Number(row.amount) : row[column])
+  const table = useTablePagination(filtered, JSON.stringify([search, sortColumn, sortDirection]))
   return {
+    pagination: table.pagination, pageKey: table.pageKey,
     sortColumn, sortDirection, onToggleSort,
     mount, loading, failed, editing, saving, deleting, onDelete: remove, draft, editingId, search, onSearch: setSearch,
-    rows: sortRows(orders.filter(order => [order.order_id, order.supplier_id, order.tax_id ?? '', order.amount, order.status, order.date]
-      .some(value => value.toLocaleLowerCase('es-ES').includes(query))),
-      (row, column) => column === 'amount' ? Number(row.amount) : row[column])
-      .map(order => ({
-        ...order,
-        displayAmount: amountFormat.format(Number(order.amount)),
-        displayDate: dateFormat.format(new Date(`${order.date}T00:00:00`)),
-      })),
+    rows: table.rows.map(order => ({
+      ...order,
+      deleteConfirmation: t('common.deleteConfirmation', { name: order.order_id }),
+      displayAmount: amountFormat.format(Number(order.amount)),
+      displayDate: dateFormat.format(new Date(`${order.date}T00:00:00`)),
+    })),
     onNew: () => edit(null), onEdit: edit, onChange: change, onSave: save,
     onCancel: () => setEditing(false), onRetry: () => setReload(value => value + 1),
     labels: {
-      actions: t('common.actions'), delete: t('common.delete'), holdDelete: t('common.holdDelete'),
+      actions: t('common.actions'), delete: t('common.delete'),
       title: t('orders.title'), search: t('orders.search'), add: t('orders.add'), edit: t('orders.edit'),
       order_id: t('orders.id'), supplier_id: t('orders.supplier'), tax_id: t('orders.taxId'),
       amount: t('orders.amount'), status: t('orders.status'), date: t('orders.date'),
       save: t('orders.save'), saving: t('orders.saving'), cancel: t('common.cancel'), close: t('common.close'),
-      empty: t('orders.empty'), failed: t('documents.requestFailed'), retry: t('orders.retry'),
+      empty: t('orders.empty'), failed: t('invoices.requestFailed'), retry: t('orders.retry'),
     },
   }
 }

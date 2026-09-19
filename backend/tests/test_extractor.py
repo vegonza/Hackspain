@@ -8,7 +8,7 @@ import httpx2
 from openai import InternalServerError, OpenAI
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from pipeline.extraction_3.extractor import MODEL, ExtractionManager, create_extractor
+from extractor.extractor import MODEL, ExtractionManager, create_extractor
 from shared.usage import UsageRecord
 
 
@@ -42,14 +42,14 @@ class RequiredOutputToolTests(unittest.TestCase):
         ))
         self.manager = ExtractionManager(client)
         self.usage = UsageRecord(provider="openrouter", model=MODEL, operation="extraction",
-                                 document_id="document-1", document_name="invoice.pdf")
+                                 invoice_id="invoice-1", invoice_name="invoice.pdf")
 
     def respond(self, request: httpx2.Request) -> httpx2.Response:
         self.requests.append(request)
         return httpx2.Response(self.status_code, json=self.response_body)
 
     def test_single_non_streaming_required_tool_uses_sdk_arguments_and_usage(self) -> None:
-        result = self.manager.run("Read the invoice", "Document text", ExtractedText, usage=self.usage)
+        result = self.manager.run("Read the invoice", "Invoice text", ExtractedText, usage=self.usage)
         self.assertEqual(result.text, "Factura")
         self.assertEqual(len(self.requests), 1)
         request = self.requests[0]
@@ -67,10 +67,16 @@ class RequiredOutputToolTests(unittest.TestCase):
         self.assertEqual(payload["tools"][0]["function"]["name"], "ExtractedText")
         self.assertNotIn("strict", payload["tools"][0]["function"])
         self.assertEqual(payload["tools"][0]["function"]["parameters"], ExtractedText.model_json_schema())
-        self.assertEqual(payload["messages"][1]["content"], [{"type": "text", "text": "Document text"}])
+        self.assertEqual(payload["messages"][1]["content"], [{"type": "text", "text": "Invoice text"}])
         self.assertEqual(self.usage.provider, "OpenAI")
         self.assertEqual(self.usage.usage[0].provider, "OpenAI")
         self.assertEqual(self.usage.usage[0].cost, Decimal("0.001"))
+
+    def test_classification_model_is_independent_of_extraction_model(self) -> None:
+        self.manager.run("Review notes", "Notes", ExtractedText, model="openai/gpt-5.6-luna")
+        self.assertEqual(json.loads(self.requests[-1].content)["model"], "openai/gpt-5.6-luna")
+        self.manager.run("Extract invoice", "Invoice", ExtractedText)
+        self.assertEqual(json.loads(self.requests[-1].content)["model"], "google/gemini-3.8-flash")
 
     def test_requires_exactly_one_call_without_using_message_content_or_making_another_request(self) -> None:
         for calls in ([], [tool_call('{"text":"One"}'), tool_call('{"text":"Two"}')]):
@@ -83,13 +89,13 @@ class RequiredOutputToolTests(unittest.TestCase):
 
     def test_page_images_and_text_are_sent_in_one_required_tool_request(self) -> None:
         images = [b"first jpeg", b"second jpeg"]
-        self.manager.run("Extract", "Native and OCR text", ExtractedText, usage=self.usage, page_images=images)
+        self.manager.run("Extract", "Native text", ExtractedText, usage=self.usage, page_images=images)
         self.assertEqual(len(self.requests), 1)
         payload = json.loads(self.requests[0].content)
         self.assertEqual(payload["tool_choice"], "required")
         self.assertFalse(payload["stream"])
         content = payload["messages"][1]["content"]
-        self.assertEqual(content[0], {"type": "text", "text": "Native and OCR text"})
+        self.assertEqual(content[0], {"type": "text", "text": "Native text"})
         for number, image in enumerate(images, start=1):
             self.assertEqual(content[number * 2 - 1], {"type": "text", "text": f"Invoice page {number}"})
             self.assertEqual(content[number * 2], {"type": "image_url", "image_url": {
@@ -121,7 +127,7 @@ class RequiredOutputToolTests(unittest.TestCase):
     def test_factory_injects_configured_sdk_client_and_closes_it_on_failure(self) -> None:
         with (
             patch.dict("os.environ", {"OPENROUTER_API_KEY": "test-key"}),
-            patch("pipeline.extraction_3.extractor.OpenAI") as client_factory,
+            patch("extractor.extractor.OpenAI") as client_factory,
         ):
             with self.assertRaisesRegex(ValueError, "failed run"):
                 with create_extractor() as manager:

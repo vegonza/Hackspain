@@ -2,9 +2,10 @@ from datetime import date as Date, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from erp.warnings import ErpWarning
+from shared.identifiers import normalize_tax_id
 
 
 class ErpEntry(BaseModel):
@@ -21,6 +22,12 @@ class ErpEntry(BaseModel):
     date: Date | None = None
     amount: Decimal | None = None
     warnings: list[ErpWarning] = Field(default_factory=list)
+
+
+    @field_validator('tax_id')
+    @classmethod
+    def normalize_tax_id_field(cls, value: str) -> str:
+        return normalize_tax_id(value)
 
 
 class ErpPage(BaseModel):
@@ -45,7 +52,7 @@ class ErpSnapshot(BaseModel):
     entries: list[ErpEntry]
 
 
-class LinkedDocument(BaseModel):
+class LinkedInvoice(BaseModel):
     id: UUID
     name: str
 
@@ -55,7 +62,9 @@ class SavedErpEntry(ErpEntry):
 
 
 class ErpEntryDetail(SavedErpEntry):
-    documents: list[LinkedDocument] = Field(default_factory=list)
+    model_config = ConfigDict(validate_by_name=True)
+
+    invoices: list[LinkedInvoice] = Field(default_factory=list, validation_alias="documents")
 
 
 class SavedErpSnapshot(BaseModel):

@@ -19,7 +19,7 @@ export function TreasuryView({ mount, loading, failed, summary, rows, calendar, 
       : <><TreasuryCalendar calendar={calendar} labels={labels} loading={loading} onDocumentLink={onDocumentLink} />
       <div className="treasury-table-section">
         <h2>{labels.title}</h2>
-        <div className="documents-table-scroll"><table className="documents-table" aria-busy={loading}>
+        <div className="invoices-table-scroll"><table className="invoices-table" aria-busy={loading}>
           <colgroup><col /><col style={{ width: 220 }} /><col style={{ width: 240 }} /><col style={{ width: 220 }} /></colgroup>
           <TableHeader><TableRow>
             <TableHead><span className="treasury-heading"><Building2 size={15} />{labels.supplier}</span></TableHead>
@@ -28,7 +28,7 @@ export function TreasuryView({ mount, loading, failed, summary, rows, calendar, 
             <TableHead><span className="treasury-heading"><CalendarClock size={15} />{labels.nextDueDate}</span></TableHead>
           </TableRow></TableHeader>
           <TableBody>
-            {loading ? <TableSkeleton columns={4} /> : rows.map(row => <TableRow key={row.supplier_name} className="document-table-row" data-openable="false">
+            {loading ? <TableSkeleton columns={4} /> : rows.map(row => <TableRow key={row.supplier_name} className="invoice-table-row" data-openable="false">
               <TableCell className="font-medium">{row.supplier_name}</TableCell>
               <TableCell className="tabular-nums">{row.approved_invoices}</TableCell>
               <TableCell className="tabular-nums">{row.displayAmount}</TableCell>

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
 import httpx
+from openai import PermissionDeniedError
 from pydantic import BaseModel
 from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError, TimeoutError as RedisTimeoutError
@@ -62,6 +63,10 @@ def retry_delay(error: Exception, attempt: int) -> float:
 def record_failure(state: RetryState, error: Exception) -> RetryState:
     status = status_code(error)
     state.last_error = f"{type(error).__name__}" + (f" (HTTP {status})" if status is not None else "")
+    if isinstance(error, PermissionDeniedError) and isinstance(error.body, dict):
+        message = error.body.get("message", "")
+        if isinstance(message, str) and message.startswith("Key limit exceeded"):
+            state.last_error = "openrouter_key_limit_exceeded"
     state.failed = state.attempts >= MAX_ATTEMPTS or not retryable(error)
     state.next_attempt = None if state.failed else time.time() + retry_delay(error, state.attempts)
     return state

@@ -1,19 +1,20 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { fetchUsage, retryFailedUsage, type UsageResponse } from '@/api/usage'
 import { formatDateLong } from '@/lib/format'
-import type { StageId } from '@/api/documents'
+
+import { useTablePagination } from '@/hooks/useTablePagination'
 
 const money = (amount: string) => `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(Number(amount))}`
 const detailFields = ['pages_processed', 'prompt_tokens', 'completion_tokens', 'total_tokens'] as const
-type UsageOperation = StageId | 'merge' | 'classification'
+type UsageOperation = 'extraction' | 'classification'
 
-const phaseColors = { text: '#64748b', ocr: '#2563eb', merge: '#d97706', extraction: '#7c3aed', classification: '#059669' } satisfies Record<UsageOperation, string>
+const operationColors = { extraction: '#7c3aed', classification: '#059669' } satisfies Record<UsageOperation, string>
 
 export function useUsage() {
   const { t } = useTranslation()
   const [data, setData] = useState<UsageResponse | null>(null)
-  const [page, setPage] = useState(0)
+  const loaded = useRef(false)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [retrying, setRetrying] = useState(false)
@@ -21,11 +22,11 @@ export function useUsage() {
     if (node === null) return
     let active = true
     let timer: ReturnType<typeof setTimeout>
-    setLoading(true)
+    setLoading(!loaded.current)
     async function refresh(): Promise<void> {
       try {
-        const result = await fetchUsage(page)
-        if (active) { setData(result); setFailed(false) }
+        const result = await fetchUsage()
+        if (active) { setData(result); loaded.current = true; setFailed(false) }
       } catch {
         if (active) setFailed(true)
       } finally {
@@ -37,13 +38,13 @@ export function useUsage() {
     }
     void refresh()
     return () => { active = false; clearTimeout(timer) }
-  }, [page])
+  }, [])
   async function onRetry(): Promise<void> {
     if (retrying) return
     setRetrying(true)
     try {
       await retryFailedUsage()
-      setData(await fetchUsage(page))
+      setData(await fetchUsage())
     } catch {
       // The API client displays the error.
     } finally {
@@ -51,29 +52,29 @@ export function useUsage() {
     }
   }
 
+  const table = useTablePagination(data === null ? [] : data.records)
   return {
-    phases: (Object.keys(phaseColors) as UsageOperation[]).map(id => ({ id, label: t(id === 'merge' ? 'usage.historicalMerge' : `pipeline.stages.${id}`), color: phaseColors[id] })),
+    pagination: table.pagination, pageKey: table.pageKey,
+    operations: (Object.keys(operationColors) as UsageOperation[]).map(id => ({ id, label: t(`usage.operations.${id}`), color: operationColors[id] })),
     onRetry, retrying,
     failedPending: data === null ? 0 : data.failed_pending,
     pendingError: t('usage.pendingError', { count: data === null ? 0 : data.failed_pending }),
-    mount, loading, failed, page, setPage,
-    totalLabel: t('usage.records', { count: data === null ? 0 : data.total }),
-    pages: data === null ? 1 : Math.max(1, Math.ceil(data.total / data.page_size)),
+    mount, loading, failed,
     stats: data === null ? [] : [
       { label: t('usage.totalCost'), value: money(data.summary.cost_usd) },
-      { label: t('usage.documentCost'), value: money(data.summary.average_document_cost_usd) },
+      { label: t('usage.invoiceCost'), value: money(data.summary.average_invoice_cost_usd) },
       { label: t('usage.pages'), value: String(data.summary.pages) },
     ],
     daily: data === null ? [] : data.daily.map(day => ({ ...day,
       operations: Object.fromEntries(Object.entries(day.operations).map(([operation, cost]) => [operation, Number(cost)])),
       totalLabel: money(day.cost_usd),
       dateLabel: new Date(`${day.date}T00:00:00`).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }),
-      breakdown: Object.entries(day.operations).filter(([, cost]) => Number(cost) > 0).sort((first, second) => Number(second[1]) - Number(first[1])).map(([operation, cost]) => ({ operation: t(operation === 'merge' ? 'usage.historicalMerge' : `pipeline.stages.${operation as StageId}`), cost: money(cost), color: phaseColors[operation as UsageOperation] })),
+      breakdown: Object.entries(day.operations).filter(([, cost]) => Number(cost) > 0).sort((first, second) => Number(second[1]) - Number(first[1])).map(([operation, cost]) => ({ operation: t(`usage.operations.${operation as UsageOperation}`), cost: money(cost), color: operationColors[operation as UsageOperation] })),
     })),
-    records: data === null ? [] : data.records.map(record => ({ ...record,
-      operation: t(record.operation === 'merge' ? 'usage.historicalMerge' : `pipeline.stages.${record.operation as StageId}`),
-      color: phaseColors[record.operation as UsageOperation],
-      providerName: record.provider === 'mistral' ? 'Mistral' : record.provider === 'openrouter' ? 'OpenRouter' : record.provider,
+    records: table.rows.map(record => ({ ...record,
+      operation: t(`usage.operations.${record.operation as UsageOperation}`),
+      color: operationColors[record.operation as UsageOperation],
+      providerName: record.provider,
       providerLogo: `/providers/${record.provider.toLowerCase()}.svg`,
       date: formatDateLong(record.created_at, 'es-ES'),
       cost: money(String(record.usage.reduce((sum, item) => sum + Number(item.cost), 0))),
@@ -81,13 +82,12 @@ export function useUsage() {
     })),
     labels: {
       title: t('usage.title'), history: t('usage.history'),
-      date: t('usage.date'), document: t('usage.document'), model: t('usage.model'),
+      date: t('usage.date'), invoice: t('usage.invoice'), model: t('usage.model'),
       provider: t('usage.provider'), pages: t('usage.pages'), cost: t('usage.cost'),
       calls: t('usage.calls'),
       operation: t('usage.operation'), totalCost: t('usage.totalCost'),
-      empty: t('usage.empty'), failed: t('documents.requestFailed'), loading: t('documents.loading'),
-      previous: t('usage.previous'), next: t('usage.next'),
-      retry: t('documents.retry'),
+      empty: t('usage.empty'), failed: t('invoices.requestFailed'), loading: t('invoices.loading'),
+      retry: t('invoices.retry'),
     },
   }
 }

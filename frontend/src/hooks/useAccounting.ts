@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { exportAccounting, fetchAccounting, type AccountingReport, type ExpenseCategory, type ReviewReason } from '@/api/accounting'
-import { documentPath, followLink } from '@/hooks/useAppRoute'
+import { invoicePath, followLink } from '@/hooks/useAppRoute'
 
 const currency = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 const calendarDate = new Intl.DateTimeFormat('es-ES')
@@ -86,7 +86,7 @@ export function useAccounting() {
   })
   const invoices = report === null ? [] : report.invoices.map(invoice => ({
     ...invoice,
-    href: documentPath(invoice.document_id),
+    href: invoicePath(invoice.document_id),
     displayDate: invoice.invoice_date === null ? t('extraction.unavailable') : calendarDate.format(new Date(`${invoice.invoice_date}T00:00:00`)),
     displaySupplier: invoice.supplier_name === null ? t('extraction.unavailable') : invoice.supplier_name,
     displayCategory: categoryLabels[invoice.category],
@@ -145,7 +145,7 @@ export function useAccounting() {
       taxBase: t('accounting.taxBase'), vat: t('accounting.vat'), status: t('accounting.status'),
       reasons: t('accounting.reasonsTitle'), invoiceCount: t('accounting.invoiceCount'),
       reviewCount: t('accounting.reviewCount'), empty: t('accounting.empty'),
-      failed: t('documents.requestFailed'), retry: t('accounting.retry'), openInvoice: t('accounting.openInvoice'),
+      failed: t('invoices.requestFailed'), retry: t('accounting.retry'), openInvoice: t('accounting.openInvoice'),
     },
   }
 }

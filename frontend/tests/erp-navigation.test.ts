@@ -3,8 +3,8 @@ import { erpEntryPath, parseRoute } from '../src/hooks/useAppRoute'
 
 describe('ERP URLs', () => {
   test('the ERP list and each entry have their own URL', () => {
-    expect(parseRoute('/erp')).toEqual({ view: 'erp', documentId: null, entryId: null })
-    expect(parseRoute(erpEntryPath('entry-1'))).toEqual({ view: 'erp', documentId: null, entryId: 'entry-1' })
+    expect(parseRoute('/erp')).toEqual({ view: 'erp', invoiceId: null, entryId: null })
+    expect(parseRoute(erpEntryPath('entry-1'))).toEqual({ view: 'erp', invoiceId: null, entryId: 'entry-1' })
     expect(erpEntryPath('entry-1')).toBe('/erp/entry-1')
   })
 
@@ -13,8 +13,8 @@ describe('ERP URLs', () => {
     expect(parseRoute('/erp/').view).toBe('not-found')
   })
 
-  test('the document and cost URLs keep their shape', () => {
-    expect(parseRoute('/docs')).toEqual({ view: 'documents', documentId: null })
-    expect(parseRoute('/cost')).toEqual({ view: 'usage', documentId: null })
+  test('the invoice and cost URLs keep their shape', () => {
+    expect(parseRoute('/invoices')).toEqual({ view: 'invoices', invoiceId: null })
+    expect(parseRoute('/cost')).toEqual({ view: 'usage', invoiceId: null })
   })
 })

@@ -32,6 +32,11 @@ def invoice_row(
         "vat_rate": vat_rate,
         "vat_amount": vat_amount,
         "total": total,
+        "currency": "EUR",
+        "exchange_rate": "1",
+        "tax_base_eur": tax_base,
+        "vat_amount_eur": vat_amount,
+        "total_eur": total,
         "payment_decision": decision(classification),
     }
 

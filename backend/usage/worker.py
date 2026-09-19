@@ -45,7 +45,7 @@ def persist_pending(redis: Redis, usage_id: str, payload: str) -> None:
             transaction.hdel(USAGE_OUTBOX, usage_id)
             transaction.hdel(RETRIES, usage_id)
             transaction.execute()
-        logger.info("[USAGE] Saved %s / %s for %s", record.provider, record.model, record.document_name)
+        logger.info("[USAGE] Saved %s / %s for %s", record.provider, record.model, record.invoice_name)
     except Exception as error:
         state = record_failure(state, error)
         redis.hset(RETRIES, usage_id, state.model_dump_json())

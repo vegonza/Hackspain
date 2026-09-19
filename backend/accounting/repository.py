@@ -80,6 +80,10 @@ def fiscal_invoice(row: dict[str, Any]) -> FiscalInvoice:
     vat_rate = decimal_value(row["vat_rate"])
     vat_amount = decimal_value(row["vat_amount"])
     total = decimal_value(row["total"])
+    exchange_rate = decimal_value(row["exchange_rate"])
+    tax_base_eur = decimal_value(row["tax_base_eur"])
+    vat_amount_eur = decimal_value(row["vat_amount_eur"])
+    total_eur = decimal_value(row["total_eur"])
     reasons: list[ReviewReason] = []
     decision_payload = row["payment_decision"]
     if decision_payload is None:
@@ -90,9 +94,12 @@ def fiscal_invoice(row: dict[str, Any]) -> FiscalInvoice:
         reasons.append("missing_identity")
     if invoice_date is None:
         reasons.append("invalid_date")
-    if any(value is None for value in (tax_base, vat_rate, vat_amount, total)):
+    if any(value is None for value in (
+        tax_base, vat_rate, vat_amount, total, exchange_rate, tax_base_eur, vat_amount_eur, total_eur,
+    )):
         reasons.append("missing_amounts")
-    elif abs(total - tax_base - vat_amount) > CENT or abs(vat_amount - tax_base * vat_rate / 100) > CENT:
+    elif (abs(total - tax_base - vat_amount) * exchange_rate > CENT
+          or abs(vat_amount - tax_base * vat_rate / 100) * exchange_rate > CENT):
         reasons.append("invalid_tax_amounts")
     if category in SENSITIVE_CATEGORIES:
         reasons.append("sensitive_category")
@@ -102,17 +109,18 @@ def fiscal_invoice(row: dict[str, Any]) -> FiscalInvoice:
     return FiscalInvoice(
         document_id=row["id"], document_name=row["name"], invoice_number=row["invoice_number"],
         invoice_date=invoice_date, supplier_name=row["supplier_name"], supplier_nif=row["supplier_nif"],
-        category=category, account_code=account_code, tax_base=tax_base, vat_rate=vat_rate,
-        vat_amount=vat_amount, total=total,
-        potential_deductible_expense=tax_base if prepared and tax_base is not None else Decimal(0),
-        potential_deductible_vat=vat_amount if prepared and vat_amount is not None else Decimal(0),
+        category=category, account_code=account_code, tax_base=tax_base_eur, vat_rate=vat_rate,
+        vat_amount=vat_amount_eur, total=total_eur,
+        potential_deductible_expense=tax_base_eur if prepared and tax_base_eur is not None else Decimal(0),
+        potential_deductible_vat=vat_amount_eur if prepared and vat_amount_eur is not None else Decimal(0),
         status="PREPARED" if prepared else "REVIEW", review_reasons=reasons,
     )
 
 
 def read_accounting(year: int, quarter: int | None) -> AccountingReport:
     rows = get_client().table("documents").select(
-        "id,name,invoice_number,invoice_date,supplier_name,supplier_nif,line_items,tax_base,vat_rate,vat_amount,total,payment_decision"
+        "id,name,invoice_number,invoice_date,supplier_name,supplier_nif,line_items,"
+        "tax_base,vat_rate,vat_amount,total,currency,exchange_rate,tax_base_eur,vat_amount_eur,total_eur,payment_decision"
     ).is_("deleted_at", "null").execute().data
     invoices: list[FiscalInvoice] = []
     for row in rows:

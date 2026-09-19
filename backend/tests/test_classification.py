@@ -5,18 +5,18 @@ from unittest.mock import patch
 
 from uuid import UUID
 
-from documents.classification import classify_document
+from invoices.classification import classify_invoice
 from rules.models import Decision, ResolvedReferences
 from suppliers.models import Supplier
 from orders.models import Order
-from pipeline.extraction_3.extraction import InvoiceExtraction, InvoiceLine
-from documents.payment_notes import PaymentConcern, PaymentNotesReview
+from extractor.extraction import InvoiceExtraction, InvoiceLine
+from invoices.payment_notes import PaymentConcern, PaymentNotesReview
 from erp import ErpEntry
 
 
 class ClassificationTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.document_id = UUID('00000000-0000-0000-0000-000000000001')
+        self.invoice_id = UUID('00000000-0000-0000-0000-000000000001')
         self.references = ResolvedReferences(
             supplier=Supplier(supplier_id='NEW', legal_name='Proveedor Nuevo', tax_id='B12345678',
                               iban='ES001234', city='Málaga', payment_terms_days=45),
@@ -25,29 +25,29 @@ class ClassificationTests(unittest.TestCase):
             entries=[ErpEntry(entry_id='AS-NEW', order_id='PO-2026-9999', supplier_id='NEW', tax_id='B12345678',
                               raw_amount='121,00', amount=Decimal('121'), status='PENDIENTE', raw_date='01/09/2026')],
         )
-        claim = patch('documents.classification.claim_order', return_value=self.document_id)
+        claim = patch('invoices.classification.claim_order', return_value=self.invoice_id)
         self.claim = claim.start()
         self.addCleanup(claim.stop)
-        resolver = patch('documents.classification.resolve_references', return_value=self.references)
+        resolver = patch('invoices.classification.resolve_references', return_value=self.references)
         self.resolver = resolver.start()
         self.addCleanup(resolver.stop)
         self.invoice = InvoiceExtraction(
             invoice_number="NEW-1", supplier_name="Proveedor Nuevo", supplier_nif="B12345678",
-            iban="ES001234", invoice_date="2026-09-01", purchase_order="PO-2026-9999",
+            iban="ES001234", invoice_date="2026-09-01", purchase_order="PO-2026-9999", currency="EUR",
             line_items=[InvoiceLine(description="Servicio", amount="100.00")],
             tax_base="100.00", vat_rate="21", vat_amount="21.00", total="121.00",
             notes=[], uncertainties=[],
         )
-        self.notes = patch("documents.classification.review_payment_notes", return_value=PaymentNotesReview(concerns=[]))
+        self.notes = patch("invoices.classification.review_payment_notes", return_value=PaymentNotesReview(concerns=[]))
         self.review = self.notes.start()
         self.addCleanup(self.notes.stop)
 
     def classify(self, invoice: InvoiceExtraction) -> Decision:
-        return classify_document(self.document_id, invoice, date(2026, 9, 19))
+        return classify_invoice(self.invoice_id, invoice, date(2026, 9, 19))
 
-    def test_loads_supabase_references_for_document(self) -> None:
+    def test_loads_supabase_references_for_invoice(self) -> None:
         self.classify(self.invoice)
-        self.resolver.assert_called_once_with(self.document_id, self.invoice.purchase_order)
+        self.resolver.assert_called_once_with(self.invoice_id, self.invoice.purchase_order)
 
     def test_lookup_failure_propagates_without_local_data(self) -> None:
         self.resolver.side_effect = RuntimeError('Supabase unavailable')
@@ -60,8 +60,16 @@ class ClassificationTests(unittest.TestCase):
         self.assertEqual(decision.classification, "PAGAR")
         self.assertEqual(decision.due_date, date(2026, 10, 16))
         self.assertEqual(decision.supplier_name, "Proveedor Nuevo")
-        self.assertEqual(decision.amount, Decimal("121.00"))
-        self.assertEqual(decision.claimed_by_document_id, self.document_id)
+        self.assertEqual(decision.amount_eur, Decimal("121.00"))
+        self.assertEqual(decision.claimed_by_invoice_id, self.invoice_id)
+
+    def test_forecast_amount_is_normalized_to_euros(self) -> None:
+        decision = self.classify(self.invoice.model_copy(update={
+            "currency": "USD", "tax_base": "108.695652", "vat_amount": "22.826087", "total": "131.521739",
+            "line_items": [InvoiceLine(description="Servicio", amount="108.695652")],
+        }))
+        self.assertEqual(decision.classification, "PAGAR")
+        self.assertEqual(decision.amount_eur, Decimal("121.00"))
 
     def test_missing_supplier_uses_thirty_days_for_review_forecast(self) -> None:
         self.references.supplier = None
@@ -69,7 +77,7 @@ class ClassificationTests(unittest.TestCase):
         self.assertEqual(decision.classification, "ESCALAR")
         self.assertEqual(decision.due_date, date(2026, 10, 1))
         self.assertIsNone(decision.supplier_name)
-        self.assertEqual(decision.claimed_by_document_id, self.document_id)
+        self.assertEqual(decision.claimed_by_invoice_id, self.invoice_id)
 
     def test_invalid_fields_escalate(self) -> None:
         cases = [
@@ -91,19 +99,27 @@ class ClassificationTests(unittest.TestCase):
     def test_pending_review_and_other_claim_escalate(self) -> None:
         self.claim.return_value = UUID("00000000-0000-0000-0000-000000000002")
         self.assertEqual(self.classify(self.invoice).classification, "ESCALAR")
-        self.claim.return_value = self.document_id
+        self.claim.return_value = self.invoice_id
         self.references.order.review_required = True
         self.assertEqual(self.classify(self.invoice).classification, "ESCALAR")
 
-    def test_paid_prevents_payment_and_financial_commitment(self) -> None:
+    def test_conflicted_order_without_owner_escalates(self) -> None:
+        self.claim.return_value = None
+        decision = self.classify(self.invoice)
+        self.assertEqual(decision.classification, 'ESCALAR')
+        self.assertFalse(decision.checks['order_claim'])
+        self.references.entries[0].status = 'PAGADA'
+        self.assertEqual(self.classify(self.invoice).classification, 'NO_PAGAR')
+
+    def test_paid_prevents_payment_even_with_other_anomalies(self) -> None:
         self.references.entries[0].status = "PAGADA"
         invoice = self.invoice.model_copy(update={"iban": "WRONG"})
         decision = self.classify(invoice)
         self.assertEqual(decision.classification, "NO_PAGAR")
         self.assertIsNone(decision.due_date)
         self.assertIsNone(decision.supplier_name)
-        self.assertIsNone(decision.amount)
-        self.assertEqual(decision.claimed_by_document_id, self.document_id)
+        self.assertIsNone(decision.amount_eur)
+        self.assertEqual(decision.claimed_by_invoice_id, self.invoice_id)
         self.review.assert_not_called()
 
     def test_erp_and_order_supplier_checks(self) -> None:

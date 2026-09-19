@@ -26,14 +26,14 @@ def read_treasury(evaluation_date: date) -> TreasuryReport:
         if row["payment_decision"] is None:
             continue
         decision = Decision.model_validate(row["payment_decision"])
-        if decision.classification == "ESCALAR" and decision.amount is not None:
-            blocked_in_review += decision.amount
+        if decision.classification == "ESCALAR" and decision.amount_eur is not None:
+            blocked_in_review += decision.amount_eur
         if decision.classification != "PAGAR":
             continue
-        if decision.amount is None or decision.due_date is None or decision.supplier_name is None:
+        if decision.amount_eur is None or decision.due_date is None or decision.supplier_name is None:
             incomplete_approved += 1
             continue
-        amount = decision.amount
+        amount = decision.amount_eur
         due_date = decision.due_date
         supplier_name = decision.supplier_name
         payments.append(TreasuryPayment(

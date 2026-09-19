@@ -16,8 +16,8 @@ def evaluate_rules(context: RuleContext) -> list[RuleResult]:
         RuleResult(rule='date', passed=valid_date, reason='La fecha de factura es inválida, ilegible o futura.'),
         RuleResult(rule='pending_review', passed=context.order is not None and not context.order.review_required,
                    reason='El pedido tiene una revisión pendiente o no se puede verificar.'),
-        RuleResult(rule='order_claim', passed=context.claimed_by_document_id == context.document_id,
-                   reason='El pedido está reservado por otra factura o no se ha podido reservar.'),
+        RuleResult(rule='order_claim', passed=context.claimed_by_invoice_id == context.invoice_id,
+                   reason='No se puede reservar el pedido de forma exclusiva para esta factura.'),
         RuleResult(rule='extraction_certain', passed=not context.invoice.uncertainties,
                    reason='; '.join(context.invoice.uncertainties)),
     ])

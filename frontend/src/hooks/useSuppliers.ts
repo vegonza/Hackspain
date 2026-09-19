@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, type FormEvent } from 'react'
+import { useTablePagination } from '@/hooks/useTablePagination'
 import { useTableSort } from '@/hooks/useTableSort'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -10,6 +11,7 @@ export function useSuppliers() {
   const { t } = useTranslation()
   const { sortColumn, sortDirection, onToggleSort, sortRows } = useTableSort<keyof Supplier>()
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const loaded = useRef(false)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [search, setSearch] = useState('')
@@ -24,10 +26,10 @@ export function useSuppliers() {
   const mount = useCallback((node: HTMLElement | null) => {
     if (node === null) return
     const controller = new AbortController()
-    setLoading(true)
+    setLoading(!loaded.current)
     setFailed(false)
     void fetchSuppliers(controller.signal).then(rows => {
-      if (!controller.signal.aborted) setSuppliers(rows)
+      if (!controller.signal.aborted) { setSuppliers(rows); loaded.current = true }
     }).catch(() => {
       if (!controller.signal.aborted) setFailed(true)
     }).finally(() => {
@@ -82,20 +84,23 @@ export function useSuppliers() {
   }
 
   const query = search.trim().toLocaleLowerCase('es-ES')
+  const table = useTablePagination(sortRows(suppliers.filter(supplier => [supplier.supplier_id, supplier.legal_name, supplier.tax_id, supplier.iban, supplier.city]
+      .some(value => value.toLocaleLowerCase('es-ES').includes(query))), (row, column) => row[column]).map(supplier => ({ ...supplier, deleteConfirmation: t('common.deleteConfirmation', { name: supplier.legal_name }) })), JSON.stringify([search, sortColumn, sortDirection]))
   return {
+    pagination: table.pagination, pageKey: table.pageKey,
     sortColumn, sortDirection, onToggleSort,
     mount, loading, failed, editing, saving, deleting, onDelete: remove, draft, editingId, search, onSearch: setSearch,
-    rows: sortRows(suppliers.filter(supplier => [supplier.supplier_id, supplier.legal_name, supplier.tax_id, supplier.iban, supplier.city]
-      .some(value => value.toLocaleLowerCase('es-ES').includes(query))), (row, column) => row[column]),
+    rows: table.rows,
     onNew: () => edit(null), onEdit: edit, onChange: change, onSave: save,
     onCancel: () => setEditing(false), onRetry: () => setReload(value => value + 1),
     labels: {
-      actions: t('common.actions'), delete: t('common.delete'), holdDelete: t('common.holdDelete'),
+      count: t('suppliers.count', { count: suppliers.length }),
+      actions: t('common.actions'), delete: t('common.delete'),
       title: t('suppliers.title'), search: t('suppliers.search'), add: t('suppliers.add'), edit: t('suppliers.edit'),
       supplier_id: t('suppliers.id'), legal_name: t('suppliers.name'), tax_id: t('suppliers.taxId'),
       iban: t('suppliers.iban'), city: t('suppliers.city'), payment_terms_days: t('suppliers.terms'),
       days: t('suppliers.days'), save: t('suppliers.save'), saving: t('suppliers.saving'), cancel: t('common.cancel'), close: t('common.close'),
-      empty: t('suppliers.empty'), failed: t('documents.requestFailed'), retry: t('suppliers.retry'),
+      empty: t('suppliers.empty'), failed: t('invoices.requestFailed'), retry: t('suppliers.retry'),
     },
   }
 }

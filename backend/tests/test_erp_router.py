@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
 from erp.repository import read_entry, read_latest_snapshot
-from erp.router import get_entry, get_snapshot
+from erp.router import get_entry, get_snapshot, refresh_snapshot
 from erp.warnings import ErpWarning
 
 
@@ -72,14 +72,14 @@ class ErpSnapshotReadTests(unittest.TestCase):
 
 class ErpEntryReadTests(unittest.TestCase):
     def test_entry_is_resolved_by_uuid_without_reading_the_latest_snapshot(self) -> None:
-        document = {'id': str(uuid4()), 'name': 'factura.pdf'}
-        row = entry_row(documents=[document])
+        invoice_record = {'id': str(uuid4()), 'name': 'factura.pdf'}
+        row = entry_row(invoices=[invoice_record])
         client = database(row)
         with patch('erp.repository.get_client', return_value=client):
             entry = read_entry(UUID(row['id']))
         assert entry is not None
         self.assertEqual(str(entry.id), row['id'])
-        self.assertEqual(entry.model_dump(mode='json')['documents'], [document])
+        self.assertEqual(entry.model_dump(mode='json')['invoices'], [invoice_record])
         client.rpc.assert_called_once_with('get_erp_entry', {'p_entry_id': row['id']})
         client.table.assert_not_called()
 
@@ -87,12 +87,12 @@ class ErpEntryReadTests(unittest.TestCase):
         with patch('erp.repository.get_client', return_value=database(None)):
             self.assertIsNone(read_entry(uuid4()))
 
-    def test_entry_without_linked_documents_keeps_an_empty_list(self) -> None:
-        row = entry_row(documents=[])
+    def test_entry_without_linked_invoices_keeps_an_empty_list(self) -> None:
+        row = entry_row(invoices=[])
         with patch('erp.repository.get_client', return_value=database(row)):
             entry = read_entry(UUID(row['id']))
         assert entry is not None
-        self.assertEqual(entry.documents, [])
+        self.assertEqual(entry.invoices, [])
 
 
 class ErpRouteTests(unittest.TestCase):
@@ -106,3 +106,16 @@ class ErpRouteTests(unittest.TestCase):
         with patch('erp.router.read_entry') as read:
             self.assertIs(get_entry(entry_id), read.return_value)
             read.assert_called_once_with(entry_id)
+
+
+class ErpRefreshTests(unittest.TestCase):
+    def test_refresh_waits_for_the_validated_snapshot_to_be_saved(self) -> None:
+        with patch('erp.router.sync_erp_snapshot', return_value=uuid4()) as sync:
+            response = refresh_snapshot()
+        sync.assert_called_once_with()
+        self.assertEqual(response.status_code, 204)
+
+    def test_download_failure_is_not_reported_as_success(self) -> None:
+        with patch('erp.router.sync_erp_snapshot', side_effect=RuntimeError('ERP unavailable')):
+            with self.assertRaisesRegex(RuntimeError, 'ERP unavailable'):
+                refresh_snapshot()

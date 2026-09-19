@@ -9,8 +9,14 @@ logger = get_logger()
 
 
 def list_suppliers() -> list[Supplier]:
-    rows = get_client().table('suppliers').select('*').order('supplier_id').execute().data
-    return [Supplier.model_validate(row) for row in rows]
+    suppliers: list[Supplier] = []
+    while True:
+        rows = get_client().table('suppliers').select('*').order('supplier_id').range(
+            len(suppliers), len(suppliers) + 999,
+        ).execute().data
+        suppliers.extend(Supplier.model_validate(row) for row in rows)
+        if len(rows) < 1000:
+            return suppliers
 
 
 def create_supplier(supplier: Supplier) -> Supplier:

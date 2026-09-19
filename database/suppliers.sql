@@ -1,3 +1,11 @@
+CREATE OR REPLACE FUNCTION public.normalize_tax_id(p_value TEXT)
+RETURNS TEXT LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE SET search_path = public AS $$
+    SELECT upper(regexp_replace(p_value, '[[:space:]./-]', '', 'g'));
+$$;
+
+REVOKE ALL ON FUNCTION public.normalize_tax_id(TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.normalize_tax_id(TEXT) TO service_role;
+
 CREATE TABLE IF NOT EXISTS public.suppliers (
     supplier_id TEXT PRIMARY KEY CHECK (length(btrim(supplier_id)) > 0),
     legal_name TEXT NOT NULL CHECK (length(btrim(legal_name)) > 0),

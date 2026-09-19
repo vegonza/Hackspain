@@ -104,7 +104,7 @@ export function AccountingView({
             <div><h2>{labels.invoices}</h2><p>{labels.invoicesSubtitle}</p></div>
             <span className="accounting-invoice-count">{labels.invoiceTotal}</span>
           </header>
-          <div className="documents-table-scroll"><table className="documents-table accounting-invoice-table" aria-busy={loading}>
+          <div className="invoices-table-scroll"><table className="invoices-table accounting-invoice-table" aria-busy={loading}>
             <colgroup><col /><col /><col /><col /><col /><col /><col /><col /></colgroup>
             <TableHeader><TableRow>
               <TableHead>{labels.invoice}</TableHead><TableHead>{labels.date}</TableHead><TableHead>{labels.supplier}</TableHead>
@@ -112,7 +112,7 @@ export function AccountingView({
               <TableHead>{labels.vat}</TableHead><TableHead>{labels.status}</TableHead>
             </TableRow></TableHeader>
             <TableBody>
-              {loading ? <TableSkeleton columns={8} /> : invoices.map(invoice => <TableRow key={invoice.document_id} className="document-table-row" data-status={invoice.status}>
+              {loading ? <TableSkeleton columns={8} /> : invoices.map(invoice => <TableRow key={invoice.document_id} className="invoice-table-row" data-status={invoice.status}>
                 <TableCell><a className="accounting-invoice-link" href={invoice.href} onClick={onDocumentLink} title={labels.openInvoice}><FileText />{invoice.invoice_number === null ? invoice.document_name : invoice.invoice_number}</a></TableCell>
                 <TableCell className="accounting-date">{invoice.displayDate}</TableCell><TableCell title={invoice.supplier_nif === null ? undefined : invoice.supplier_nif}>{invoice.displaySupplier}</TableCell>
                 <TableCell>{invoice.displayCategory}</TableCell><TableCell><span className="accounting-code">{invoice.account_code}</span></TableCell>

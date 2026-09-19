@@ -4,5 +4,10 @@ def order_key(value: str) -> str:
 
 
 def compact_identifier(value: str) -> str:
-    """Normalize NIF and IBAN without guessing OCR character substitutions."""
+    """Normalize identifiers without guessing OCR character substitutions."""
     return ''.join(value.split()).upper()
+
+
+def normalize_tax_id(value: str) -> str:
+    """Ignore fiscal ID formatting while preserving letters and leading zeroes."""
+    return compact_identifier(value).translate(str.maketrans('', '', './-'))

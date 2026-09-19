@@ -16,9 +16,9 @@ def signed_url_cache_key(path: str) -> str:
     return f"storage:signed-url:{os.environ['SUPABASE_STORAGE_BUCKET']}:{path}"
 
 
-def invalidate_document_urls(document_id: str) -> None:
+def invalidate_invoice_urls(invoice_id: str) -> None:
     with get_redis() as redis:
-        for key in redis.scan_iter(match=signed_url_cache_key(f"{document_id}/*")):
+        for key in redis.scan_iter(match=signed_url_cache_key(f"{invoice_id}/*")):
             redis.unlink(key)
 
 
