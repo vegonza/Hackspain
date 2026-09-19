@@ -118,7 +118,8 @@
     "stages": {
       "ocr": "OCR",
       "text": "Texto",
-      "extraction": "Extracción"
+      "extraction": "Extracción",
+      "classification": "Clasificación"
     },
     "status": {
       "queued": "En cola",

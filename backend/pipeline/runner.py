@@ -1,3 +1,4 @@
+from pipeline.classification import process as process_classification
 from pipeline.extraction_3.processor import process as process_extraction
 from pipeline.ocr_2 import process as process_ocr
 from pipeline.text_1 import process as process_text
@@ -17,3 +18,4 @@ def run_pipeline(document: DocumentDetails) -> None:
             process_ocr(pdf, document)
     if records["extraction"].status != "ready":
         process_extraction(document)
+    process_classification(document)

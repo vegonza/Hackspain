@@ -13,6 +13,7 @@ from pipeline.extraction_3.extraction import InvoiceExtraction
 from shared.logger import get_logger
 from documents.stages import StageDetail, StageId
 from erp import ErpEntry
+from rules.models import Decision
 
 
 class StageMetrics(BaseModel):
@@ -103,12 +104,13 @@ def reset_document(document_id: UUID, name: str) -> None:
     }).eq("document_id", str(document_id)).execute()
     fields = {field: None for field in InvoiceExtraction.model_fields if field not in {"notes", "uncertainties"}}
     client.table("documents").update({
-        **fields, "status": "queued", "pages": 0, "erp_entry_id": None,
+        **fields, "status": "queued", "pages": 0, "erp_entry_id": None, "payment_decision": None,
     }).eq("id", str(document_id)).is_("deleted_at", "null").execute()
     get_logger().info("[DOCUMENTS] Reset processing results for %s", name)
 
 
 class DocumentDetails(Document):
+    payment_decision: Decision | None = None
     stages: list[StageDetail]
     erp_snapshot_id: UUID | None = None
     erp: ErpEntry | None = None
@@ -134,5 +136,5 @@ def save_document_extraction(document_id: UUID, name: str, extraction: InvoiceEx
     for amount in ("tax_base", "vat_rate", "vat_amount", "total"):
         if fields[amount] == "":
             fields[amount] = None
-    get_client().table("documents").update(fields).eq("id", str(document_id)).is_("deleted_at", "null").execute()
+    get_client().table('documents').update({**fields, 'payment_decision': None}).eq('id', str(document_id)).is_('deleted_at', 'null').execute()
     get_logger().info("[DOCUMENTS] Saved extracted data for %s", name)

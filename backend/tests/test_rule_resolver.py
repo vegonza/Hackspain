@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 from uuid import UUID
 
 from orders.models import Order
-from rules.resolver import resolve_references
+from rules.resolver import claim_order, resolve_references
 from shared.identifiers import compact_identifier, order_key
 
 
@@ -30,5 +30,17 @@ class RuleResolverTests(unittest.TestCase):
         document_id = UUID('00000000-0000-0000-0000-000000000001')
         resolve_references(document_id, ' po-0001 ')
         client.return_value.rpc.assert_called_once_with('get_rule_references', {
+            'p_document_id': str(document_id), 'p_order_key': 'PO-0001',
+        })
+
+    @patch('rules.resolver.get_client')
+    def test_claim_returns_owner_or_missing_order(self, client: MagicMock) -> None:
+        document_id = UUID('00000000-0000-0000-0000-000000000001')
+        other_id = UUID('00000000-0000-0000-0000-000000000002')
+        for owner in (document_id, other_id, None):
+            with self.subTest(owner=owner):
+                client.return_value.rpc.return_value.execute.return_value.data = str(owner) if owner is not None else None
+                self.assertEqual(claim_order(document_id, ' po-0001 '), owner)
+        client.return_value.rpc.assert_called_with('claim_invoice_order', {
             'p_document_id': str(document_id), 'p_order_key': 'PO-0001',
         })

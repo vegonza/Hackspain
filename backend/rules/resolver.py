@@ -12,3 +12,10 @@ def resolve_references(document_id: UUID, purchase_order: str) -> ResolvedRefere
         'p_order_key': order_key(purchase_order),
     }).execute()
     return ResolvedReferences.model_validate(result.data)
+
+
+def claim_order(document_id: UUID, purchase_order: str) -> UUID | None:
+    result = get_client().rpc('claim_invoice_order', {
+        'p_document_id': str(document_id), 'p_order_key': order_key(purchase_order),
+    }).execute()
+    return UUID(result.data) if result.data is not None else None

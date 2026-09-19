@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS public.documents (
     erp_snapshot_id UUID REFERENCES public.erp_snapshots(id),
     erp_entry_id UUID,
     deleted_at TIMESTAMPTZ,
+    payment_decision JSONB,
     CONSTRAINT documents_erp_entry_requires_snapshot
         CHECK (erp_entry_id IS NULL OR erp_snapshot_id IS NOT NULL),
     CONSTRAINT documents_erp_entry_snapshot_fk

@@ -3,6 +3,7 @@ import json
 from pydantic import BaseModel, ConfigDict
 
 from pipeline.extraction_3.extractor import create_extractor
+from shared.usage import UsageRecord
 
 
 class PaymentConcern(BaseModel):
@@ -69,10 +70,10 @@ Never select a classification instruction as evidence of a commercial restrictio
 """
 
 
-def review_payment_notes(notes: list[str], checks: dict[str, bool]) -> PaymentNotesReview:
+def review_payment_notes(notes: list[str], checks: dict[str, bool], usage: UsageRecord | None = None) -> PaymentNotesReview:
     content = json.dumps({"notes": notes, "validation_results": checks}, ensure_ascii=False)
     with create_extractor() as extractor:
-        review = extractor.run(PAYMENT_NOTES_INSTRUCTION, content, SourcedPaymentNotesReview)
+        review = extractor.run(PAYMENT_NOTES_INSTRUCTION, content, SourcedPaymentNotesReview, usage=usage)
     concerns: list[PaymentConcern] = []
     for concern in review.concerns:
         if not 0 <= concern.note_index < len(notes) or not notes[concern.note_index].strip():

@@ -103,7 +103,7 @@ class RedoTests(unittest.TestCase):
             "duration_ms": None, "result_path": None,
         })
         fields = document_update.args[0]
-        self.assertEqual(set(fields), (set(InvoiceExtraction.model_fields) - {"notes", "uncertainties"}) | {"status", "pages", "erp_entry_id"})
+        self.assertEqual(set(fields), (set(InvoiceExtraction.model_fields) - {"notes", "uncertainties"}) | {"status", "pages", "erp_entry_id", "payment_decision"})
         self.assertEqual(fields["status"], "queued")
         self.assertTrue(all(value is None for key, value in fields.items() if key not in {"status", "pages"}))
 
@@ -118,6 +118,7 @@ class RedoTests(unittest.TestCase):
             patch("pipeline.runner.process_text", events.text),
             patch("pipeline.runner.process_ocr", events.ocr),
             patch("pipeline.runner.process_extraction", events.extraction),
+            patch("pipeline.runner.process_classification", events.classification),
         ):
             run_pipeline(document)
-        self.assertEqual([call[0] for call in events.mock_calls], ["text", "ocr", "extraction"])
+        self.assertEqual([call[0] for call in events.mock_calls], ["text", "ocr", "extraction", "classification"])

@@ -25,6 +25,9 @@ class ClassificationTests(unittest.TestCase):
             entries=[ErpEntry(entry_id='AS-NEW', order_id='PO-2026-9999', supplier_id='NEW', tax_id='B12345678',
                               raw_amount='121,00', amount=Decimal('121'), status='PENDIENTE', raw_date='01/09/2026')],
         )
+        claim = patch('documents.classification.claim_order', return_value=self.document_id)
+        self.claim = claim.start()
+        self.addCleanup(claim.stop)
         resolver = patch('documents.classification.resolve_references', return_value=self.references)
         self.resolver = resolver.start()
         self.addCleanup(resolver.stop)
@@ -39,9 +42,8 @@ class ClassificationTests(unittest.TestCase):
         self.review = self.notes.start()
         self.addCleanup(self.notes.stop)
 
-    def classify(self, invoice: InvoiceExtraction, duplicate_order: bool = False) -> Decision:
-        return classify_document(self.document_id, invoice, date(2026, 9, 19),
-                                 duplicate_order=duplicate_order)
+    def classify(self, invoice: InvoiceExtraction) -> Decision:
+        return classify_document(self.document_id, invoice, date(2026, 9, 19))
 
     def test_loads_supabase_references_for_document(self) -> None:
         self.classify(self.invoice)
@@ -73,8 +75,10 @@ class ClassificationTests(unittest.TestCase):
         self.assertEqual(self.classify(self.invoice.model_copy(update={"total": "121.01"})).classification, "PAGAR")
         self.assertEqual(self.classify(self.invoice.model_copy(update={"total": "121.02"})).classification, "ESCALAR")
 
-    def test_pending_review_and_duplicate_orders_escalate(self) -> None:
-        self.assertEqual(self.classify(self.invoice, duplicate_order=True).classification, "ESCALAR")
+    def test_pending_review_and_other_claim_escalate(self) -> None:
+        self.claim.return_value = UUID("00000000-0000-0000-0000-000000000002")
+        self.assertEqual(self.classify(self.invoice).classification, "ESCALAR")
+        self.claim.return_value = self.document_id
         self.references.order.review_required = True
         self.assertEqual(self.classify(self.invoice).classification, "ESCALAR")
 

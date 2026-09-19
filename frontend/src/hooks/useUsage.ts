@@ -6,9 +6,9 @@ import type { StageId } from '@/api/documents'
 
 const money = (amount: string) => `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(Number(amount))}`
 const detailFields = ['pages_processed', 'prompt_tokens', 'completion_tokens', 'total_tokens'] as const
-type UsageOperation = StageId | 'merge'
+type UsageOperation = StageId | 'merge' | 'classification'
 
-const phaseColors = { text: '#64748b', ocr: '#2563eb', merge: '#d97706', extraction: '#7c3aed' } satisfies Record<UsageOperation, string>
+const phaseColors = { text: '#64748b', ocr: '#2563eb', merge: '#d97706', extraction: '#7c3aed', classification: '#059669' } satisfies Record<UsageOperation, string>
 
 export function useUsage() {
   const { t } = useTranslation()

@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -19,7 +20,8 @@ class ResolvedReferences(BaseModel):
 class RuleContext(ResolvedReferences):
     invoice: InvoiceExtraction
     evaluation_date: date
-    duplicate_order: bool = False
+    claimed_by_document_id: UUID | None = None
+    document_id: UUID
 
 
 class RuleResult(BaseModel):
@@ -32,3 +34,4 @@ class Decision(BaseModel):
     classification: Literal['PAGAR', 'NO_PAGAR', 'ESCALAR']
     reasons: list[str]
     checks: dict[str, bool]
+    claimed_by_document_id: UUID | None = None

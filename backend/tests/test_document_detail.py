@@ -108,7 +108,7 @@ class DocumentDetailTests(unittest.TestCase):
         payload = client.table.return_value.update.call_args.args[0]
         self.assertEqual(payload["invoice_date"], "31/02/2026")
         self.assertEqual(payload["total"], "149382714704937.5952")
-        self.assertEqual(set(payload), set(InvoiceExtraction.model_fields) - {"notes", "uncertainties"})
+        self.assertEqual(set(payload), (set(InvoiceExtraction.model_fields) - {"notes", "uncertainties"}) | {"payment_decision"})
         client.table.return_value.update.return_value.eq.assert_called_once_with("id", str(identifier))
         self.assertEqual(InvoiceExtraction.model_validate_json(extraction.model_dump_json()), extraction)
 

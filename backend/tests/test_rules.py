@@ -1,6 +1,7 @@
 import unittest
 from datetime import date
 from decimal import Decimal
+from uuid import UUID
 
 from erp import ErpEntry
 from orders.models import Order
@@ -12,7 +13,8 @@ from suppliers.models import Supplier
 
 class RulesTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.context = RuleContext(
+        document_id = UUID('00000000-0000-0000-0000-000000000001')
+        self.context = RuleContext(document_id=document_id, claimed_by_document_id=document_id,
             invoice=InvoiceExtraction(
                 invoice_number='F-1', supplier_name='Proveedor', supplier_nif='B12345678', iban='ES001234',
                 invoice_date='2026-09-01', purchase_order='PO-1',
@@ -32,6 +34,14 @@ class RulesTests(unittest.TestCase):
         return payment_decision(evaluate_rules(self.context), self.context.invoice.notes, None).classification
 
     def test_valid_invoice_passes_without_external_services(self) -> None:
+        self.assertEqual(self.classification(), 'PAGAR')
+
+    def test_order_claim_must_belong_to_this_document(self) -> None:
+        for owner in (None, UUID('00000000-0000-0000-0000-000000000002')):
+            with self.subTest(owner=owner):
+                self.context.claimed_by_document_id = owner
+                self.assertEqual(self.classification(), 'ESCALAR')
+        self.context.claimed_by_document_id = self.context.document_id
         self.assertEqual(self.classification(), 'PAGAR')
 
     def test_order_pending_review_escalates(self) -> None:

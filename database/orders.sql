@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS public.orders (
     amount NUMERIC(18, 2) NOT NULL,
     status TEXT NOT NULL CHECK (length(btrim(status)) > 0),
     date DATE NOT NULL,
-    review_required BOOLEAN NOT NULL DEFAULT FALSE
+    review_required BOOLEAN NOT NULL DEFAULT FALSE,
+    claimed_by_document_id UUID REFERENCES public.documents(id)
 );
 
 CREATE INDEX IF NOT EXISTS orders_supplier_id_idx ON public.orders (supplier_id);
