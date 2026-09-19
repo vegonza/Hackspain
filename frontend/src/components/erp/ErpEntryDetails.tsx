@@ -11,7 +11,7 @@ type Props = Pick<ReturnType<typeof useErpSnapshot>, 'loading' | 'detailTitle' |
 export function ErpEntryDetails({ loading, detailTitle, detailRows, linkedInvoices, onNavigate, labels }: Props) {
   return (
     <>
-      <header className="invoice-sidebar-header">
+      <header className="invoice-pane-header">
         <Button variant="ghost" size="icon-sm" asChild>
           <a href="/erp" onClick={onNavigate} aria-label={labels.back}><ArrowLeft size={16} /></a>
         </Button>
@@ -19,7 +19,7 @@ export function ErpEntryDetails({ loading, detailTitle, detailRows, linkedInvoic
           ? <Tooltip text={detailTitle} onlyWhenTruncated asChild><h1>{detailTitle}</h1></Tooltip>
           : loading ? <Skeleton className="h-4 flex-1" /> : <h1>{labels.entryUnavailable}</h1>}
       </header>
-      {(loading || detailTitle !== null) && <div className="invoices-table-scroll">
+      {(loading || detailTitle !== null) && <div className="invoices-table-scroll erp-entry-content">
         <InvoiceErp loading={loading} rows={detailRows} />
         <ErpLinkedInvoices title={labels.linkedInvoices} empty={labels.noLinkedInvoices} loading={loading} invoices={linkedInvoices} onNavigate={onNavigate} />
       </div>}

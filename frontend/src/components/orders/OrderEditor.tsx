@@ -18,7 +18,7 @@ export function OrderEditor({ draft, editingId, saving, onChange, onSave, onCanc
       <label className="grid gap-1.5 text-xs font-medium">{labels.tax_id}
         <Input value={draft.tax_id ?? ''} onChange={event => onChange('tax_id', event.target.value === '' ? null : event.target.value)} />
       </label>
-      <label className="grid gap-1.5 text-xs font-medium">{labels.amount}
+      <label className="grid gap-1.5 text-xs font-medium">{labels.amountInput}
         <Input type="number" required step="0.01" value={draft.amount} onChange={event => onChange('amount', event.target.value)} />
       </label>
       <label className="grid gap-1.5 text-xs font-medium">{labels.date}

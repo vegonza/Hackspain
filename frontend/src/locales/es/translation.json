@@ -5,9 +5,10 @@
   "common": {
     "cancel": "Cancelar",
     "close": "Cerrar",
-    "actions": "Opciones",
-    "delete": "Borrar",
-    "deleteConfirmation": "¿Borrar «{{name}}»?"
+    "actions": "Acciones",
+    "delete": "Eliminar",
+    "deleteConfirmation": "¿Eliminar «{{name}}»?",
+    "amount": "Importe"
   },
   "invoices": {
     "decision": "Decisión",
@@ -29,7 +30,7 @@
     "library": "Facturas",
     "search": "Buscar facturas…",
     "back": "Volver a facturas",
-    "totalTime": "Tiempo total",
+    "totalTime": "Tiempo",
     "status": "Estado",
     "created": "Fecha de subida",
     "noResults": "No hay facturas que coincidan con la búsqueda.",
@@ -68,7 +69,7 @@
     "cost": "Coste",
     "calls": "Llamadas",
     "pages": "Páginas procesadas",
-    "totalCost": "Coste total",
+    "totalCost": "Coste",
     "invoiceCost": "Coste medio por factura",
     "breakdown": {
       "pages_processed": "Páginas",
@@ -134,17 +135,12 @@
     "title": "ERP",
     "dataTitle": "Datos en el ERP",
     "status": "Estado",
-    "expectedAmount": "Importe esperado",
     "difference": "Diferencia",
     "entry": "Asiento",
     "purchaseOrder": "Pedido",
     "supplier": "Proveedor",
     "nif": "NIF",
     "registeredAt": "Fecha de registro",
-    "states": {
-      "PENDIENTE": "Pendiente",
-      "PAGADA": "Pagada"
-    },
     "refresh": "Actualizar ERP",
     "refreshing": "Actualizando…",
     "snapshotTitle": "Volcado del ERP",
@@ -167,7 +163,7 @@
     "search": "Buscar proveedores…",
     "add": "Añadir proveedor",
     "edit": "Editar proveedor",
-    "id": "Código",
+    "id": "Proveedor",
     "name": "Razón social",
     "taxId": "NIF",
     "iban": "IBAN",
@@ -194,7 +190,7 @@
     "id": "Pedido",
     "supplier": "Proveedor",
     "taxId": "NIF",
-    "amount": "Importe (€)",
+    "amountInput": "Importe (€)",
     "status": "Estado",
     "date": "Fecha",
     "save": "Guardar",

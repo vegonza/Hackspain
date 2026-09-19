@@ -5,9 +5,10 @@ import { fetchErpEntry, fetchErpSnapshot, refreshErpSnapshot, type ErpEntry, typ
 import { invoicePath, erpEntryPath, useAppRoute } from '@/hooks/useAppRoute'
 import { erpSortValue, filterErpRows, type ErpRow, type ErpSortColumn } from '@/hooks/erpRows'
 import { useTableSort } from '@/hooks/useTableSort'
+import { formatAmount, formatStatus } from '@/lib/format'
 
 const money = (amount: string | null): string => amount === null ? '—'
-  : new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(Number(amount))
+  : formatAmount(Number(amount), 'EUR')
 const shortDate = (date: string | null): string => date === null ? '—' : new Date(`${date}T00:00:00`).toLocaleDateString('es-ES')
 const orDash = (value: string): string => value === '' ? '—' : value
 
@@ -77,7 +78,7 @@ export function useErpSnapshot() {
   }
 
   const entries = snapshot === null ? [] : snapshot.entries
-  const statusLabel = (status: string): string => status === 'PENDIENTE' || status === 'PAGADA' ? t(`erp.states.${status}`) : status
+  const statusLabel = (status: string): string => formatStatus(status)
   const rows: ErpRow[] = entries.map(entry => ({
     id: entry.id,
     href: erpEntryPath(entry.id),
@@ -99,7 +100,7 @@ export function useErpSnapshot() {
   const field = (read: (entry: ErpEntry) => string): string => selected === null ? '—' : read(selected)
   const detailRows = [
     { label: t('erp.status'), value: field(entry => statusLabel(entry.status)) },
-    { label: t('erp.expectedAmount'), value: field(entry => money(entry.amount)) },
+    { label: t('common.amount'), value: field(entry => money(entry.amount)) },
     { label: t('erp.entry'), value: field(entry => entry.entry_id) },
     { label: t('erp.purchaseOrder'), value: field(entry => orDash(entry.order_id)) },
     { label: t('erp.supplier'), value: field(entry => orDash(entry.supplier_id)) },
@@ -125,7 +126,7 @@ export function useErpSnapshot() {
       title: t('erp.snapshotTitle'), search: t('erp.search'), noResults: t('erp.noResults'), emptySnapshot: t('erp.emptySnapshot'),
       entryUnavailable: t('erp.entryUnavailable'), back: t('erp.back'), linkedInvoices: t('erp.linkedInvoices'), noLinkedInvoices: t('erp.noLinkedInvoices'),
       entry: t('erp.entry'), order: t('erp.purchaseOrder'), supplier: t('erp.supplier'), taxId: t('erp.nif'), status: t('erp.status'),
-      date: t('erp.registeredAt'), amount: t('erp.expectedAmount'), warnings: t('erp.warningsColumn'),
+      date: t('erp.registeredAt'), amount: t('common.amount'), warnings: t('erp.warningsColumn'),
     },
   }
 }

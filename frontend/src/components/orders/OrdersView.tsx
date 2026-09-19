@@ -1,7 +1,8 @@
 import { TableToolbar } from '@/components/ui/table-toolbar'
-import { Plus, Hash, Building2, IdCard, Euro, ListChecks, Calendar } from 'lucide-react'
+import { Plus, Package, Building2, IdCard, Euro, ListChecks, Calendar } from 'lucide-react'
 import { RowActions } from '@/components/ui/row-actions'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { SortableTableHead } from '@/components/ui/sortable-table-head'
 import { SearchInput } from '@/components/ui/search-input'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -10,7 +11,7 @@ import { OrderEditor } from '@/components/orders/OrderEditor'
 import { TableSkeleton } from '@/components/ui/table/table-skeleton'
 import type { useOrders } from '@/hooks/useOrders'
 
-const columnIcons = { order_id: Hash, supplier_id: Building2, tax_id: IdCard, amount: Euro, status: ListChecks, date: Calendar }
+const columnIcons = { order_id: Package, supplier_id: Building2, tax_id: IdCard, amount: Euro, status: ListChecks, date: Calendar }
 
 export function OrdersView({ mount, loading, failed, rows, pagination, pageKey, editing, saving, deleting, onDelete, draft, editingId, search,
   sortColumn, sortDirection, onToggleSort, onSearch, onNew, onEdit, onChange, onSave, onCancel, onRetry, labels }: ReturnType<typeof useOrders>) {
@@ -36,8 +37,8 @@ export function OrdersView({ mount, loading, failed, rows, pagination, pageKey, 
               <Tooltip text={order[field] ?? ''} onlyWhenTruncated asChild><span className="block truncate">{order[field] ?? '—'}</span></Tooltip>
             </TableCell>)}
             <TableCell className="tabular-nums">{order.displayAmount}</TableCell>
-            <TableCell>{order.status}</TableCell>
-            <TableCell>{order.displayDate}</TableCell>
+            <TableCell><Badge variant="secondary" className="invoice-table-status">{order.displayStatus}</Badge></TableCell>
+            <TableCell className="text-muted-foreground">{order.displayDate}</TableCell>
             <TableCell><RowActions confirmation={order.deleteConfirmation} labels={labels} name={order.order_id} disabled={editing || saving || deleting}
               onEdit={() => onEdit(order)} onDelete={() => onDelete(order.order_id)} /></TableCell>
           </TableRow>)}

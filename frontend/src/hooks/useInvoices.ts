@@ -6,6 +6,7 @@ import { useInvoiceDetail } from '@/hooks/useInvoiceDetail'
 import { invoiceErrorKey } from '@/hooks/invoiceError'
 import { invoiceMetrics } from '@/hooks/invoiceMetrics'
 import { deleteInvoice, redoInvoice, retryInvoice, fetchInvoices, uploadInvoice, type Invoice } from '@/api/invoices'
+import { formatAmount, formatStatus } from '@/lib/format'
 
 const isProcessing = (document: Invoice) => document.status === 'queued' || document.status === 'processing'
 
@@ -221,7 +222,7 @@ export function useInvoices() {
   const erp = selected === null ? null : selected.erp
   const extraction = selected === null ? null : selected.extraction
   const featureMoney = (value: string, currency: string): string => value === '' ? t('extraction.unavailable')
-    : new Intl.NumberFormat('es-ES', currency === '' ? {} : { style: 'currency', currency }).format(Number(value))
+    : formatAmount(Number(value), currency)
   const featureAmounts = extraction === null ? null : {
     taxBase: featureMoney(extraction.tax_base, extraction.currency),
     vatRate: extraction.vat_rate === '' ? t('extraction.unavailable') : `${extraction.vat_rate}%`,
@@ -233,14 +234,12 @@ export function useInvoices() {
     lineItemsExpanded,
     onToggleLineItems: () => setLineItemsState({ invoiceId: selectedId, expanded: !lineItemsExpanded }),
   }
-  const erpMoney = (value: number) => `${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)} €`
   const difference = erp !== null && erp.amount !== null && extraction !== null && extraction.currency === 'EUR' && extraction.total !== ''
     ? Number(extraction.total) - Number(erp.amount) : null
   const erpRows = [
-    { label: t('erp.status'), value: erp === null ? t('erp.notLinked')
-      : erp.status === 'PENDIENTE' || erp.status === 'PAGADA' ? t(`erp.states.${erp.status}`) : erp.status },
-    { label: t('erp.expectedAmount'), value: erp === null || erp.amount === null ? t('extraction.unavailable') : erpMoney(Number(erp.amount)) },
-    { label: t('erp.difference'), value: difference === null ? t('extraction.unavailable') : erpMoney(difference) },
+    { label: t('erp.status'), value: erp === null ? t('erp.notLinked') : formatStatus(erp.status) },
+    { label: t('common.amount'), value: erp === null || erp.amount === null ? t('extraction.unavailable') : formatAmount(Number(erp.amount), 'EUR') },
+    { label: t('erp.difference'), value: difference === null ? t('extraction.unavailable') : formatAmount(difference, 'EUR') },
     { label: t('erp.entry'), value: erp === null ? '—' : erp.entry_id },
     { label: t('erp.purchaseOrder'), value: erp === null ? '—' : erp.order_id },
     { label: t('erp.supplier'), value: erp === null ? '—' : erp.supplier_id },

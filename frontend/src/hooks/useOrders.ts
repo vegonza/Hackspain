@@ -4,9 +4,9 @@ import { useTableSort } from '@/hooks/useTableSort'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { deleteOrder, fetchOrders, saveOrder, type Order } from '@/api/orders'
+import { formatAmount, formatStatus } from '@/lib/format'
 
 const emptyOrder: Order = { order_id: '', supplier_id: '', tax_id: null, amount: '', status: 'ABIERTO', date: '' }
-const amountFormat = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const dateFormat = new Intl.DateTimeFormat('es-ES')
 
 export function useOrders() {
@@ -96,7 +96,8 @@ export function useOrders() {
     rows: table.rows.map(order => ({
       ...order,
       deleteConfirmation: t('common.deleteConfirmation', { name: order.order_id }),
-      displayAmount: amountFormat.format(Number(order.amount)),
+      displayAmount: formatAmount(Number(order.amount), 'EUR'),
+      displayStatus: formatStatus(order.status),
       displayDate: dateFormat.format(new Date(`${order.date}T00:00:00`)),
     })),
     onNew: () => edit(null), onEdit: edit, onChange: change, onSave: save,
@@ -105,7 +106,7 @@ export function useOrders() {
       actions: t('common.actions'), delete: t('common.delete'),
       title: t('orders.title'), search: t('orders.search'), add: t('orders.add'), edit: t('orders.edit'),
       order_id: t('orders.id'), supplier_id: t('orders.supplier'), tax_id: t('orders.taxId'),
-      amount: t('orders.amount'), status: t('orders.status'), date: t('orders.date'),
+      amount: t('common.amount'), amountInput: t('orders.amountInput'), status: t('orders.status'), date: t('orders.date'),
       save: t('orders.save'), saving: t('orders.saving'), cancel: t('common.cancel'), close: t('common.close'),
       empty: t('orders.empty'), failed: t('invoices.requestFailed'), retry: t('orders.retry'),
     },

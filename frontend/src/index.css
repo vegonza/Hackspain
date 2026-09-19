@@ -100,12 +100,10 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .review-layout { display: flex; flex: 1; min-height: 0; }
 .sidebar { width: 12rem; flex-shrink: 0; display: flex; flex-direction: column; padding: 0; border-right: 1px solid var(--border); background: #fafafa; }
 .review-desk { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); flex: 1; min-width: 0; min-height: 0; }
-.invoice-sidebar-header, .review-header { display: flex; align-items: center; gap: 12px; height: 48px; flex-shrink: 0; padding: 0 16px; }
+.review-header { display: flex; align-items: center; gap: 12px; height: 48px; flex-shrink: 0; padding: 0 16px; }
 .review-header h2 { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 500; }
 .source-body { display: flex; flex: 1; min-width: 0; min-height: 0; }
 .source-body[hidden] { display: none; }
-.invoice-sidebar-header { position: sticky; top: 0; z-index: 2; background: #fafafa; border-bottom: 1px solid var(--border); }
-.invoice-sidebar-header h1 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
 .invoice-retry { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 16px; font-size: 14px; border-bottom: 1px solid var(--border); }
 .review-header { justify-content: space-between; height: 28px; }
 .review-header h2 { color: #171717; font-size: 14px; font-weight: 600; }
@@ -134,11 +132,10 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .usage-chart { width: 100%; padding: 16px; margin-bottom: 16px; }
 .usage-chart-canvas { height: clamp(128px, 28dvh, 240px); font-size: 12px; }
 .usage-log { display: flex; flex-direction: column; flex: 1; width: 100%; min-height: 0; overflow: hidden; background: white; }
-.usage-pagination { display: flex; align-items: center; gap: 4px; margin-left: auto; font-size: 12px; color: var(--muted-foreground); }
-.usage-pagination span { min-width: 48px; text-align: center; font-variant-numeric: tabular-nums; }
 .usage-table-scroll { flex: 1; min-height: 0; overflow: auto; }
-.usage-table { width: 100%; min-width: 900px; table-layout: fixed; border-collapse: collapse; font-size: 14px; }
-.usage-table thead { position: sticky; top: 0; z-index: 1; background: var(--muted); }
+.usage-table { width: 100%; min-width: 900px; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+.usage-table thead { position: sticky; top: 0; z-index: 20; background: var(--muted); }
+.usage-table th { border-bottom: 1px solid var(--border); }
 .usage-table td { font-variant-numeric: tabular-nums; }
 .usage-cell-text { display: block; overflow: hidden; text-overflow: ellipsis; font-size: 12px; color: var(--muted-foreground); }
 .usage-model { font-family: ui-monospace, monospace; }
@@ -182,7 +179,13 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .invoices-browser { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; }
 .invoices-table-scroll { flex: 1; overflow: auto; }
 .invoices-table { width: 100%; min-width: 950px; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 14px; }
-.invoices-table th:first-child { min-width: 220px; }
+.invoices-list-table th:first-child { min-width: 220px; }
+.erp-table { min-width: 1104px; }
+.erp-table th:first-child { min-width: 154px; }
+.erp-entry-content { min-height: 0; }
+.erp-entry-content > .invoice-data { width: 100%; max-width: none; }
+.erp-entry-content .review-header { padding-bottom: 12px; }
+.erp-entry-content .review-header h2 { font-size: 14px; }
 .invoice-table-row { cursor: pointer; height: 36px; }
 .invoice-table-row td { height: 36px; padding-block: 4px; border-bottom: 1px solid var(--border); transition: background-color 140ms ease; background: white; }
 .invoice-table-row:hover td { background: var(--muted); }
@@ -211,7 +214,6 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .table-pagination { display: flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: 12px; color: var(--muted-foreground); }
 .table-pagination span { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .table-pagination-range { margin-right: 6px; }
-.invoices-toolbar .table-pagination + .table-add-button { margin-left: 0; }
 
 
 .invoice-source-pane { border-right: 1px solid var(--border); }
