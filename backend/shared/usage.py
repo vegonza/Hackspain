@@ -35,15 +35,6 @@ def save_usage(record: UsageRecord) -> None:
     get_client().table("usage_log").upsert(record.model_dump(mode="json")).execute()
 
 
-def read_usage() -> list[UsageRecord]:
-    records: list[UsageRecord] = []
-    while True:
-        rows = get_client().table("usage_log").select("*").order("created_at", desc=True).order("id", desc=True).range(len(records), len(records) + 999).execute().data
-        records.extend(UsageRecord.model_validate(row) for row in rows)
-        if len(rows) < 1000:
-            return records
-
-
 @contextmanager
 def track_usage(provider: str, model: str, operation: str, document_id: str, document_name: str) -> Iterator[UsageRecord]:
     """Queue the final usage in Redis; a separate worker writes it to Supabase."""

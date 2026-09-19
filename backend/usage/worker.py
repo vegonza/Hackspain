@@ -1,12 +1,12 @@
-import time
+from threading import Event, Thread
 
 from redis import Redis
 
-from shared.logger import setup_logger
+from shared.logger import get_logger
 from shared.redis import get_redis
 from shared.usage import USAGE_OUTBOX, UsageRecord, save_usage
 
-logger = setup_logger()
+logger = get_logger()
 
 
 def flush_usage(redis: Redis) -> None:
@@ -21,16 +21,19 @@ def flush_usage(redis: Redis) -> None:
             logger.exception("[USAGE] Persistence failed; keeping %s queued for retry", usage_id)
 
 
-def run() -> None:
+def run(stop: Event) -> None:
     logger.info("[USAGE] Persistence worker started")
     with get_redis() as redis:
-        while True:
+        while not stop.is_set():
             try:
                 flush_usage(redis)
             except Exception:
                 logger.exception("[USAGE] Redis unavailable; retrying")
-            time.sleep(5)
+            stop.wait(5)
 
 
-if __name__ == "__main__":
-    run()
+def start_usage_worker() -> tuple[Event, Thread]:
+    stop = Event()
+    thread = Thread(target=run, args=(stop,), daemon=True, name="usage-worker")
+    thread.start()
+    return stop, thread

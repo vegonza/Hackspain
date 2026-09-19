@@ -76,32 +76,6 @@ services:
         - action: rebuild
           path: ./backend/Dockerfile
 
-  usage-worker:
-    build:
-      context: ./backend
-    command: ["python", "-m", "usage.worker"]
-    restart: unless-stopped
-    env_file:
-      - backend/.env
-    environment:
-      ENV: development
-      TZ: Europe/Madrid
-      REDIS_URL: redis://redis:6379/0
-    depends_on:
-      redis:
-        condition: service_healthy
-    develop:
-      watch:
-        - action: sync+restart
-          path: ./backend
-          target: /app
-          initial_sync: true
-          ignore: [Dockerfile, requirements.txt, data/, .venv/, .env, logs/, __pycache__/]
-        - action: rebuild
-          path: ./backend/requirements.txt
-        - action: rebuild
-          path: ./backend/Dockerfile
-
   frontend:
     build:
       context: ./frontend
