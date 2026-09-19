@@ -650,3 +650,126 @@ class TestRealCorpus:
             flagged += 1
         assert flagged >= 9
 
+
+
+# --------------------------------------------------------------------------
+# What the document claims, kept apart from what the ledger confirms
+# --------------------------------------------------------------------------
+
+class TestStatedOrderId:
+    """The order number the paper states must survive a failed lookup.
+
+    Before this existed, an invoice naming an order the ERP had never heard of
+    came back with ``order_id is None`` and nothing else: the code was read,
+    matched against the ledger, found wanting, and then discarded. Three
+    documents in the real corpus do exactly that. A caller that wants to check
+    the order against a second source had nothing to check.
+    """
+
+    def test_unknown_order_keeps_the_claimed_code(self, resolver):
+        res = resolver.resolve(InvoiceSignals(
+            purchase_order="PO-2026-9999", supplier_nif="B11111111",
+            invoice_date="01/03/2026", total="100,00"))
+        assert res.order_id is None              # the ledger confirmed nothing
+        assert res.stated_order_id == "PO-2026-9999"
+        assert res.stated_order_ids == ("PO-2026-9999",)
+        assert Anomaly.ORDER_CODE_UNKNOWN_TO_ERP.value in res.anomalies
+
+    def test_unknown_order_is_attributed_to_the_document(self, resolver):
+        res = resolver.resolve(InvoiceSignals(purchase_order="PO-2026-9999"))
+        assert res.order_id_source == "document"
+
+    def test_confirmed_order_is_attributed_to_the_erp(self, resolver):
+        res = resolver.resolve(InvoiceSignals(
+            purchase_order="PO-2026-0001", supplier_nif="B11111111",
+            invoice_date="01/03/2026", total="100,00"))
+        assert res.order_id_source == "erp"
+        assert res.order_id == res.stated_order_id == "PO-2026-0001"
+
+    def test_no_code_anywhere_is_attributed_to_neither(self, resolver):
+        res = resolver.resolve(InvoiceSignals(supplier_nif="B99999999"))
+        assert res.order_id_source == "none"
+        assert res.stated_order_id is None
+        assert res.stated_order_ids == ()
+
+    def test_order_id_never_falls_back_to_the_claim(self, resolver):
+        """The two must not be merged, however convenient it would be.
+
+        If ``order_id`` returned the claimed code, then the extremely natural
+        ``if res.order_id: pay_against(res.order_id)`` would authorise a
+        payment against an order no accounting system can vouch for.
+        """
+        res = resolver.resolve(InvoiceSignals(purchase_order="PO-2026-9999"))
+        assert res.order_id is None
+        assert res.resolved is False
+        assert res.stated_order_id is not None
+
+    def test_claim_survives_when_the_cascade_falls_through(self, resolver):
+        """A code the ERP disowns stops the cascade, and is still reported."""
+        res = resolver.resolve(InvoiceSignals(
+            purchase_order="PO-2026-9999", supplier_nif="B11111111",
+            invoice_date="01/03/2026", total="100,00"))
+        assert res.stated_order_id == "PO-2026-9999"
+
+    def test_claim_is_read_from_raw_text_when_the_field_is_empty(self, resolver):
+        res = resolver.resolve(InvoiceSignals(
+            raw_text="FACTURA\nSu pedido: PO-2026-9999\nTOTAL: 100,00"))
+        assert res.stated_order_id == "PO-2026-9999"
+        assert res.order_id is None
+
+    def test_the_field_wins_over_the_body(self, resolver):
+        res = resolver.resolve(InvoiceSignals(
+            purchase_order="PO-2026-0001",
+            raw_text="... mentions PO-2026-0002 somewhere ...",
+            supplier_nif="B11111111", invoice_date="01/03/2026", total="100,00"))
+        assert res.stated_order_ids == ("PO-2026-0001",)
+
+    def test_several_codes_leave_the_singular_undecided(self, resolver):
+        res = resolver.resolve(InvoiceSignals(
+            purchase_order="PO-2026-9998 and PO-2026-9999"))
+        assert res.stated_order_ids == ("PO-2026-9998", "PO-2026-9999")
+        assert res.stated_order_id is None      # no single answer to give
+        assert Anomaly.MULTIPLE_ORDER_CODES.value in res.anomalies
+
+    def test_resolved_without_a_code_states_nothing(self, resolver):
+        """Deduced is not stated. The distinction is the point."""
+        res = resolver.resolve(InvoiceSignals(
+            supplier_nif="B11111111", invoice_date="01/03/2026", total="100,00"))
+        assert res.order_id == "PO-2026-0001"   # found it anyway
+        assert res.stated_order_ids == ()       # but the paper never said so
+        assert res.order_id_source == "erp"
+
+    def test_duplicate_order_still_reports_the_claim(self):
+        """Even the hardest block keeps the claim available."""
+        index = ErpIndex([
+            make_entry("PO-2026-0007", entry_id="AS-00007"),
+            make_entry("PO-2026-0007", entry_id="AS-00008"),
+        ])
+        res = OrderResolver(index).resolve(InvoiceSignals(
+            purchase_order="PO-2026-0007", supplier_nif="B11111111"))
+        assert res.order_id is None
+        assert res.stated_order_id == "PO-2026-0007"
+        assert Anomaly.DUPLICATE_ORDER_IN_ERP.value in res.anomalies
+
+    def test_serialisation_carries_all_three(self, resolver):
+        payload = resolver.resolve(
+            InvoiceSignals(purchase_order="PO-2026-9999")).to_dict()
+        assert payload["order_id"] is None
+        assert payload["stated_order_id"] == "PO-2026-9999"
+        assert payload["stated_order_ids"] == ["PO-2026-9999"]
+        assert payload["order_id_source"] == "document"
+
+    def test_serialisation_is_json_safe(self, resolver):
+        payload = resolver.resolve(
+            InvoiceSignals(purchase_order="PO-2026-9999")).to_dict()
+        json.dumps(payload)                     # must not raise
+
+    def test_the_ladder_and_the_report_read_the_same_source(self, resolver):
+        """Both go through _stated_codes, so they cannot drift apart."""
+        signals = InvoiceSignals(
+            raw_text="Ref. Pedido PO-2026-0001", supplier_nif="B11111111",
+            invoice_date="01/03/2026", total="100,00")
+        res = resolver.resolve(signals)
+        assert res.stated_order_ids == ("PO-2026-0001",)
+        assert res.strategy is Strategy.ORDER_CODE
+        assert res.order_id == "PO-2026-0001"

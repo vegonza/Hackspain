@@ -413,10 +413,52 @@ class Resolution:
     candidates: tuple[Entry, ...] = ()
     anomalies: tuple[str, ...] = ()
     notes: tuple[str, ...] = ()
+    #: Every order code the document itself states, whether or not the ERP has
+    #: ever heard of it. Kept separate from :attr:`order_id` on purpose; see
+    #: that property for why the two must not be merged.
+    stated_order_ids: tuple[str, ...] = ()
 
     @property
     def order_id(self) -> str | None:
+        """The order the **ledger** confirmed, or None.
+
+        This is deliberately not "the order number we saw somewhere". An
+        invoice can name an order the ERP has never heard of: three documents
+        in the corpus do exactly that. For those the ledger has confirmed
+        nothing, so this returns None and the claimed code is available from
+        :attr:`stated_order_id` instead.
+
+        Keeping the two apart is the whole point. If this fell back to the
+        claimed code, ``if res.order_id: pay_against(res.order_id)`` would pay
+        against an order no accounting system can vouch for, and the caller
+        would have no way to tell the two situations apart.
+        """
         return self.entry.order_id if self.entry else None
+
+    @property
+    def stated_order_id(self) -> str | None:
+        """The single order code the **document** claims, or None.
+
+        None both when the document names no order and when it names more than
+        one, because then there is no single answer to give. The full list is
+        always in :attr:`stated_order_ids`, and the ``multiple_order_codes``
+        anomaly says so explicitly.
+        """
+        return self.stated_order_ids[0] if len(self.stated_order_ids) == 1 else None
+
+    @property
+    def order_id_source(self) -> str:
+        """Where the order number came from, for a caller that must choose.
+
+        ``"erp"``       the ledger confirmed it.
+        ``"document"``  only the paper says so; nothing has corroborated it.
+        ``"none"``      no order number at all, from either side.
+        """
+        if self.entry is not None:
+            return "erp"
+        if self.stated_order_ids:
+            return "document"
+        return "none"
 
     @property
     def resolved(self) -> bool:
@@ -449,6 +491,9 @@ class Resolution:
     def to_dict(self) -> dict:
         return {
             "order_id": self.order_id,
+            "stated_order_id": self.stated_order_id,
+            "stated_order_ids": list(self.stated_order_ids),
+            "order_id_source": self.order_id_source,
             "entry_id": self.entry.entry_id if self.entry else None,
             "strategy": self.strategy.value,
             "confidence": self.confidence.value,
@@ -622,6 +667,13 @@ class OrderResolver:
         if total_cents is None and signals.total is not None:
             anomalies.append(Anomaly.AMOUNT_UNPARSEABLE.value)
 
+        # Whatever the document claims, recorded before any of it is judged.
+        # The ERP may disown the code, the cascade may fall through to another
+        # rung, the answer may be no answer at all: none of that is a reason to
+        # forget what was written on the paper. A caller that has to look the
+        # order up somewhere else needs it exactly when we could not.
+        stated = self._stated_codes(signals)
+
         for attempt in (
             self._by_stated_code,
             self._by_repaired_code,
@@ -655,6 +707,7 @@ class OrderResolver:
                         f"{len(rows)} ERP rows share {entry.order_id}: "
                         + ", ".join(row.entry_id for row in rows),
                     ),
+                    stated_order_ids=stated,
                 )
 
             if entry is not None:
@@ -672,6 +725,7 @@ class OrderResolver:
                 candidates=tuple(candidates),
                 anomalies=tuple(anomalies),
                 notes=tuple(notes),
+                stated_order_ids=stated,
             )
 
         return Resolution(
@@ -681,14 +735,28 @@ class OrderResolver:
             candidates=(),
             anomalies=tuple(anomalies),
             notes=tuple(notes),
+            stated_order_ids=stated,
         )
+
+    @staticmethod
+    def _stated_codes(signals: InvoiceSignals) -> tuple[str, ...]:
+        """Order codes the document states: the field first, then the text.
+
+        The dedicated field wins when it holds one, because the extraction
+        layer has already decided that is the order. Only when it is empty is
+        the body searched, and then by pattern rather than by label: the corpus
+        puts six different labels in front of the code, so matching on the
+        label alone would miss most of them.
+        """
+        codes = find_order_codes(signals.purchase_order or "")
+        return tuple(codes or find_order_codes(signals.raw_text))
 
     # -- rungs of the ladder ----------------------------------------------
 
     def _by_stated_code(self, signals, tax_id, invoice_date, total_cents):
-        codes = find_order_codes(signals.purchase_order or "")
-        if not codes:
-            codes = find_order_codes(signals.raw_text)
+        # Same source as Resolution.stated_order_ids, deliberately: what the
+        # ladder searches on and what the result reports must never drift.
+        codes = list(self._stated_codes(signals))
         if not codes:
             return None
 
