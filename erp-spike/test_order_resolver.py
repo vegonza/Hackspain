@@ -315,6 +315,20 @@ class TestCorroboration:
         assert res.order_id == "PO-2026-0001"
         assert Anomaly.AMOUNT_MISMATCH.value in res.anomalies
 
+    @pytest.mark.parametrize("total", ["99,99", "100,01"])
+    def test_one_cent_rounding_difference_is_accepted(self, resolver, total):
+        res = resolver.resolve(InvoiceSignals(
+            purchase_order="PO-2026-0001", supplier_nif="B11111111",
+            invoice_date="01/03/2026", total=total))
+        assert Anomaly.AMOUNT_MISMATCH.value not in res.anomalies
+
+    @pytest.mark.parametrize("total", ["99,98", "100,02"])
+    def test_more_than_one_cent_difference_is_flagged(self, resolver, total):
+        res = resolver.resolve(InvoiceSignals(
+            purchase_order="PO-2026-0001", supplier_nif="B11111111",
+            invoice_date="01/03/2026", total=total))
+        assert Anomaly.AMOUNT_MISMATCH.value in res.anomalies
+
     def test_date_mismatch_is_reported(self, resolver):
         res = resolver.resolve(InvoiceSignals(
             purchase_order="PO-2026-0001", supplier_nif="B11111111",

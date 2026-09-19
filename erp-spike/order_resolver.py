@@ -806,8 +806,10 @@ class OrderResolver:
             found.append(Anomaly.SUPPLIER_TAX_ID_MISMATCH.value)
         if invoice_date and entry.date and invoice_date != entry.date:
             found.append(Anomaly.DATE_MISMATCH.value)
+        # The challenge allows a one-cent rounding difference between invoice
+        # and order.  Keep this check in cents so the tolerance is exact.
         if total_cents is not None and entry.amount_cents is not None \
-                and total_cents != entry.amount_cents:
+                and abs(total_cents - entry.amount_cents) > 1:
             found.append(Anomaly.AMOUNT_MISMATCH.value)
         if entry.status.upper() == "PAGADA":
             found.append(Anomaly.ENTRY_ALREADY_PAID.value)
