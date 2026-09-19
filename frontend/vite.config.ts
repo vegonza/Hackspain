@@ -25,6 +25,7 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
+    allowedHosts: ['macbook-pro.taila153f0.ts.net'],
     proxy: {
       '/api': {
         target: apiUrl,
