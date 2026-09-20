@@ -16,13 +16,15 @@ class InvoiceDownloadTests(unittest.TestCase):
         self.app.include_router(router)
 
     def test_pdf_download_preserves_content_and_filename(self) -> None:
-        invoice = Invoice(id=uuid4(), name="Factura café.pdf", sha256="a" * 64, created_at=datetime.now(timezone.utc))
-        with patch("invoices.downloads.read_invoice", return_value=invoice), patch("invoices.downloads.download_file", return_value=b"%PDF-example"), TestClient(self.app) as client:
-            response = client.get(f"/api/invoices/{invoice.id}/download")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, b"%PDF-example")
-        self.assertEqual(response.headers["content-type"], "application/pdf")
-        self.assertIn("Factura%20caf%C3%A9.pdf", response.headers["content-disposition"])
+        for extension in (".pdf", ".docx", ".xlsx"):
+            with self.subTest(extension=extension):
+                invoice = Invoice(id=uuid4(), name=f"Factura café{extension}", sha256="a" * 64, created_at=datetime.now(timezone.utc))
+                with patch("invoices.downloads.read_invoice", return_value=invoice), patch("invoices.downloads.download_file", return_value=b"%PDF-example"), TestClient(self.app) as client:
+                    response = client.get(f"/api/invoices/{invoice.id}/download")
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.content, b"%PDF-example")
+                self.assertEqual(response.headers["content-type"], "application/pdf")
+                self.assertIn("Factura%20caf%C3%A9.pdf", response.headers["content-disposition"])
 
     def test_billing_fields_are_read_but_never_overwritten_by_worker_metadata(self) -> None:
         billing = {field: None for field in InvoiceBilling.model_fields}

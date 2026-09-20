@@ -16,6 +16,7 @@ const invoice: InvoiceDetail = {
   billing: null, finished_at: null, status: 'ready', pages: 1, total_cost_usd: '0.004', total_duration_ms: 2000,
   retry_attempts: 0, last_error: null, next_retry_at: null, native_text: 'Texto original de la factura',
   erp: null, erp_snapshot_id: null,
+  identifier_trace: { identifier_corrections: [] },
   payment_decision: { classification: 'ESCALAR', reasons: ['Revisar importe'], checks: {} },
   extraction: { invoice_number: 'FA-123', supplier_name: 'Proveedor extraído', supplier_nif: 'B12345678',
     iban: 'ES1234', invoice_date: '2026-09-19', purchase_order: 'PO-1', currency: 'EUR', line_items: [], notes: [],
@@ -23,7 +24,7 @@ const invoice: InvoiceDetail = {
 }
 
 const props: Props = {
-  mountDetail: () => {}, invoiceName: invoice.name, selectedId: invoice.id, selected: invoice,
+  mountDetail: () => {}, invoiceName: invoice.name, supplierName: 'Proveedor extraído', selectedId: invoice.id, selected: invoice,
   loading: false, extractionLoading: false, pdfUrl: 'invoice.pdf', pdfLoading: false,
   sourceTab: 'pdf', dataTab: 'extraction', emptyMessage: null,
   canRetry: false, onRetrySelected: () => {}, retrying: false, metricsLoading: false,
@@ -31,13 +32,22 @@ const props: Props = {
   erpRows: [{ label: 'Pedido ERP', value: 'ERP-123' }],
   featureAmounts: { taxBase: '100 €', vatRate: '21%', vatAmount: '21 €', total: '121 €', lineItems: [],
     canExpandLineItems: false, lineItemsExpanded: false, onToggleLineItems: () => {} },
-  extractionLabels: es.extraction,
+  extractionLabels: { ...es.extraction, inferred: es.extraction.identifierTrace },
+  identifierTrace: { supplier_nif: null, iban: null },
   labels: { ...es.invoices, decisionLabel: 'Escalar', count: '', erp: es.erp.title, erpData: es.erp.dataTitle,
     totalCost: es.usage.totalCost, waiting: es.processing.waiting, appName: es.app.name,
     invoiceUnavailable: es.invoices.unavailable, notFound: es.invoices.pageNotFound, usage: es.usage.title },
 }
 
 describe('split invoice details', () => {
+  test('marks only the inferred field without a separate trace block', () => {
+    const entry = { label: es.extraction.identifierCorrection, characters: [{ value: '6', changed: true }] }
+    const markup = renderToStaticMarkup(<InvoiceDetails {...props} identifierTrace={{ supplier_nif: entry, iban: null }} />)
+    expect(markup).toContain(`aria-label="${es.extraction.identifierTrace}: B12345678"`)
+    expect(markup.match(/lucide-circle-alert/g)).toHaveLength(1)
+    expect(markup).not.toContain(entry.label)
+    expect(markup).toContain('Revisar importe')
+  })
   test('puts the document and source toggles on the left and metrics on the right', () => {
     const markup = renderToStaticMarkup(<InvoiceDetails {...props} />)
     const split = markup.indexOf('invoice-result-pane')
@@ -59,7 +69,7 @@ describe('split invoice details', () => {
         const markup = renderToStaticMarkup(<InvoiceDetails {...props} sourceTab={sourceTab} dataTab={dataTab} />)
         expect(markup.includes('Texto original de la factura')).toBe(sourceTab === 'text')
         expect(markup.includes('class="source-body" hidden=""')).toBe(sourceTab === 'text')
-        expect(markup.includes('Proveedor extraído')).toBe(dataTab === 'extraction')
+        expect(markup).toContain('Proveedor extraído')
         expect(markup.includes('ERP-123')).toBe(dataTab === 'erp')
       }
     }

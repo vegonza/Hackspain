@@ -25,7 +25,19 @@ RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
     IF NEW.deleted_at IS NOT NULL OR public.normalize_order_key(NEW.purchase_order)
         IS DISTINCT FROM public.normalize_order_key(OLD.purchase_order) THEN
-        UPDATE public.orders SET claimed_by_document_id = NULL WHERE claimed_by_document_id = OLD.id;
+        PERFORM 1 FROM public.orders
+        WHERE public.normalize_order_key(order_id) = public.normalize_order_key(OLD.purchase_order)
+        FOR UPDATE;
+        -- A BEFORE trigger still sees OLD in documents; exclude the departing invoice.
+        UPDATE public.orders SET
+            claimed_by_document_id = CASE WHEN claimed_by_document_id = OLD.id THEN NULL
+                                         ELSE claimed_by_document_id END,
+            claim_conflicted = (
+                SELECT count(*) > 1 FROM public.documents
+                WHERE deleted_at IS NULL AND id <> OLD.id
+                  AND public.normalize_order_key(purchase_order) = public.normalize_order_key(OLD.purchase_order)
+            )
+        WHERE public.normalize_order_key(order_id) = public.normalize_order_key(OLD.purchase_order);
         NEW.payment_decision := NULL;
     END IF;
     RETURN NEW;
@@ -39,35 +51,34 @@ FOR EACH ROW EXECUTE FUNCTION public.release_document_order_claim();
 CREATE OR REPLACE FUNCTION public.claim_invoice_order(p_document_id UUID, p_order_key TEXT)
 RETURNS UUID LANGUAGE plpgsql SET search_path = public AS $$
 DECLARE
-    owner UUID;
     conflicted BOOLEAN;
     key TEXT := public.normalize_order_key(p_order_key);
 BEGIN
     -- Claims and publications lock the order before touching its invoices.
-    SELECT claimed_by_document_id, claim_conflicted INTO owner, conflicted FROM public.orders
+    PERFORM 1 FROM public.orders
     WHERE public.normalize_order_key(order_id) = key AND key <> '' FOR UPDATE;
+    IF NOT FOUND THEN RETURN NULL; END IF;
 
     PERFORM 1 FROM public.documents WHERE id = p_document_id AND deleted_at IS NULL
         AND public.normalize_order_key(purchase_order) = key FOR UPDATE;
     IF NOT FOUND THEN RAISE EXCEPTION 'Document extraction changed or document was deleted'; END IF;
-    IF conflicted IS NULL THEN RETURN NULL; END IF;
+    SELECT EXISTS (
+        SELECT 1 FROM public.documents
+        WHERE deleted_at IS NULL AND id <> p_document_id
+          AND public.normalize_order_key(purchase_order) = key
+    ) INTO conflicted;
 
-    IF owner IS NOT NULL AND owner <> p_document_id THEN
-        UPDATE public.orders SET claim_conflicted = TRUE WHERE public.normalize_order_key(order_id) = key;
-        conflicted := TRUE;
-    END IF;
+    UPDATE public.orders SET claim_conflicted = conflicted,
+        claimed_by_document_id = CASE WHEN conflicted THEN NULL ELSE p_document_id END
+    WHERE public.normalize_order_key(order_id) = key;
 
     IF conflicted THEN
         UPDATE public.documents SET payment_decision = public.order_conflict_decision(payment_decision)
-        WHERE id IN (owner, p_document_id) AND deleted_at IS NULL
+        WHERE deleted_at IS NULL
           AND public.normalize_order_key(purchase_order) = key AND payment_decision IS NOT NULL;
         RETURN NULL;
     END IF;
 
-    IF owner IS NULL THEN
-        UPDATE public.orders SET claimed_by_document_id = p_document_id
-        WHERE public.normalize_order_key(order_id) = key;
-    END IF;
     RETURN p_document_id;
 END;
 $$;

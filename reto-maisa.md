@@ -1,6 +1,6 @@
 Fuente: [web oficial del reto](https://hackathon.maisa.ai/#reto)
 
-Revisado contra la web el 19 de septiembre de 2026. Texto del reto conservado sin resumir; se omiten navegación y bloques promocionales.
+Revisado contra la web el 20 de septiembre de 2026. Texto del reto conservado sin resumir; se omiten navegación y bloques promocionales.
 
 [ MAISA HACKSPAIN · 2026 ]
 
@@ -63,6 +63,12 @@ ESCALA Y FALLOS
 ### Probad los límites
 
 Medid o estimad archivos por segundo, hardware y coste por archivo o lote. Ensayad un fallo del proveedor y explicad cómo añadiríais nuevos tipos de archivo.
+
+Nada ocurre sin dejar rastro.
+
+Conectad cada decisión con los datos, las reglas y la evidencia que la explican.
+
+Input / Evidencia / Decisión
 
 SÁBADO · 18:00
 
@@ -145,6 +151,12 @@ Hasta 10 puntos por resolver una necesidad concreta con una mejora original, imp
 Desempates: primero escalabilidad y coste; después resiliencia; después el bonus de mejora adicional; finalmente, decisión motivada del tribunal.
 
 ENTREGA PARA VALIDACIÓN Y DEFENSA
+
+Dos JSONL. Un plan.
+
+Los resultados de ambos lotes y albertitos_plan.pdf: vuestra arquitectura y las decisiones que la sostienen.
+
+Dos archivos de resultados + albertitos_plan.pdf
 
 ## Tres archivos. Un repositorio.
 

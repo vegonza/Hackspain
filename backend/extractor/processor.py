@@ -9,6 +9,8 @@ from extractor.text import extract_text
 from extractor.extraction import extract_invoice
 from extractor.pages import render_pages
 from extractor.extractor import MODEL
+from extractor.recovery import recover_identifiers
+from suppliers.repository import list_suppliers
 from shared.logger import get_logger
 from shared.storage import download_file, upload_file
 from shared.usage import track_usage
@@ -34,6 +36,11 @@ def process(document: InvoiceDetails) -> None:
         logger.info("[EXTRACTION] Extracting invoice fields from native text and %s page images for %s", len(pages), document.name)
         with track_usage("openrouter", MODEL, "extraction", str(document.id), document.name) as usage:
             extraction = extract_invoice(native.decode("utf-8"), pages, usage=usage)
+        extraction, corrections = recover_identifiers(extraction, list_suppliers())
+        for correction in corrections:
+            logger.info("[EXTRACTION] Recovered %s for %s using supplier %s and exact %s: %s -> %s",
+                        correction.field, document.name, correction.supplier_id, correction.matched_field,
+                        correction.original, correction.corrected)
         content = extraction.model_dump_json(indent=2).encode("utf-8")
         metadata = {
             "native_sha256": sha256(native).hexdigest(),
@@ -41,6 +48,7 @@ def process(document: InvoiceDetails) -> None:
             "page_sha256": [sha256(page).hexdigest() for page in pages],
             "features_sha256": sha256(content).hexdigest(),
             "model": MODEL,
+            "identifier_corrections": [correction.model_dump() for correction in corrections],
         }
         upload_file(f"{prefix}/extraction.json", json.dumps(metadata).encode("utf-8"), "application/json")
         upload_file(result_path, content, "application/json")

@@ -5,11 +5,13 @@ import { invoicePath, useAppRoute } from '@/hooks/useAppRoute'
 import { useInvoiceTable } from '@/hooks/useInvoiceTable'
 import { useInvoiceImports, type InvoiceUpload } from '@/hooks/useInvoiceImports'
 import { useInvoiceDetail } from '@/hooks/useInvoiceDetail'
+import { useIdentifierTrace } from '@/hooks/useIdentifierTrace'
 import { invoiceErrorKey } from '@/hooks/invoiceError'
 import { invoiceMetrics } from '@/hooks/invoiceMetrics'
 import { invoiceLineCategory } from '@/hooks/invoiceLineCategory'
 import { deleteInvoice, redoInvoice, retryInvoice, fetchInvoices, uploadInvoice, type Invoice } from '@/api/invoices'
 import { formatAmount, formatStatus } from '@/lib/format'
+import { isSupportedInvoiceFile } from '@/lib/invoiceFiles'
 
 const isProcessing = (document: Invoice) => document.status === 'queued' || document.status === 'processing'
 
@@ -110,8 +112,8 @@ export function useInvoices() {
     const files = Array.from(event.target.files || [])
     event.target.value = ''
     if (files.length === 0) return
-    const valid = files.filter(file => file.name.toLowerCase().endsWith('.pdf'))
-    if (valid.length !== files.length) toast.error(t('invoices.invalidPdf'))
+    const valid = files.filter(file => isSupportedInvoiceFile(file.name))
+    if (valid.length !== files.length) toast.error(t('invoices.unsupportedFileType'))
     if (valid.length === 0) return
     const pending = valid.map(file => ({ id: `upload-${crypto.randomUUID()}`, name: file.name, file, status: 'queued' as const }))
     setUploads(current => [...pending, ...current])
@@ -253,10 +255,11 @@ export function useInvoices() {
   const emptyMessage = sourceTab === 'text' && selected !== null && selected.native_text !== null && selected.native_text.trim() === ''
     ? t('processing.noText') : null
   const extractionLoading = loading || (selected !== null && selected.extraction === null && isProcessing(selected))
+  const identifierTrace = useIdentifierTrace(selected === null ? [] : selected.identifier_trace.identifier_corrections)
 
   return {
     redoing, onRedo,
-    metricsLoading, emptyMessage, erpRows, totalDuration, totalCost,
+    metricsLoading, emptyMessage, erpRows, totalDuration, totalCost, identifierTrace,
     table, imports, onRetryImport, invoicesLoading, onInvoiceLink, onNavigate: followLink,
     selected, selectedId, mountDetail, featureAmounts,
     loading, extractionLoading, pdfUrl, pdfLoading, deleting, sourceTab, onSourceTab, dataTab, onDataTab, watchInvoices,
@@ -264,10 +267,12 @@ export function useInvoices() {
     canRetry: (selected !== null && selected.status === 'error') || (selectedRow !== undefined && selectedRow.status === 'error'),
     onRetrySelected: () => { if (selectedId !== null) void onRetry(selectedId) },
     invoiceName: selected !== null ? selected.name : selectedRow === undefined ? null : selectedRow.name,
+    supplierName: selected !== null && selected.extraction !== null ? selected.extraction.supplier_name : null,
     view,
     onUpload, onDelete, onSelect: (id: string) => navigate(invoicePath(id)),
     labels: {
-      decision: t('invoices.decision'), justification: t('invoices.justification'),
+      decision: t('invoices.decision'),
+      processingSummary: t('invoices.processingSummary'),
       decisionLabel: selected === null || selected.payment_decision === null ? t('invoices.decisionPending') : t(`invoices.decisions.${selected.payment_decision.classification}`),
       count: t('invoices.count', { count: invoices.length }),
       erp: t('erp.title'), erpData: t('erp.dataTitle'), totalTime: t('invoices.totalTime'),
@@ -287,9 +292,10 @@ export function useInvoices() {
       actions: t('invoices.actions'),
     },
     extractionLabels: {
+      inferred: t('extraction.identifierTrace'),
       notes: t('extraction.notes'), uncertainties: t('extraction.uncertainties'),
       invoiceNumber: t('extraction.invoiceNumber'), invoiceDate: t('extraction.invoiceDate'),
-      purchaseOrder: t('extraction.purchaseOrder'), supplierName: t('extraction.supplierName'),
+      purchaseOrder: t('extraction.purchaseOrder'),
       supplierNif: t('extraction.supplierNif'), iban: t('extraction.iban'),
       lineItems: t('extraction.lineItems'), taxBase: t('extraction.taxBase'),
       showMore: t('extraction.showMore'), showLess: t('extraction.showLess'),

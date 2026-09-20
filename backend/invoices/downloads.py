@@ -1,3 +1,4 @@
+from pathlib import Path
 from urllib.parse import quote
 from uuid import UUID
 
@@ -13,6 +14,5 @@ def download_pdf(invoice_id: UUID) -> Response:
     content = download_file(f"{invoice_id}/original.pdf")
     get_logger().info("[INVOICES] Downloaded %s", invoice.name)
     return Response(content, media_type="application/pdf", headers={
-        "Content-Disposition": f"attachment; filename*=UTF-8''{quote(invoice.name, safe='')}",
+        "Content-Disposition": f"attachment; filename*=UTF-8''{quote(Path(invoice.name).with_suffix('.pdf').name, safe='')}",
     })
-

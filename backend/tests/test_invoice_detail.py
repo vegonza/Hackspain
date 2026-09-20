@@ -1,4 +1,5 @@
 import unittest
+import json
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
@@ -63,6 +64,10 @@ class InvoiceDetailTests(unittest.TestCase):
             tax_base="10", vat_rate="21", vat_amount="2.10", total="12.10", notes=[], uncertainties=[],
         )
         artifacts = {f"{identifier}/native.txt": b"Invoice",
+                     f"{identifier}/extraction/extraction.json": json.dumps({"identifier_corrections": [{
+                         "field": "iban", "original": "Acc0unt", "corrected": "Account", "supplier_id": "P-REAL",
+                         "matched_field": "supplier_nif", "matched_value": "N1",
+                     }]}).encode(),
                      "extraction/features.json": extraction.model_dump_json().encode("utf-8")}
         app = FastAPI()
         app.include_router(router)
@@ -85,6 +90,7 @@ class InvoiceDetailTests(unittest.TestCase):
         self.assertEqual(response.json()["native_text"], "Invoice")
         self.assertEqual(response.json()["total_cost_usd"], "0.002")
         self.assertEqual(response.json()["extraction"], extraction.model_dump())
+        self.assertEqual(response.json()["identifier_trace"]["identifier_corrections"][0]["original"], "Acc0unt")
         extract.assert_not_called()
 
     def test_single_rpc_with_redis_retry_overlay(self) -> None:
@@ -150,7 +156,7 @@ class InvoiceDetailTests(unittest.TestCase):
         from tests.test_features import extracted_items
 
         extraction = extracted_items([])
-        for currency, rate in (("USD", "0.92"), ("EUR", "1"), ("MXN", None), ("", None)):
+        for currency, rate in (("USD", "0.92"), ("EUR", "1"), ("MXN", "0.05"), ("CAD", None), ("", None)):
             with self.subTest(currency=currency), patch("invoices.repository.get_client") as client:
                 extraction.currency = currency
                 save_invoice_extraction(uuid4(), "invoice.pdf", extraction)

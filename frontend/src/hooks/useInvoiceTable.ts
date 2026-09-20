@@ -105,7 +105,7 @@ export function useInvoiceTable(invoices: BillingInvoice[], loading: boolean) {
       const url = URL.createObjectURL(file)
       const link = document.createElement('a')
       link.href = url
-      link.download = invoice.name
+      link.download = invoice.name.replace(/\.[^.]+$/, '.pdf')
       link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
     } catch {

@@ -15,7 +15,7 @@ export function InvoiceErp({ title, loading, rows }: Props) {
         <dl className="extraction-grid">
           {rows.map(row => <div key={row.label}>
             <dt>{row.label}</dt>
-            <dd>{loading ? <Skeleton className="ml-auto h-3 w-20" /> : <Tooltip text={row.value} onlyWhenTruncated asChild><span className="block truncate">{row.value}</span></Tooltip>}</dd>
+            <dd>{loading ? <Skeleton className="h-5 w-20" /> : <Tooltip text={row.value} onlyWhenTruncated asChild><span className="block truncate">{row.value}</span></Tooltip>}</dd>
           </div>)}
         </dl>
       </div>

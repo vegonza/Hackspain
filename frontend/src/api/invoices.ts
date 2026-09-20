@@ -59,6 +59,18 @@ export interface InvoiceDetail extends Invoice {
   extraction: InvoiceExtraction | null
   erp: InvoiceErpEntry | null
   erp_snapshot_id: string | null
+  identifier_trace: {
+    identifier_corrections: IdentifierCorrection[]
+  }
+}
+
+export interface IdentifierCorrection {
+  field: 'supplier_nif' | 'iban'
+  original: string
+  corrected: string
+  supplier_id: string
+  matched_field: 'supplier_nif' | 'iban'
+  matched_value: string
 }
 
 export interface InvoiceLine {

@@ -43,11 +43,11 @@ describe('invoice billing table rendering', () => {
       { ...invoices[2], billing: { ...invoices[2].billing!, invoice_date: `${previousMonth}-12` } },
       { ...invoices[3], billing: null }]
     const actions = ['next', 'previous', 'next', 'next', futureMonth, 'all', futureMonth, 'undated', 'next', currentMonth]
-    const periods: string[] = []
+    const periods = [currentMonth, currentMonth, previousMonth, currentMonth, currentMonth, currentMonth, 'all', 'all', 'undated', 'undated', currentMonth]
     function NavigationHarness() {
       const [step, setStep] = useState(0)
       const table = useInvoiceTable(monthInvoices, false)
-      periods[step] = table.period
+      expect(table.period).toBe(periods[step])
       expect(table.monthOptions.some(option => option.value === futureMonth)).toBe(false)
       expect(table.monthOptions.some(option => option.value === currentMonth)).toBe(true)
       expect(table.monthOptions.find(option => option.value === currentMonth)!.count).toBe(2)
@@ -65,7 +65,6 @@ describe('invoice billing table rendering', () => {
       return null
     }
     renderToStaticMarkup(<I18nextProvider i18n={i18n}><NavigationHarness /></I18nextProvider>)
-    expect(periods).toEqual([currentMonth, currentMonth, previousMonth, currentMonth, currentMonth, currentMonth, 'all', 'all', 'undated', 'undated', currentMonth])
     expect(render([])).toMatch(/aria-label="Mes siguiente"[^>]*disabled=""/)
   })
   test.each([
@@ -89,6 +88,7 @@ describe('invoice billing table rendering', () => {
     expect(markup.indexOf('placeholder="Buscar proveedor, factura, pedido…"')).toBeLessThan(markup.indexOf('upload-button'))
     expect(markup.indexOf('upload-button')).toBeLessThan(markup.indexOf('class="billing-month"'))
     expect(markup).not.toContain('Descargar facturas')
+    expect(markup).toContain('accept=".pdf,.doc,.docx,.odt,.rtf,.ppt,.pptx,.odp,.xls,.xlsx,.ods"')
     expect(markup).not.toContain('class="table-toolbar"')
     expect(markup).not.toContain('billing-filters')
     expect(markup).not.toContain('Todos los proveedores')

@@ -1,3 +1,4 @@
+import { invoiceFileAccept } from '@/lib/invoiceFiles'
 import { ChevronLeft, ChevronRight, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SearchInput } from '@/components/ui/search-input'
@@ -16,7 +17,7 @@ export function InvoiceBillingHeader({ table, loading, onUpload }: Props) {
         placeholder={table.labels.search} collapsible={false} />
       <Button asChild size="sm" className="table-add-button"><label className="upload-button">
         <Upload size={15} />{table.labels.upload}
-        <input type="file" accept="application/pdf,.pdf" multiple onChange={onUpload} aria-label={table.labels.upload} />
+        <input type="file" accept={invoiceFileAccept} multiple onChange={onUpload} aria-label={table.labels.upload} />
       </label></Button>
     </div>
     <dl className="billing-summary" aria-live="polite">

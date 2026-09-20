@@ -68,8 +68,8 @@ export function useInvoiceDetail(invoiceId: string | null) {
   return {
     sourceTab: requestedId === invoiceId ? sourceTab : 'pdf' as InvoiceSourceTab,
     dataTab: requestedId === invoiceId ? dataTab : 'extraction' as InvoiceDataTab,
-    onSourceTab: (value: string): void => { if (value !== '') setSourceTab(value as InvoiceSourceTab) },
-    onDataTab: (value: string): void => { if (value !== '') setDataTab(value as InvoiceDataTab) },
+    onSourceTab: (value: InvoiceSourceTab): void => setSourceTab(value),
+    onDataTab: (value: InvoiceDataTab): void => setDataTab(value),
     selected: detail !== null && detail.id === invoiceId ? detail : null,
     loading: invoiceId !== null && (requestedId !== invoiceId || loading),
     pdfLoading: invoiceId !== null && (requestedId !== invoiceId || pdfLoading),

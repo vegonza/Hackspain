@@ -12,6 +12,7 @@ from extractor.processor import process
 from shared.usage import UsageRecord
 from tests.test_features import extracted_items
 from tests.test_extraction_lifecycle import queued_invoice
+from suppliers.models import Supplier
 
 
 class ExtractionTests(unittest.TestCase):
@@ -25,6 +26,7 @@ class ExtractionTests(unittest.TestCase):
         self.result.uncertainties = ["Firma ilegible"]
         self.result.notes = ["Pago a 30 días"]
         self.events = MagicMock()
+        self.suppliers = self.enterContext(patch("extractor.processor.list_suppliers", return_value=[]))
         self.enterContext(patch.dict("os.environ", {"OPENROUTER_API_KEY": "test-key"}))
         self.download = self.enterContext(patch("extractor.processor.download_file", return_value=self.pdf))
         self.write_invoice = self.enterContext(patch("extractor.processor.write_invoice"))
@@ -120,6 +122,54 @@ class ExtractionTests(unittest.TestCase):
         self.events.fail.assert_called_once_with(self.document.id, self.document.name, 1500)
         usage = UsageRecord.model_validate_json(self.redis.hset.call_args.args[2])
         self.assertEqual(usage.usage[0].cost, Decimal("0.002"))
+
+    def test_identifier_recovery_is_saved_with_its_original_evidence(self) -> None:
+        self.result.supplier_nif = 'B96120774'
+        self.result.iban = 'ES4414650100951704302211'
+        self.suppliers.return_value = [Supplier(
+            supplier_id='P1', legal_name='Proveedor', tax_id='B98120774', iban=self.result.iban,
+            city='Málaga', payment_terms_days=30,
+        )]
+        self.prepare_response()
+        process(self.document)
+        prefix = f'{self.document.id}/extraction'
+        artifacts = {call.args[0]: call.args[1] for call in self.events.upload.call_args_list}
+        recovered = InvoiceExtraction.model_validate_json(artifacts[f'{prefix}/features.json'])
+        self.assertEqual(recovered.supplier_nif, 'B98120774')
+        self.events.save_extraction.assert_called_once_with(self.document.id, self.document.name, recovered)
+        metadata = json.loads(artifacts[f'{prefix}/extraction.json'])
+        self.assertEqual(metadata['identifier_corrections'], [{
+            'field': 'supplier_nif', 'original': 'B96120774', 'corrected': 'B98120774',
+            'supplier_id': 'P1', 'matched_field': 'iban', 'matched_value': self.result.iban,
+        }])
+        self.assertEqual(metadata['features_sha256'], sha256(artifacts[f'{prefix}/features.json']).hexdigest())
+
+    def test_supplier_lookup_failure_does_not_publish_extraction(self) -> None:
+        self.prepare_response()
+        self.suppliers.side_effect = ConnectionError('Suppliers unavailable')
+        with self.assertRaises(ConnectionError):
+            process(self.document)
+        self.events.save_extraction.assert_not_called()
+        self.events.finish.assert_not_called()
+        self.events.fail.assert_called_once()
+
+    def test_two_character_difference_is_inferred_without_another_model_call(self) -> None:
+        self.result.supplier_nif = 'B96120771'
+        self.result.iban = 'ES4414650100951704302211'
+        self.suppliers.return_value = [Supplier(
+            supplier_id='P1', legal_name='Proveedor', tax_id='B98120774', iban=self.result.iban,
+            city='Málaga', payment_terms_days=30,
+        )]
+        self.prepare_response()
+        process(self.document)
+        self.request.assert_called_once()
+        self.assertEqual(self.events.save_extraction.call_args.args[2].supplier_nif, 'B98120774')
+        artifacts = {call.args[0]: call.args[1] for call in self.events.upload.call_args_list}
+        metadata = json.loads(artifacts[f'{self.document.id}/extraction/extraction.json'])
+        self.assertEqual(metadata['identifier_corrections'][0]['original'], 'B96120771')
+        self.assertEqual(metadata['identifier_corrections'][0]['corrected'], 'B98120774')
+        self.assertNotIn('identifier_reread', metadata)
+        self.redis.hset.assert_called_once()
 
     def test_render_failure_does_not_call_the_model_or_publish_extraction(self) -> None:
         self.render.side_effect = ValueError("PDF rendering returned no pages")

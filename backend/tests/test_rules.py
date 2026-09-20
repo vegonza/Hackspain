@@ -119,6 +119,7 @@ class RulesTests(unittest.TestCase):
             ('EUR', '1500.40', '1500.40'), ('USD', '2450', '2254'),
             ('GBP', '2900', '3393'), ('CHF', '4200', '4410'),
             ('JPY', '850000', '5244.50'), ('BRL', '15500', '2500'),
+            ('MXN', '45800', '2290'),
         ):
             with self.subTest(currency=currency):
                 invoice = self.context.invoice
@@ -137,7 +138,7 @@ class RulesTests(unittest.TestCase):
                 self.assertEqual(self.classification(), 'ESCALAR')
 
     def test_unsupported_or_missing_currency_escalates_even_when_raw_amounts_match(self) -> None:
-        for currency in ('MXN', ''):
+        for currency in ('CAD', ''):
             with self.subTest(currency=currency):
                 self.context.invoice.currency = currency
                 self.context.entries[0].status = 'PENDIENTE'

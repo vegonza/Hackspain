@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from hashlib import sha256
+from pathlib import Path
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, UploadFile
@@ -9,12 +10,14 @@ from fastapi.responses import Response
 from invoices.downloads import download_pdf
 
 from invoices.queue import enqueue, RETRIES, SCHEDULED, QUEUE, PROCESSING
+from invoices.conversion import SUPPORTED_EXTENSIONS, to_pdf
 from shared.redis import get_redis
 from invoices.repository import InvoiceDetails, read_invoice_detail, Invoice, archive_invoice, read_invoice, write_invoice, create_invoice, find_invoice_by_hash
 from invoices.repository import list_invoices as read_invoices
 from invoices.repository import reset_invoice
 from erp import ErpEntry
 from extractor.extraction import InvoiceExtraction
+from extractor.recovery import IdentifierTrace
 from shared.logger import get_logger
 from shared.storage import download_file, invalidate_invoice_urls, signed_url, upload_file, delete_file
 
@@ -27,11 +30,13 @@ class InvoiceDetail(Invoice):
     extraction: InvoiceExtraction | None
     erp_snapshot_id: UUID | None
     erp: ErpEntry | None
+    identifier_trace: IdentifierTrace
 
 
 def invoice_detail(invoice_record: InvoiceDetails) -> InvoiceDetail:
     extraction = None
     native_text = None
+    identifier_trace = IdentifierTrace()
     if invoice_record.result_path is not None:
         payload = download_file(invoice_record.result_path)
         try:
@@ -40,7 +45,9 @@ def invoice_detail(invoice_record: InvoiceDetails) -> InvoiceDetail:
             logger.warning("[INVOICES] Invalid saved extraction for %s (%s); reprocessing required", invoice_record.name, invoice_record.id)
             raise HTTPException(status_code=409, detail="invalid_saved_extraction") from None
         native_text = download_file(f"{invoice_record.id}/native.txt").decode("utf-8")
-    return InvoiceDetail(**invoice_record.model_dump(exclude={"result_path"}), native_text=native_text, extraction=extraction)
+        identifier_trace = IdentifierTrace.model_validate_json(download_file(f"{invoice_record.id}/extraction/extraction.json"))
+    return InvoiceDetail(**invoice_record.model_dump(exclude={"result_path"}), native_text=native_text,
+                         extraction=extraction, identifier_trace=identifier_trace)
 
 
 @router.get("")
@@ -51,14 +58,15 @@ def list_invoices() -> list[Invoice]:
 @router.post("", status_code=202)
 def upload_invoice(file: UploadFile) -> Invoice:
     name = file.filename
-    pdf_bytes = file.file.read()
-    if not name or not name.lower().endswith(".pdf") or not pdf_bytes.startswith(b"%PDF-"):
-        raise HTTPException(status_code=400, detail="invalid_pdf")
+    if not name or Path(name).suffix.lower() not in SUPPORTED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="unsupported_file_type")
+    source_bytes = file.file.read()
 
-    digest = sha256(pdf_bytes).hexdigest()
+    digest = sha256(source_bytes).hexdigest()
     if find_invoice_by_hash(digest):
-        logger.info("[INVOICES] Rejected duplicate PDF %s", name)
+        logger.info("[INVOICES] Rejected duplicate file %s", name)
         raise HTTPException(status_code=409, detail="duplicate_pdf")
+    pdf_bytes = to_pdf(source_bytes, name)
     invoice_record = Invoice(id=uuid4(), name=name, sha256=digest, created_at=datetime.now(timezone.utc))
     upload_file(f"{invoice_record.id}/original.pdf", pdf_bytes, "application/pdf")
     try:
@@ -96,6 +104,7 @@ def delete_invoice(invoice_id: UUID) -> dict[str, bool]:
     invoice_record = read_invoice(invoice_id)
     if invoice_record.status in ("queued", "processing"):
         raise HTTPException(status_code=409, detail="invoice_processing")
+    delete_file(f"{invoice_id}/original.pdf")
     invalidate_invoice_urls(str(invoice_id))
     archive_invoice(invoice_id)
     with get_redis() as redis:
