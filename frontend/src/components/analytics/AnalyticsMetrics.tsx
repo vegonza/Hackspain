@@ -10,14 +10,14 @@ export function AnalyticsMetrics({ averageDurationLabel, cadenceLabel, loading, 
       <Timer className="analytics-metric-icon" size={20} aria-hidden="true" />
       <div className="analytics-metric-copy">
         <span>{labels.averageDuration}</span>
-        {loading ? <Skeleton className="h-7 w-24" /> : <strong>{averageDurationLabel}</strong>}
+        {loading ? <Skeleton className="h-[22px] w-24" /> : <strong>{averageDurationLabel}</strong>}
       </div>
     </article>
     <article className="analytics-metric">
       <Gauge className="analytics-metric-icon" size={20} aria-hidden="true" />
       <div className="analytics-metric-copy">
         <span>{labels.estimatedCadence}</span>
-        {loading ? <Skeleton className="h-7 w-24" /> : <strong>{cadenceLabel}</strong>}
+        {loading ? <Skeleton className="h-[22px] w-24" /> : <strong>{cadenceLabel}</strong>}
       </div>
     </article>
   </section>

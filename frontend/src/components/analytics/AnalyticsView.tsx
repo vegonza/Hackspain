@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button'
 import { SpendingDistributionChart } from '@/components/analytics/SpendingDistributionChart'
 import { VatDeductionChart } from '@/components/analytics/VatDeductionChart'
 import { UsageDistributionChart } from '@/components/analytics/UsageDistributionChart'
-import { AnalyticsMetrics } from '@/components/analytics/AnalyticsMetrics'
 import type { useAnalytics } from '@/hooks/useAnalytics'
 
 export function AnalyticsView({ mount, failed, onRetry, labels, ...chart }: ReturnType<typeof useAnalytics>) {
@@ -14,7 +13,9 @@ export function AnalyticsView({ mount, failed, onRetry, labels, ...chart }: Retu
           <SpendingDistributionChart {...chart} labels={labels} />
           <VatDeductionChart {...chart} labels={labels} />
           <UsageDistributionChart {...chart} labels={labels} />
-          <AnalyticsMetrics {...chart} labels={labels} />
+          <SpendingDistributionChart loading={chart.loading} items={chart.supplierItems} totalLabel={chart.supplierTotalLabel}
+            activeIndex={chart.supplierActiveIndex} onActiveIndexChange={chart.onSupplierActiveIndexChange}
+            labels={{ ...labels, distribution: labels.supplierDistribution, empty: labels.supplierEmpty }} />
         </>}
     </div>
   </section>

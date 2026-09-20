@@ -4,6 +4,7 @@ import { fetchAnalytics, type AnalyticsOverview, type UsageOperation } from '@/a
 import type { InvoiceCategory } from '@/api/invoices'
 import { formatAmount } from '@/lib/format'
 import { invoiceCategoryIcon } from '@/lib/invoiceCategory'
+import { supplierLogo } from '@/lib/supplierLogos'
 
 const categoryColors = {
   officeSupplies: '#2f6b5f',
@@ -52,6 +53,7 @@ export function useAnalytics() {
   const [activeIndex, setActiveIndex] = useState<number>()
   const [vatActiveIndex, setVatActiveIndex] = useState<number>()
   const [usageActiveIndex, setUsageActiveIndex] = useState<number>()
+  const [supplierActiveIndex, setSupplierActiveIndex] = useState<number>()
   const mounted = useRef(false)
   const requestVersion = useRef(0)
   const load = useCallback(async (): Promise<void> => {
@@ -80,6 +82,7 @@ export function useAnalytics() {
       const ratio = amount / spendingTotal
       return {
         ...item,
+        id: item.category,
         amount,
         amountLabel: formatAmount(amount, 'EUR'),
         icon: invoiceCategoryIcon(item.category),
@@ -88,6 +91,18 @@ export function useAnalytics() {
         color: categoryColors[item.category],
       }
     })
+  const supplierTotal = data === null ? 0 : Number(data.supplier_spending.total_eur)
+  const supplierItems = (data === null ? [] : data.supplier_spending.suppliers).map((item, index) => {
+    const amount = Number(item.amount_eur)
+    const logo = supplierLogo(item.supplier_name)
+    return {
+      id: item.supplier_key, amount, amountLabel: formatAmount(amount, 'EUR'),
+      label: item.supplier_name === null ? t('analytics.unknownSupplier') : item.supplier_name,
+      icon: logo === undefined ? null : logo,
+      percentageLabel: percentage.format(amount / supplierTotal),
+      color: `hsl(${(155 + index * 137.508) % 360} 42% 45%)`,
+    }
+  })
   const vatItems = data === null ? [] : [
     { id: 'deductible', amount: Number(data.vat.deductible_eur), color: categoryColors.officeSupplies, label: t('analytics.deductibleSpain') },
     { id: 'foreign', amount: Number(data.vat.foreign_eur), color: categoryColors.inspection, label: t('analytics.foreignVat') },
@@ -133,6 +148,8 @@ export function useAnalytics() {
     onRetry: () => void load(),
     totalLabel: formatAmount(spendingTotal, 'EUR'),
     items,
+    supplierItems, supplierTotalLabel: formatAmount(supplierTotal, 'EUR'),
+    supplierActiveIndex, onSupplierActiveIndexChange: setSupplierActiveIndex,
     vatActiveIndex,
     onVatActiveIndexChange: setVatActiveIndex,
     vatItems,
@@ -148,6 +165,8 @@ export function useAnalytics() {
     labels: {
       title: t('analytics.title'),
       distribution: t('analytics.spendingDistribution'),
+      supplierDistribution: t('analytics.supplierDistribution'),
+      supplierEmpty: t('analytics.supplierEmpty'),
       total: t('analytics.total'),
       vat: t('analytics.vatDeduction'),
       usage: t('analytics.usageDistribution'),

@@ -22,6 +22,17 @@ class VatDeduction(BaseModel):
     foreign_eur: Decimal
 
 
+class SupplierSpending(BaseModel):
+    supplier_key: str
+    supplier_name: str | None
+    amount_eur: Decimal
+
+
+class SupplierSpendingDistribution(BaseModel):
+    total_eur: Decimal
+    suppliers: list[SupplierSpending]
+
+
 class OperationAverageCost(BaseModel):
     operation: Literal["extraction", "classification", "categorization"]
     average_document_cost_usd: Decimal
@@ -40,6 +51,7 @@ class ProcessingMetrics(BaseModel):
 
 class AnalyticsOverview(BaseModel):
     spending: SpendingDistribution
+    supplier_spending: SupplierSpendingDistribution
     vat: VatDeduction
     usage: UsageDistribution
     processing: ProcessingMetrics

@@ -26,6 +26,10 @@ export interface UsageDistribution {
 
 export interface AnalyticsOverview {
   spending: SpendingDistribution
+  supplier_spending: {
+    total_eur: string
+    suppliers: { supplier_key: string; supplier_name: string | null; amount_eur: string }[]
+  }
   vat: VatDeduction
   usage: UsageDistribution
   processing: {

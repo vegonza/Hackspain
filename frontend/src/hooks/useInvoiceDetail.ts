@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { fetchInvoice, fetchPdfUrl, type Invoice, type InvoiceDetail } from '@/api/invoices'
+import { fetchInvoice, fetchPdfUrl, type Invoice, type InvoiceDetail, type PaymentDecision } from '@/api/invoices'
 
 export type InvoiceSourceTab = 'pdf' | 'text'
 export type InvoiceDataTab = 'extraction' | 'erp'
@@ -40,6 +40,12 @@ export function useInvoiceDetail(invoiceId: string | null) {
     })
   }, [])
 
+  const updateDecision = useCallback((id: string, decision: PaymentDecision): void => {
+    if (mountedId.current !== id) return
+    ++detailVersion.current
+    setDetail(current => current === null || current.id !== id ? current : { ...current, payment_decision: decision })
+  }, [])
+
   const mountDetail = useCallback((node: HTMLDivElement | null) => {
     if (node === null || invoiceId === null) return
     const request = ++requestVersion.current
@@ -74,6 +80,6 @@ export function useInvoiceDetail(invoiceId: string | null) {
     loading: invoiceId !== null && (requestedId !== invoiceId || loading),
     pdfLoading: invoiceId !== null && (requestedId !== invoiceId || pdfLoading),
     pdfUrl: requestedId === invoiceId ? pdfUrl : null,
-    mountDetail, refreshDetail, updateMetrics,
+    mountDetail, refreshDetail, updateMetrics, updateDecision,
   }
 }

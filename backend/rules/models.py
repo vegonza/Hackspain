@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
@@ -30,10 +30,16 @@ class RuleResult(BaseModel):
     reason: str
 
 
+class ManualResolution(BaseModel):
+    resolved_at: datetime
+    previous_reasons: list[str]
+
+
 class Decision(BaseModel):
     model_config = ConfigDict(validate_by_name=True)
 
     classification: Literal['PAGAR', 'NO_PAGAR', 'ESCALAR']
     reasons: list[str]
     checks: dict[str, bool]
+    resolution: ManualResolution | None = None
     claimed_by_invoice_id: UUID | None = Field(default=None, alias="claimed_by_document_id")

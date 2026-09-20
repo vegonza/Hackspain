@@ -1,10 +1,13 @@
 import { ChartPie } from 'lucide-react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Sector, Tooltip } from 'recharts'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip as LabelTooltip } from '@/components/ui/tooltip'
 import { SpendingDistributionTooltip } from '@/components/analytics/SpendingDistributionTooltip'
 import type { useAnalytics } from '@/hooks/useAnalytics'
 
-type Props = Pick<ReturnType<typeof useAnalytics>, 'items' | 'totalLabel' | 'activeIndex' | 'onActiveIndexChange' | 'loading' | 'labels'>
+type Props = Pick<ReturnType<typeof useAnalytics>, 'totalLabel' | 'activeIndex' | 'onActiveIndexChange' | 'loading' | 'labels'> & {
+  items: { id: string; amount: number; amountLabel: string; icon: string | null; percentageLabel: string; label: string; color: string }[]
+}
 
 export function SpendingDistributionChart({ items, totalLabel, activeIndex, onActiveIndexChange, loading, labels }: Props) {
   return <article className="analytics-card">
@@ -24,20 +27,20 @@ export function SpendingDistributionChart({ items, totalLabel, activeIndex, onAc
               stroke="white" strokeWidth={2} onMouseEnter={(_, index) => onActiveIndexChange(index)}
               onMouseLeave={() => onActiveIndexChange(undefined)} isAnimationActive={false}
               shape={props => <Sector {...props} fillOpacity={activeIndex !== undefined && props.index !== activeIndex ? 0.28 : 1} />}>
-              {items.map(item => <Cell key={item.category} fill={item.color} />)}
+              {items.map(item => <Cell key={item.id} fill={item.color} />)}
             </Pie>
           </PieChart>
         </ResponsiveContainer>
         <div className="analytics-pie-total analytics-spending-total"><span>{labels.total}</span><strong>{totalLabel}</strong></div>
       </div>
       <div className="analytics-legend">
-        {items.map((item, index) => <button key={item.category} type="button"
+        {items.map((item, index) => <button key={item.id} type="button"
           style={{ opacity: activeIndex !== undefined && activeIndex !== index ? 0.38 : 1 }}
           onPointerEnter={() => onActiveIndexChange(index)} onPointerLeave={() => onActiveIndexChange(undefined)}
           onFocus={() => onActiveIndexChange(index)} onBlur={() => onActiveIndexChange(undefined)}>
           <span className="analytics-legend-color" style={{ backgroundColor: item.color }} aria-hidden="true" />
-          {item.icon !== null && <img className="analytics-legend-icon" src={item.icon} alt="" aria-hidden="true" />}
-          <span className="analytics-legend-label">{item.label}</span>
+          <span className="analytics-legend-icon">{item.icon !== null && <img src={item.icon} alt="" aria-hidden="true" />}</span>
+          <LabelTooltip text={item.label} onlyWhenTruncated asChild><span className="analytics-legend-label">{item.label}</span></LabelTooltip>
           <strong>{item.amountLabel}</strong>
           <span>{item.percentageLabel}</span>
         </button>)}

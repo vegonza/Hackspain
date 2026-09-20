@@ -91,6 +91,9 @@ export async function fetchStatus(url: string, options: RequestInit = {}): Promi
 }
 
 const billingErrors: Record<string, ParseKeys> = {
+  invoice_not_reviewable: 'invoices.resolutionConflict',
+  invoice_duplicate_payment: 'invoices.resolutionDuplicate',
+  invoice_identity_required: 'invoices.resolutionIdentity',
   gestoria_not_configured: 'gestoria.errors.notConfigured',
   gestoria_busy: 'gestoria.errors.busy',
   gestoria_file_too_large: 'gestoria.errors.fileTooLarge',

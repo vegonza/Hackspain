@@ -15,11 +15,11 @@ type Props = Pick<ReturnType<typeof useInvoices>,
   'mountDetail' | 'invoiceName' | 'supplierName' | 'supplierLogo' | 'selectedId' | 'selected' | 'loading' | 'extractionLoading' |
   'pdfUrl' | 'pdfLoading' | 'dataTab' | 'onDataTab' | 'sourceTab' | 'emptyMessage' | 'labels' | 'extractionLabels' |
   'canRetry' | 'onRetrySelected' | 'retrying' | 'metricsLoading' | 'totalDuration' | 'totalCost' |
-  'onNavigate' | 'onSourceTab' | 'erpRows' | 'featureAmounts' | 'identifierTrace'>
+  'onNavigate' | 'onSourceTab' | 'erpRows' | 'featureAmounts' | 'identifierTrace' | 'resolving' | 'onResolve'>
 
 export function InvoiceDetails({ mountDetail, invoiceName, supplierName, supplierLogo, selectedId, selected, loading, extractionLoading,
   pdfUrl, pdfLoading, sourceTab, dataTab, onDataTab, emptyMessage, labels, extractionLabels, canRetry, onRetrySelected,
-  retrying, metricsLoading, onNavigate, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts, identifierTrace }: Props) {
+  retrying, metricsLoading, onNavigate, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts, identifierTrace, resolving, onResolve }: Props) {
   return (
     <div className="review-desk" ref={mountDetail}>
       <section className="viewer-panel invoice-source-pane" aria-label={labels.invoice}>
@@ -63,7 +63,8 @@ export function InvoiceDetails({ mountDetail, invoiceName, supplierName, supplie
           <dl className="invoice-decision-summary" aria-busy={loading}>
             <dt>{labels.decision}</dt>
             <dd>{loading ? <Skeleton className="h-5 w-20" />
-              : <InvoiceDecisionBadge classification={selected === null || selected.payment_decision === null ? null : selected.payment_decision.classification} label={labels.decisionLabel} />}</dd>
+              : <InvoiceDecisionBadge classification={selected === null || selected.payment_decision === null ? null : selected.payment_decision.classification} label={labels.decisionLabel}
+                resolution={selected !== null && selected.status === 'ready' ? { busy: resolving, payLabel: labels.resolvePay, noPayLabel: labels.resolveNoPay, onResolve } : undefined} />}</dd>
             <dd className="invoice-decision-reasons">
               {loading ? <Skeleton className="h-4 w-full" />
                 : selected !== null && selected.payment_decision !== null && selected.payment_decision.reasons.length > 0 && <ul>{selected.payment_decision.reasons.map((reason, index) => <li key={index}>{reason}</li>)}</ul>}

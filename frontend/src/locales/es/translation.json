@@ -20,6 +20,11 @@
     "amount": "Importe"
   },
   "invoices": {
+    "resolvePay": "Pagar",
+    "resolveNoPay": "No pagar",
+    "resolutionConflict": "La factura ya no está pendiente de revisión. Se ha actualizado su estado.",
+    "resolutionDuplicate": "Ya existe otra factura aprobada para pago con el mismo proveedor y número.",
+    "resolutionIdentity": "No se puede aprobar el pago sin el NIF del proveedor y el número de factura.",
     "decision": "Decisión",
     "decisionPending": "Sin decisión",
     "decisions": {
@@ -111,7 +116,10 @@
   },
   "analytics": {
     "title": "Análisis",
-    "spendingDistribution": "Distribución de gastos",
+    "spendingDistribution": "Distribución de gastos por concepto",
+    "supplierDistribution": "Distribución de gastos por proveedor",
+    "supplierEmpty": "No hay gastos por proveedor.",
+    "unknownSupplier": "Sin proveedor identificado",
     "total": "Total",
     "vatDeduction": "Tratamiento del IVA",
     "deductibleSpain": "Deducible en España",

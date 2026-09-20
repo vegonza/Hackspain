@@ -1,8 +1,6 @@
-import type { useAnalytics } from '@/hooks/useAnalytics'
-
 interface Props {
   active?: boolean
-  payload?: readonly { payload: ReturnType<typeof useAnalytics>['items'][number] }[]
+  payload?: readonly { payload: { color: string; label: string; percentageLabel: string; amountLabel: string } }[]
 }
 
 export function SpendingDistributionTooltip({ active, payload }: Props) {

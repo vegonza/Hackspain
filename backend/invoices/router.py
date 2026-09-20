@@ -8,6 +8,8 @@ from postgrest.exceptions import APIError
 from pydantic import ValidationError
 from fastapi.responses import Response
 from invoices.downloads import download_pdf
+from invoices.resolution import ResolveInvoice, resolve_invoice
+from rules.models import Decision
 
 from invoices.queue import enqueue, RETRIES, SCHEDULED, QUEUE, PROCESSING
 from invoices.conversion import SUPPORTED_EXTENSIONS, to_pdf
@@ -115,6 +117,11 @@ def delete_invoice(invoice_id: UUID) -> dict[str, bool]:
         redis.hdel(RETRIES, str(invoice_id))
     logger.info("[INVOICES] Archived %s (%s)", invoice_record.name, invoice_id)
     return {"deleted": True}
+
+
+@router.post("/{invoice_id}/resolve")
+def resolve_invoice_review(invoice_id: UUID, request: ResolveInvoice) -> Decision:
+    return resolve_invoice(invoice_id, request)
 
 
 @router.post("/{invoice_id}/retry", status_code=202)

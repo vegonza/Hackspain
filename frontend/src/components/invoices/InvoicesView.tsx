@@ -26,7 +26,7 @@ export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, a
   onInvoiceLink, onDelete, deleting, mountDetail, invoiceName, supplierName, supplierLogo, selected, loading, extractionLoading,
   pdfUrl, pdfLoading, sourceTab, dataTab, onDataTab, emptyMessage, extractionLabels, canRetry, onRetrySelected,
   retrying, metricsLoading, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts,
-  redoing, onRedo, identifierTrace, issued: { mount: mountIssued, ...issued }, issuedList, issuedId }: Props) {
+  redoing, onRedo, resolving, onResolve, identifierTrace, issued: { mount: mountIssued, ...issued }, issuedList, issuedId }: Props) {
   return (
     <div className="app-shell" ref={watchInvoices}>
       <main className="review-layout" ref={view === 'invoices' && selectedId === null ? mountIssued : undefined}>
@@ -67,7 +67,7 @@ export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, a
           : selectedId !== null ? <InvoiceDetails mountDetail={mountDetail} invoiceName={invoiceName} supplierName={supplierName} supplierLogo={supplierLogo} selectedId={selectedId}
             selected={selected} identifierTrace={identifierTrace} featureAmounts={featureAmounts} loading={loading} extractionLoading={extractionLoading} pdfUrl={pdfUrl} pdfLoading={pdfLoading}
             sourceTab={sourceTab} dataTab={dataTab} onDataTab={onDataTab} emptyMessage={emptyMessage} labels={labels} extractionLabels={extractionLabels}
-            canRetry={canRetry} onRetrySelected={onRetrySelected} retrying={retrying} metricsLoading={metricsLoading}
+            canRetry={canRetry} onRetrySelected={onRetrySelected} retrying={retrying} metricsLoading={metricsLoading} resolving={resolving} onResolve={onResolve}
             onNavigate={onNavigate} onSourceTab={onSourceTab} erpRows={erpRows} totalDuration={totalDuration} totalCost={totalCost} />
           : <InvoicesTable gestoria={gestoria} issued={{ ...issued, mount: mountIssued }} issuedList={issuedList} table={table} onUpload={onUpload} invoicesLoading={invoicesLoading}
             onSelect={onSelect} onInvoiceLink={onInvoiceLink} onDelete={onDelete} deleting={deleting}

@@ -129,6 +129,12 @@ export function redoInvoice(id: string): Promise<Invoice> {
   return fetchJson(`/invoices/${id}/redo`, { method: 'POST' })
 }
 
+export function resolveInvoice(id: string, classification: 'PAGAR' | 'NO_PAGAR'): Promise<PaymentDecision> {
+  return fetchJson(`/invoices/${id}/resolve`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ classification }),
+  })
+}
+
 export function uploadInvoice(file: File): Promise<Invoice> {
   const body = new FormData()
   body.append('file', file)

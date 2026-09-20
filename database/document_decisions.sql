@@ -10,14 +10,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_approved_invoice_identity
 
 CREATE OR REPLACE FUNCTION public.order_conflict_decision(p_decision JSONB)
 RETURNS JSONB LANGUAGE sql IMMUTABLE STRICT SET search_path = public AS $$
-    SELECT p_decision || jsonb_build_object(
+    SELECT CASE WHEN p_decision->'resolution' IS NOT NULL AND p_decision->'resolution' <> 'null'::jsonb
+        THEN p_decision ELSE p_decision || jsonb_build_object(
         'classification', CASE WHEN p_decision->>'classification' = 'NO_PAGAR' THEN 'NO_PAGAR' ELSE 'ESCALAR' END,
         'checks', (p_decision->'checks') || '{"order_claim": false, "order_unique": false}'::jsonb,
         'reasons', CASE WHEN p_decision->>'classification' = 'PAGAR' THEN '[]'::jsonb
                        ELSE p_decision->'reasons' END
             || CASE WHEN p_decision->'reasons' @> jsonb_build_array('Varias facturas reclaman el mismo pedido; revisar antes de autorizar el pago.')
                     THEN '[]'::jsonb
-                    ELSE jsonb_build_array('Varias facturas reclaman el mismo pedido; revisar antes de autorizar el pago.') END);
+                    ELSE jsonb_build_array('Varias facturas reclaman el mismo pedido; revisar antes de autorizar el pago.') END) END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.release_document_order_claim()
@@ -101,6 +102,11 @@ BEGIN
     FOR UPDATE;
     IF NOT FOUND THEN RAISE EXCEPTION 'Document changed or document was deleted'; END IF;
 
+    IF document.payment_decision->'resolution' IS NOT NULL
+       AND document.payment_decision->'resolution' <> 'null'::jsonb THEN
+        RETURN document.payment_decision;
+    END IF;
+
     IF conflicted THEN
         decision := public.order_conflict_decision(decision);
     END IF;
@@ -143,3 +149,52 @@ GRANT EXECUTE ON FUNCTION public.publish_payment_decision(UUID, TEXT, JSONB) TO 
 
 REVOKE ALL ON FUNCTION public.order_conflict_decision(JSONB) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.order_conflict_decision(JSONB) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.resolve_invoice_decision(p_document_id UUID, p_classification TEXT)
+RETURNS JSONB LANGUAGE plpgsql SET search_path = public AS $$
+DECLARE
+    invoice public.documents%ROWTYPE;
+    order_key TEXT;
+    decision JSONB;
+    violated_constraint TEXT;
+BEGIN
+    IF p_classification NOT IN ('PAGAR', 'NO_PAGAR') OR p_classification IS NULL THEN
+        RAISE EXCEPTION 'invoice_not_reviewable';
+    END IF;
+
+    SELECT public.normalize_order_key(purchase_order) INTO order_key
+    FROM public.documents WHERE id = p_document_id AND deleted_at IS NULL;
+    PERFORM 1 FROM public.orders WHERE public.normalize_order_key(order_id) = order_key FOR UPDATE;
+    SELECT * INTO invoice FROM public.documents
+    WHERE id = p_document_id AND deleted_at IS NULL FOR UPDATE;
+    IF NOT FOUND OR invoice.status <> 'ready'
+       OR invoice.payment_decision->>'classification' IS DISTINCT FROM 'ESCALAR'
+       OR public.normalize_order_key(invoice.purchase_order) IS DISTINCT FROM order_key THEN
+        RAISE EXCEPTION 'invoice_not_reviewable';
+    END IF;
+
+    IF p_classification = 'PAGAR' AND (
+        public.normalize_tax_id(COALESCE(invoice.supplier_nif, '')) = ''
+        OR regexp_replace(COALESCE(invoice.invoice_number, ''), '[[:space:]]', '', 'g') = ''
+    ) THEN
+        RAISE EXCEPTION 'invoice_identity_required';
+    END IF;
+
+    decision := invoice.payment_decision || jsonb_build_object(
+        'classification', p_classification,
+        'resolution', jsonb_build_object('resolved_at', now(), 'previous_reasons', invoice.payment_decision->'reasons'),
+        'reasons', jsonb_build_array(CASE WHEN p_classification = 'PAGAR'
+            THEN 'Resuelta manualmente: pagar.' ELSE 'Resuelta manualmente: no pagar.' END));
+    BEGIN
+        UPDATE public.documents SET payment_decision = decision WHERE id = p_document_id;
+    EXCEPTION WHEN unique_violation THEN
+        GET STACKED DIAGNOSTICS violated_constraint = CONSTRAINT_NAME;
+        IF violated_constraint <> 'idx_documents_approved_invoice_identity' THEN RAISE; END IF;
+        RAISE EXCEPTION 'invoice_duplicate_payment';
+    END;
+    RETURN jsonb_build_object('name', invoice.name, 'decision', decision);
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.resolve_invoice_decision(UUID, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.resolve_invoice_decision(UUID, TEXT) TO service_role;

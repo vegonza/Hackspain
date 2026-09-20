@@ -17,6 +17,13 @@ class AnalyticsRepositoryTests(unittest.TestCase):
                 ],
             },
             "vat": {"total_eur": "29", "deductible_eur": "21", "foreign_eur": "8"},
+            "supplier_spending": {
+                "total_eur": "171.15",
+                "suppliers": [
+                    {"supplier_key": "B12345678", "supplier_name": "Proveedor", "amount_eur": "146.15"},
+                    {"supplier_key": "", "supplier_name": None, "amount_eur": "25.00"},
+                ],
+            },
             "usage": {
                 "average_document_cost_usd": "0.007",
                 "operations": [
@@ -40,6 +47,10 @@ class AnalyticsRepositoryTests(unittest.TestCase):
             {"category": "transport", "amount_eur": "25.00"},
         ])
         self.assertEqual(result.vat.total_eur, Decimal("29"))
+        self.assertEqual(result.supplier_spending.total_eur, Decimal("171.15"))
+        self.assertEqual(result.supplier_spending.suppliers[0].supplier_name, "Proveedor")
+        self.assertEqual(result.supplier_spending.suppliers[0].amount_eur, Decimal("146.15"))
+        self.assertIsNone(result.supplier_spending.suppliers[1].supplier_name)
         self.assertEqual(result.vat.deductible_eur, Decimal("21"))
         self.assertEqual(result.vat.foreign_eur, Decimal("8"))
         self.assertEqual(result.usage.average_document_cost_usd, Decimal("0.007"))

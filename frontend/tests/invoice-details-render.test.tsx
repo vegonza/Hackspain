@@ -25,6 +25,7 @@ const invoice: InvoiceDetail = {
 }
 
 const props: Props = {
+  resolving: false, onResolve: async () => {},
   mountDetail: () => {}, invoiceName: invoice.name, supplierName: 'Proveedor extraído', supplierLogo: undefined, selectedId: invoice.id, selected: invoice,
   loading: false, extractionLoading: false, pdfUrl: 'invoice.pdf', pdfLoading: false,
   sourceTab: 'pdf', dataTab: 'extraction', emptyMessage: null,
@@ -41,6 +42,27 @@ const props: Props = {
 }
 
 describe('split invoice details', () => {
+  test('makes only completed escalated decision badges into a resolution menu', () => {
+    const markup = renderToStaticMarkup(<InvoiceDetails {...props} />)
+    expect(markup).toMatch(/<button[^>]*aria-haspopup="menu"[^>]*>Escalar/)
+    expect(markup).not.toContain('No pagar</button>')
+    for (const classification of ['PAGAR', 'NO_PAGAR'] as const) {
+      const resolved = { ...invoice, payment_decision: { ...invoice.payment_decision!, classification } }
+      expect(renderToStaticMarkup(<InvoiceDetails {...props} selected={resolved} />)).not.toContain('aria-haspopup="menu"')
+    }
+    for (const status of ['queued', 'processing', 'error'] as const) {
+      expect(renderToStaticMarkup(<InvoiceDetails {...props} selected={{ ...invoice, status }} />)).not.toContain('aria-haspopup="menu"')
+    }
+    expect(renderToStaticMarkup(<InvoiceDetails {...props} selected={{ ...invoice, payment_decision: null }} />)).not.toContain('aria-haspopup="menu"')
+    expect(renderToStaticMarkup(<InvoiceDetails {...props} loading />)).not.toContain('aria-haspopup="menu"')
+  })
+
+  test('disables the resolution menu and shows progress in the badge while saving', () => {
+    const markup = renderToStaticMarkup(<InvoiceDetails {...props} resolving />)
+    expect(markup).toMatch(/<button[^>]*disabled=""[^>]*aria-busy="true"[^>]*aria-haspopup="menu"/)
+    expect(markup).toContain('lucide-loader-circle')
+  })
+
   test('hides absent QR metadata and links detected test codes without claiming verification', () => {
     expect(renderToStaticMarkup(<InvoiceDetails {...props} />)).not.toContain('QR Veri*Factu');
     const url = 'https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=B12959755';

@@ -14,6 +14,8 @@ AS $$
             exchange_rate,
             line_items,
             supplier_nif,
+            supplier_name,
+            tax_base_eur,
             vat_amount_eur,
             payment_decision
         FROM public.documents
@@ -44,6 +46,25 @@ AS $$
                 '[]'::jsonb
             ) AS categories
         FROM category_amounts
+    ),
+    supplier_amounts AS (
+        SELECT
+            CASE WHEN public.normalize_tax_id(COALESCE(supplier_nif, '')) <> ''
+                THEN public.normalize_tax_id(supplier_nif)
+                ELSE lower(btrim(COALESCE(supplier_name, ''))) END AS supplier_key,
+            MIN(NULLIF(btrim(supplier_name), '')) AS supplier_name,
+            SUM(tax_base_eur) AS amount_eur
+        FROM ready_invoices
+        WHERE tax_base_eur IS NOT NULL
+        GROUP BY 1
+    ),
+    supplier_spending AS (
+        SELECT
+            COALESCE(SUM(amount_eur) FILTER (WHERE amount_eur > 0), 0) AS total_eur,
+            COALESCE(jsonb_agg(jsonb_build_object(
+                'supplier_key', supplier_key, 'supplier_name', supplier_name, 'amount_eur', amount_eur::text
+            ) ORDER BY amount_eur DESC, supplier_key) FILTER (WHERE amount_eur > 0), '[]'::jsonb) AS suppliers
+        FROM supplier_amounts
     ),
     approved_vat AS (
         SELECT
@@ -138,6 +159,10 @@ AS $$
             'total_eur', spending.total_eur::text,
             'categories', spending.categories
         ),
+        'supplier_spending', jsonb_build_object(
+            'total_eur', supplier_spending.total_eur::text,
+            'suppliers', supplier_spending.suppliers
+        ),
         'vat', jsonb_build_object(
             'total_eur', vat.total_eur::text,
             'deductible_eur', vat.deductible_eur::text,
@@ -153,7 +178,7 @@ AS $$
             'workers', processing.workers
         )
     )
-    FROM spending, vat, usage_distribution, processing;
+    FROM spending, supplier_spending, vat, usage_distribution, processing;
 $$;
 
 REVOKE ALL ON FUNCTION public.get_analytics_dashboard() FROM PUBLIC, anon, authenticated;

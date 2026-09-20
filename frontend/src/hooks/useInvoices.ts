@@ -12,7 +12,8 @@ import { useIdentifierTrace } from '@/hooks/useIdentifierTrace'
 import { invoiceErrorKey } from '@/hooks/invoiceError'
 import { invoiceMetrics } from '@/hooks/invoiceMetrics'
 import { invoiceCategoryIcon } from '@/lib/invoiceCategory'
-import { deleteInvoice, redoInvoice, retryInvoice, fetchInvoices, uploadInvoice, type Invoice } from '@/api/invoices'
+import { deleteInvoice, redoInvoice, retryInvoice, resolveInvoice, fetchInvoices, uploadInvoice, type Invoice } from '@/api/invoices'
+import { ApiError } from '@/api/client'
 import { formatAmount, formatStatus } from '@/lib/format'
 import { isSupportedInvoiceFile } from '@/lib/invoiceFiles'
 import { supplierLogo } from '@/lib/supplierLogos'
@@ -27,7 +28,7 @@ export function useInvoices() {
   const [lineItemsState, setLineItemsState] = useState({ invoiceId: selectedId, expanded: false })
   if (lineItemsState.invoiceId !== selectedId) setLineItemsState({ invoiceId: selectedId, expanded: false })
   const lineItemsExpanded = lineItemsState.invoiceId === selectedId && lineItemsState.expanded
-  const { selected, loading, pdfUrl, pdfLoading, mountDetail, refreshDetail, updateMetrics, sourceTab, onSourceTab, dataTab, onDataTab } = useInvoiceDetail(selectedId)
+  const { selected, loading, pdfUrl, pdfLoading, mountDetail, refreshDetail, updateMetrics, updateDecision, sourceTab, onSourceTab, dataTab, onDataTab } = useInvoiceDetail(selectedId)
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [invoicesLoading, setInvoicesLoading] = useState(true)
   const [uploads, setUploads] = useState<InvoiceUpload[]>([])
@@ -37,6 +38,8 @@ export function useInvoices() {
   const [retrying, setRetrying] = useState(false)
   const [redoing, setRedoing] = useState(false)
   const redoInFlight = useRef(false)
+  const resolutionInFlight = useRef(false)
+  const [resolving, setResolving] = useState(false)
   const invoicesRef = useRef<Invoice[]>([])
   const listRevision = useRef(0)
   const schedulePolling = useRef<(() => void) | null>(null)
@@ -205,6 +208,28 @@ export function useInvoices() {
     }
   }
 
+  async function onResolve(classification: 'PAGAR' | 'NO_PAGAR'): Promise<void> {
+    if (selected === null || selected.status !== 'ready' || selected.payment_decision === null
+      || selected.payment_decision.classification !== 'ESCALAR' || resolutionInFlight.current) return
+    const id = selected.id
+    resolutionInFlight.current = true
+    setResolving(true)
+    ++listRevision.current
+    try {
+      const decision = await resolveInvoice(id, classification)
+      ++listRevision.current
+      updateInvoices(invoicesRef.current.map(invoice => invoice.id === id ? { ...invoice, payment_decision: decision } : invoice))
+      updateDecision(id, decision)
+    } catch (error) {
+      if (error instanceof ApiError && error.detail === 'invoice_not_reviewable') {
+        await refreshDetail().catch(() => { /* The API client displays the error. */ })
+      }
+    } finally {
+      resolutionInFlight.current = false
+      setResolving(false)
+    }
+  }
+
   const formatCost = (cost: string | null): string => cost === null ? '—' : `$${Number(cost).toFixed(4)}`
   const formatDuration = (duration: number | null): string => {
     if (duration === null) return '—'
@@ -269,6 +294,7 @@ export function useInvoices() {
   return {
     gestoria, issued, issuedList, issuedId: route.view === 'issued' ? route.issuedId : null,
     redoing, onRedo,
+    resolving, onResolve,
     metricsLoading, emptyMessage, erpRows, totalDuration, totalCost, identifierTrace,
     table, imports, onRetryImport, invoicesLoading, onInvoiceLink, onNavigate: followLink,
     selected, selectedId, mountDetail, featureAmounts,
@@ -282,6 +308,7 @@ export function useInvoices() {
     onUpload, onDelete, onSelect: (id: string) => navigate(invoicePath(id)),
     labels: {
       decision: t('invoices.decision'),
+      resolvePay: t('invoices.resolvePay'), resolveNoPay: t('invoices.resolveNoPay'),
       processingSummary: t('invoices.processingSummary'),
       decisionLabel: selected === null || selected.payment_decision === null ? t('invoices.decisionPending') : t(`invoices.decisions.${selected.payment_decision.classification}`),
       count: t('invoices.count', { count: invoices.length }),
