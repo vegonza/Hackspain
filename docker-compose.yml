@@ -1,0 +1,113 @@
+name: hackspain
+
+services:
+  erp:
+    build:
+      context: ./infra/erp
+    command: ["--lote2", "/challenge/erp_export_lote2.csv"]
+    init: true
+    restart: unless-stopped
+    volumes:
+      - ./500-sombras-de-alberto:/challenge:ro
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8009/erp/estado', timeout=3).read()"]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+      start_period: 5s
+
+  backend:
+    build:
+      context: ./backend
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8766", "--proxy-headers", "--forwarded-allow-ips=*"]
+    init: true
+    restart: unless-stopped
+    env_file:
+      - backend/.env
+    environment:
+      ENV: production
+      TZ: Europe/Madrid
+      ERP_BASE_URL: http://erp:8009
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      erp:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8766/api/health', timeout=3).read()"]
+      interval: 10s
+      timeout: 4s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "always", "--maxmemory-policy", "noeviction"]
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  worker:
+    build:
+      context: ./backend
+    command: ["python", "-m", "invoices.worker"]
+    init: true
+    stop_grace_period: 240s
+    restart: unless-stopped
+    env_file:
+      - backend/.env
+    environment:
+      ENV: production
+      TZ: Europe/Madrid
+      ERP_BASE_URL: http://erp:8009
+      REDIS_URL: redis://redis:6379/0
+      INVOICE_WORKERS: "10"
+    depends_on:
+      erp:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - internal
+      - edge
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=edge"
+      - "traefik.http.routers.humanos.rule=Host(`${APP_HOST:?APP_HOST is required}`)"
+      - "traefik.http.routers.humanos.entrypoints=websecure"
+      - "traefik.http.routers.humanos.tls=true"
+      - "traefik.http.routers.humanos.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.humanos-compress.compress=true"
+      - "traefik.http.routers.humanos.middlewares=humanos-compress"
+      - "traefik.http.services.humanos.loadbalancer.server.port=80"
+
+networks:
+  internal:
+    driver: bridge
+  edge:
+    external: true
+
+volumes:
+  redis_data:

@@ -44,6 +44,16 @@ body {
   min-width: 320px;
 }
 
+.login-page { display: grid; min-height: 100dvh; place-items: center; padding: 24px; background: #f5f5f3; }
+.login-card { display: flex; width: min(360px, 100%); box-sizing: border-box; flex-direction: column; gap: 20px; padding: 32px; border: 1px solid var(--border); border-radius: 14px; background: white; box-shadow: 0 12px 40px #0000000d; }
+.login-logo { width: 141px; height: 30px; object-fit: contain; }
+.login-copy { display: grid; gap: 6px; }
+.login-copy h1 { font-size: 20px; }
+.login-copy p { margin: 0; color: var(--muted-foreground); font-size: 13px; line-height: 1.5; }
+.login-field { display: grid; gap: 7px; color: #404040; font-size: 12px; font-weight: 500; }
+.login-card > button { width: 100%; background: var(--primary); color: white; }
+.login-card > button:hover { background: color-mix(in srgb, var(--primary) 90%, transparent); }
+
 @layer base { * { border-color: var(--border); } }
 button, input { font-family: inherit; }
 button, label { -webkit-tap-highlight-color: transparent; }

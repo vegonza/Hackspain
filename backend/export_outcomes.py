@@ -2,12 +2,14 @@
 
 import argparse
 import json
+import os
 import sys
+from http.cookiejar import CookieJar
 from hashlib import sha256
 from pathlib import Path
 from typing import Literal, TypedDict, cast
 from urllib.error import URLError
-from urllib.request import urlopen
+from urllib.request import HTTPCookieProcessor, Request, build_opener
 
 
 Result = Literal['PAGAR', 'NO_PAGAR', 'ESCALAR']
@@ -56,10 +58,23 @@ def batch_outcomes(directory: Path, expected_count: int, invoices: list[Invoice]
     return outcomes
 
 
-def export(api_url: str, challenge_dir: Path, output_dir: Path) -> dict[str, int]:
+def read_invoices(api_url: str, password: str) -> list[Invoice]:
+    opener = build_opener(HTTPCookieProcessor(CookieJar()))
+    login = Request(
+        f'{api_url.rstrip("/")}/auth/login',
+        data=json.dumps({'password': password}).encode('utf-8'),
+        headers={'Content-Type': 'application/json'},
+        method='POST',
+    )
+    with opener.open(login, timeout=60):
+        pass
+    with opener.open(f'{api_url.rstrip("/")}/invoices', timeout=60) as response:
+        return cast(list[Invoice], json.load(response))
+
+
+def export(api_url: str, challenge_dir: Path, output_dir: Path, password: str) -> dict[str, int]:
     """Validate both batches before writing UTF-8 JSONL; never change invoice decisions."""
-    with urlopen(f'{api_url.rstrip("/")}/invoices', timeout=60) as response:
-        invoices = cast(list[Invoice], json.load(response))
+    invoices = read_invoices(api_url, password)
     batches = {
         'outcomes.jsonl': batch_outcomes(challenge_dir / 'facturas', 500, invoices),
         'outcomes_lote2.jsonl': batch_outcomes(challenge_dir / 'facturas_primin', 40, invoices),
@@ -80,7 +95,7 @@ def main() -> int:
                         help='Carpeta del reto con facturas/ y facturas_primin/.')
     args = parser.parse_args()
     try:
-        counts = export(args.api_url, args.challenge_dir, args.output_dir)
+        counts = export(args.api_url, args.challenge_dir, args.output_dir, os.environ['APP_PASSWORD'])
     except (OSError, URLError, ValueError) as error:
         print(f'No se ha podido exportar: {error}', file=sys.stderr)
         return 1

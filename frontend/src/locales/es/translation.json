@@ -2,6 +2,15 @@
   "app": {
     "name": "hUMAnos"
   },
+  "auth": {
+    "title": "Acceso",
+    "description": "Introduce la contraseña para continuar.",
+    "password": "Contraseña",
+    "submit": "Entrar",
+    "submitting": "Comprobando…",
+    "invalid": "La contraseña no es correcta.",
+    "rateLimited": "Demasiados intentos. Espera 15 minutos antes de volver a intentarlo."
+  },
   "common": {
     "cancel": "Cancelar",
     "close": "Cerrar",

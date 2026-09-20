@@ -63,3 +63,12 @@ export async function fetchBlob(url: string, options: RequestInit = {}): Promise
   const response = await baseFetch(url, options)
   return response.blob()
 }
+
+export async function fetchStatus(url: string, options: RequestInit = {}): Promise<number> {
+  try {
+    return (await fetch(`${API_BASE}${url}`, options)).status
+  } catch (error) {
+    toast.error(i18n.t('invoices.requestFailed'))
+    throw error
+  }
+}

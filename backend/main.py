@@ -14,6 +14,7 @@ from orders.router import router as orders_router
 from suppliers.router import router as suppliers_router
 from usage.worker import start_usage_worker
 from shared.logger import setup_logger
+from auth import PasswordMiddleware, router as auth_router
 
 environment = os.environ["ENV"]
 logger = setup_logger()
@@ -42,6 +43,8 @@ app = FastAPI(
     redoc_url=None,
     openapi_url="/api/openapi.json",
 )
+app.add_middleware(PasswordMiddleware)
+app.include_router(auth_router)
 app.include_router(invoices_router)
 app.include_router(erp_router)
 app.include_router(usage_router)
