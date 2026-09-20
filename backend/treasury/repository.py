@@ -1,9 +1,11 @@
 from datetime import date, timedelta
 from decimal import Decimal
 
+from rules.forecast import euro_amount, payment_due_date
 from rules.models import Decision
 from shared.logger import get_logger
 from shared.storage import get_client
+from suppliers.repository import payment_terms
 from treasury.models import SupplierCommitment, TreasuryPayment, TreasuryReport, TreasurySummary
 
 logger = get_logger()
@@ -11,8 +13,10 @@ logger = get_logger()
 
 def read_treasury(evaluation_date: date) -> TreasuryReport:
     rows = get_client().table("documents").select(
-        "id,name,payment_decision"
+        "id,name,invoice_date,supplier_nif,supplier_name,total_eur,payment_decision"
     ).is_("deleted_at", "null").execute().data
+    terms = payment_terms()
+    overdue = Decimal(0)
     next_7_days = Decimal(0)
     next_30_days = Decimal(0)
     blocked_in_review = Decimal(0)
@@ -26,16 +30,16 @@ def read_treasury(evaluation_date: date) -> TreasuryReport:
         if row["payment_decision"] is None:
             continue
         decision = Decision.model_validate(row["payment_decision"])
-        if decision.classification == "ESCALAR" and decision.amount_eur is not None:
-            blocked_in_review += decision.amount_eur
+        amount = euro_amount(decision, row.get("total_eur"))
+        if decision.classification == "ESCALAR" and amount is not None:
+            blocked_in_review += amount
         if decision.classification != "PAGAR":
             continue
-        if decision.amount_eur is None or decision.due_date is None or decision.supplier_name is None:
+        due_date = payment_due_date(decision, row.get("invoice_date"), row.get("supplier_nif"), terms)
+        supplier_name = decision.supplier_name or row.get("supplier_name")
+        if amount is None or due_date is None or not supplier_name:
             incomplete_approved += 1
             continue
-        amount = decision.amount_eur
-        due_date = decision.due_date
-        supplier_name = decision.supplier_name
         payments.append(TreasuryPayment(
             document_id=row["id"],
             document_name=row["name"],
@@ -43,6 +47,8 @@ def read_treasury(evaluation_date: date) -> TreasuryReport:
             amount=amount,
             due_date=due_date,
         ))
+        if due_date < evaluation_date:
+            overdue += amount
         if evaluation_date <= due_date <= seven_day_limit:
             next_7_days += amount
         if evaluation_date <= due_date <= thirty_day_limit:
@@ -68,6 +74,7 @@ def read_treasury(evaluation_date: date) -> TreasuryReport:
 
     return TreasuryReport(
         summary=TreasurySummary(
+            overdue=overdue,
             next_7_days=next_7_days,
             next_30_days=next_30_days,
             blocked_in_review=blocked_in_review,

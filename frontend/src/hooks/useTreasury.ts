@@ -41,9 +41,10 @@ export function useTreasury() {
   }, [load])
 
   const summary = report === null ? [] : [
-    { id: 'next-7-days', label: t('treasury.next7Days'), value: currency.format(Number(report.summary.next_7_days)), subtitle: t('treasury.next7DaysSubtitle') },
-    { id: 'next-30-days', label: t('treasury.next30Days'), value: currency.format(Number(report.summary.next_30_days)), subtitle: t('treasury.next30DaysSubtitle') },
-    { id: 'blocked', label: t('treasury.blocked'), value: currency.format(Number(report.summary.blocked_in_review)), subtitle: t('treasury.blockedSubtitle') },
+    { id: 'overdue', label: t('treasury.overdue'), value: currency.format(Number(report.summary.overdue)), subtitle: t('treasury.overdueSubtitle'), risk: true },
+    { id: 'next-7-days', label: t('treasury.next7Days'), value: currency.format(Number(report.summary.next_7_days)), subtitle: t('treasury.next7DaysSubtitle'), risk: false },
+    { id: 'next-30-days', label: t('treasury.next30Days'), value: currency.format(Number(report.summary.next_30_days)), subtitle: t('treasury.next30DaysSubtitle'), risk: false },
+    { id: 'blocked', label: t('treasury.blocked'), value: currency.format(Number(report.summary.blocked_in_review)), subtitle: t('treasury.blockedSubtitle'), risk: true },
   ]
   const rows = report === null ? [] : report.by_supplier.map(supplier => ({
     ...supplier,

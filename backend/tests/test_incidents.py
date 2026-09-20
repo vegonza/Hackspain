@@ -40,6 +40,9 @@ class IncidentTests(unittest.TestCase):
         self.client = patch("invoices.repository.get_client", return_value=self.database)
         self.client.start()
         self.addCleanup(self.client.stop)
+        self.suppliers = patch("suppliers.repository.get_client", return_value=self.database)
+        self.suppliers.start()
+        self.addCleanup(self.suppliers.stop)
 
     def test_lists_only_escalated_invoices_with_their_rule_reasons(self) -> None:
         incidents = list_incidents()
