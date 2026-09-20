@@ -1,4 +1,4 @@
-import { Wallet, DollarSign, Building2, Landmark, ShoppingCart } from 'lucide-react'
+import { Wallet, DollarSign, Building2, ChartPie, Landmark, ShoppingCart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { InvoicesTable } from '@/components/invoices/InvoicesTable'
 import { InvoiceImportPanel } from '@/components/invoices/InvoiceImportPanel'
@@ -8,15 +8,17 @@ import { UsageView } from '@/components/usage/UsageView'
 import { OrdersView } from '@/components/orders/OrdersView'
 import type { useOrders } from '@/hooks/useOrders'
 import { SuppliersView } from '@/components/suppliers/SuppliersView'
+import { AnalyticsView } from '@/components/analytics/AnalyticsView'
 import type { useErpSnapshot } from '@/hooks/useErpSnapshot'
 import type { useSuppliers } from '@/hooks/useSuppliers'
 import type { useUsage } from '@/hooks/useUsage'
 import type { useInvoices } from '@/hooks/useInvoices'
+import type { useAnalytics } from '@/hooks/useAnalytics'
 import logo from '@/assets/logo.svg'
 
-type Props = ReturnType<typeof useInvoices> & { usage: ReturnType<typeof useUsage>; suppliers: ReturnType<typeof useSuppliers>; orders: ReturnType<typeof useOrders>; erp: ReturnType<typeof useErpSnapshot> }
+type Props = ReturnType<typeof useInvoices> & { usage: ReturnType<typeof useUsage>; analytics: ReturnType<typeof useAnalytics>; suppliers: ReturnType<typeof useSuppliers>; orders: ReturnType<typeof useOrders>; erp: ReturnType<typeof useErpSnapshot> }
 
-export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, suppliers, orders, erp, selectedId,
+export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, analytics, suppliers, orders, erp, selectedId,
   table, onUpload, invoicesLoading, onSelect, imports, onRetryImport,
   onInvoiceLink, onDelete, deleting, mountDetail, invoiceName, supplierName, selected, loading, extractionLoading,
   pdfUrl, pdfLoading, sourceTab, dataTab, onDataTab, emptyMessage, extractionLabels, canRetry, onRetrySelected,
@@ -30,6 +32,9 @@ export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, s
           <nav className="sidebar-navigation" aria-label={labels.appName}>
             <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'invoices' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
               <a href="/invoices" onClick={onNavigate} aria-current={view === 'invoices' ? 'page' : undefined}><Wallet /><span>{labels.library}</span></a>
+            </Button>
+            <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'analytics' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
+              <a href="/analytics" onClick={onNavigate} aria-current={view === 'analytics' ? 'page' : undefined}><ChartPie /><span>{analytics.labels.title}</span></a>
             </Button>
             <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'suppliers' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
               <a href="/suppliers" onClick={onNavigate} aria-current={view === 'suppliers' ? 'page' : undefined}><Building2 /><span>{suppliers.labels.title}</span></a>
@@ -46,6 +51,7 @@ export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, s
           </nav>
         </aside>
         {view === 'usage' ? <UsageView {...usage} />
+          : view === 'analytics' ? <AnalyticsView {...analytics} />
           : view === 'orders' ? <OrdersView {...orders} />
           : view === 'suppliers' ? <SuppliersView {...suppliers} />
           : view === 'erp' ? <ErpView {...erp} />

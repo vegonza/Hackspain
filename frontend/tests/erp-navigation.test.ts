@@ -16,5 +16,6 @@ describe('ERP URLs', () => {
   test('the invoice and cost URLs keep their shape', () => {
     expect(parseRoute('/invoices')).toEqual({ view: 'invoices', invoiceId: null })
     expect(parseRoute('/cost')).toEqual({ view: 'usage', invoiceId: null })
+    expect(parseRoute('/analytics')).toEqual({ view: 'analytics', invoiceId: null })
   })
 })
