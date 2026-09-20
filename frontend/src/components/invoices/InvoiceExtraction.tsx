@@ -49,7 +49,15 @@ export function InvoiceExtraction({ title, extraction, amounts, labels }: Props)
             <dd>
               <ul className="extraction-line-list" aria-label={labels.lineItems}>
                 {amounts.lineItems.map((line, index) => (
-                  <li key={index}><span>{line.description}</span><span>{line.amount}</span></li>
+                  <li key={index}>
+                    <span className="extraction-line-description">
+                      {line.category !== null && <Tooltip text={line.category.label} asChild>
+                        <img className="extraction-category-icon" src={line.category.icon} alt={line.category.label} width={24} height={24} />
+                      </Tooltip>}
+                      <span>{line.description}</span>
+                    </span>
+                    <span>{line.amount}</span>
+                  </li>
                 ))}
               </ul>
               {amounts.canExpandLineItems && <Button type="button" variant="link" size="sm"

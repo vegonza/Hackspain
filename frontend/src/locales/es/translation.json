@@ -103,6 +103,18 @@
     "supplierNif": "NIF",
     "iban": "IBAN",
     "lineItems": "Conceptos",
+    "categories": {
+      "officeSupplies": "Material de oficina y consumibles",
+      "maintenance": "Mantenimiento y reparación",
+      "recurringServices": "Servicios recurrentes",
+      "inspection": "Revisión e inspección",
+      "supplies": "Suministros",
+      "installation": "Instalación",
+      "cleaning": "Limpieza",
+      "transport": "Transporte",
+      "technicalSupport": "Soporte técnico",
+      "professionalServices": "Servicios profesionales"
+    },
     "showMore": "Ver más",
     "showLess": "Ver menos",
     "taxBase": "Base imponible",
@@ -216,5 +228,42 @@
     "durationSeconds": "{{value}} s",
     "durationMinutes": "{{minutes}} min {{seconds}} s",
     "waiting": "El resultado aparecerá al completar la extracción."
+  },
+  "imports": {
+    "progress": "{{completed}}/{{total}} facturas completas",
+    "completed": "Completada",
+    "uploadFailed": "No se ha podido subir el archivo. Vuelve a intentarlo.",
+    "retryUpload": "Reintentar «{{name}}»"
+  },
+  "billing": {
+    "periodTotal": "Total con IVA",
+    "invoiceCount_one": "{{count}} factura",
+    "invoiceCount_other": "{{count}} facturas",
+    "unknownAmounts_one": "{{count}} factura sin importe en EUR; no incluida en la suma.",
+    "unknownAmounts_other": "{{count}} facturas sin importe en EUR; no incluidas en la suma.",
+    "eurTotals": "Importes con IVA en EUR. Las divisas usan el tipo de cambio registrado.",
+    "allMonths": "Todos los meses",
+    "undated": "Sin fecha",
+    "period": "Mes de facturación",
+    "previousMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "search": "Buscar proveedor, factura, pedido…",
+    "unknownSupplier": "Proveedor por identificar",
+    "supplier": "Proveedor / Factura",
+    "review": "Revisión",
+    "date": "Fecha",
+    "amount": "Sin IVA",
+    "empty": "No hay facturas en este periodo.",
+    "downloadPdf": "Descargar PDF",
+    "rowDecisions": {
+      "PAGAR": "Lista para pagar",
+      "ESCALAR": "Por revisar",
+      "NO_PAGAR": "No pagar",
+      "paid": "Pagada en ERP",
+      "pending": "Pendiente de revisión"
+    },
+    "payable": "Para pagar",
+    "grossAmount": "Con IVA {{amount}}",
+    "originalAmount": "Original {{amount}} sin IVA"
   }
 }

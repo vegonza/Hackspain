@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type { InvoiceDetail } from '../src/api/invoices'
 import es from '../src/locales/es/translation.json'
+import maintenanceIcon from '../src/assets/categories/02-mantenimiento-reparacion.svg'
 
 mock.module('../src/components/invoices/PdfViewer', () => ({
   PdfViewer: ({ url }: { url: string }) => <div data-pdf={url} />,
@@ -12,7 +13,7 @@ type Props = ComponentProps<typeof InvoiceDetails>
 
 const invoice: InvoiceDetail = {
   id: 'invoice-1', name: 'factura.pdf', sha256: 'hash', created_at: '2026-09-19T14:00:00Z',
-  finished_at: null, status: 'ready', pages: 1, total_cost_usd: '0.004', total_duration_ms: 2000,
+  billing: null, finished_at: null, status: 'ready', pages: 1, total_cost_usd: '0.004', total_duration_ms: 2000,
   retry_attempts: 0, last_error: null, next_retry_at: null, native_text: 'Texto original de la factura',
   erp: null, erp_snapshot_id: null,
   payment_decision: { classification: 'ESCALAR', reasons: ['Revisar importe'], checks: {} },
@@ -71,5 +72,28 @@ describe('split invoice details', () => {
     expect(markup).toContain('invoice-pdf-skeleton')
     expect(markup).toContain('data-slot="skeleton"')
     expect(markup).not.toContain('$0.0040')
+  })
+
+  test('shows category icons beside extracted concepts and preserves uncategorized lines', () => {
+    const featureAmounts: NonNullable<Props['featureAmounts']> = {
+      ...props.featureAmounts!,
+      lineItems: [
+        { description: 'Mantenimiento trimestral (1 ud)', amount: '100 €',
+          category: { icon: maintenanceIcon, label: es.extraction.categories.maintenance } },
+        { description: 'Ajuste por redondeo', amount: '-0,01 €', category: null },
+      ],
+    }
+    const markup = renderToStaticMarkup(<InvoiceDetails {...props} featureAmounts={featureAmounts} />)
+    expect(markup).toContain(`src="${maintenanceIcon}"`)
+    expect(markup).toContain(`alt="${es.extraction.categories.maintenance}"`)
+    expect(markup).toContain('width="24" height="24"')
+    expect(markup.match(/class="extraction-category-icon"/g)).toHaveLength(1)
+    expect(markup).toContain('Mantenimiento trimestral (1 ud)</span></span><span>100 €')
+    expect(markup).toContain('Ajuste por redondeo</span></span><span>-0,01 €')
+    const erpMarkup = renderToStaticMarkup(<InvoiceDetails {...props} featureAmounts={featureAmounts} dataTab="erp" />)
+    expect(erpMarkup).not.toContain('extraction-category-icon')
+    const loadingMarkup = renderToStaticMarkup(<InvoiceDetails {...props} featureAmounts={featureAmounts} extractionLoading />)
+    expect(loadingMarkup).not.toContain('extraction-category-icon')
+    expect(loadingMarkup).toContain('data-slot="skeleton"')
   })
 })

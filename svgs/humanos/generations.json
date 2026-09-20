@@ -1,0 +1,266 @@
+{
+  "team_name": "hUMAnos",
+  "uma": "Universidad de Málaga",
+  "endpoint": "https://api.quiver.ai/v1/svgs/generations",
+  "header_size": {
+    "width": 141,
+    "height": 30
+  },
+  "concepts": [
+    {
+      "id": "01-abrazo-uma",
+      "name": "Abrazo UMA",
+      "description": "Personas que se unen; una U que acoge.",
+      "primary": "#1B4038",
+      "secondary": "#65B495",
+      "favicon_accent": "#AFE7CD",
+      "files": {
+        "symbol": "01-abrazo-uma-simbolo.svg",
+        "header": "01-abrazo-uma-cabecera.svg",
+        "favicon": "01-abrazo-uma-favicon.svg"
+      },
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A warm, ingenious symbol of two people forming a welcoming U-shaped embrace. Two substantial round heads sit above broad rounded arms that join into a single open bowl-like U silhouette. The negative space feels like an open doorway and a shared human space. Make it elegant and compact, with the emotional warmth of people helping people and a subtle U for Universidad. Exactly two heads, no facial features, no tiny elements, no heart. Use deep forest green #1B4038 as the dominant color and soft jade #65B495 for one partner. Avoid a generic healthcare logo by making the arms interlock in a distinct asymmetric gesture.",
+        "instructions": "Create an original professional logo SYMBOL for the hackathon team hUMAnos. The capital letters UMA refer to Universidad de Málaga; the name also means humans in Spanish. The identity should balance warmth, university ingenuity and capable technology. This symbol must work both beside the hUMAnos wordmark in an app header and at 16x16 pixels as a favicon. Design on a square 512x512 SVG viewBox, with bold filled silhouettes, generous negative space and about 48 units of clear padding. No small details: at most six main shapes, important openings at least 32 units wide. Fully transparent canvas. Do not draw a background rectangle, frame, badge or presentation tile. Flat opaque two-color vector paths and basic shapes only. No gradients, shadows, filters, raster images, fonts, scripts or external assets. Do not include the written team name, words, tagline or text; the separate wordmark will be typeset later. Do not reproduce the official university seal or an existing company logo. Return exactly one cohesive symbol.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "fa23d52c-ee40-49c2-a69e-37abb4bfee87",
+      "generated_at": "2026-09-19T22:36:42.176249+00:00",
+      "response": {
+        "created": 1789857390,
+        "id": "37e47366e662417c88e992e491679239",
+        "usage": {
+          "input_tokens": 723,
+          "output_tokens": 3158,
+          "total_tokens": 3881
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(0.978700 0 0 0.978700 4.841070 5.819771)",
+        "minimum_padding": 32
+      },
+      "wordmark": {
+        "text": "hUMAnos",
+        "emphasis": "UMA",
+        "font": "Liberation Sans Bold",
+        "rendering": "outlined vector paths"
+      }
+    },
+    {
+      "id": "02-conocimiento-al-sol",
+      "name": "Conocimiento al sol",
+      "description": "Universidad, curiosidad y luz de Málaga.",
+      "primary": "#15627D",
+      "secondary": "#E5AB43",
+      "favicon_accent": "#FFE1A1",
+      "files": {
+        "symbol": "02-conocimiento-al-sol-simbolo.svg",
+        "header": "02-conocimiento-al-sol-cabecera.svg",
+        "favicon": "02-conocimiento-al-sol-favicon.svg"
+      },
+      "request": {
+        "model": "arrow-2",
+        "prompt": "An original university-team emblem merging an open book with a rising Mediterranean sun. Two broad gently curved book pages form one shallow M-like silhouette below a single semicircular sun. The central book fold is a bold negative-space notch; the pages also suggest a sheltered bay and open arms. Restrained, modern and intellectual with warmth, no formal academic crest. Use Mediterranean deep blue #15627D for the pages and warm gold #E5AB43 for the sun. Only three or four major shapes, no rays, waves, tiny pages or decorative lines.",
+        "instructions": "Create an original professional logo SYMBOL for the hackathon team hUMAnos. The capital letters UMA refer to Universidad de Málaga; the name also means humans in Spanish. The identity should balance warmth, university ingenuity and capable technology. This symbol must work both beside the hUMAnos wordmark in an app header and at 16x16 pixels as a favicon. Design on a square 512x512 SVG viewBox, with bold filled silhouettes, generous negative space and about 48 units of clear padding. No small details: at most six main shapes, important openings at least 32 units wide. Fully transparent canvas. Do not draw a background rectangle, frame, badge or presentation tile. Flat opaque two-color vector paths and basic shapes only. No gradients, shadows, filters, raster images, fonts, scripts or external assets. Do not include the written team name, words, tagline or text; the separate wordmark will be typeset later. Do not reproduce the official university seal or an existing company logo. Return exactly one cohesive symbol.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "67b256a4-f0f1-4cdd-b084-c4ceb567521a",
+      "generated_at": "2026-09-19T22:37:14.330588+00:00",
+      "response": {
+        "created": 1789857426,
+        "id": "b76bf3650faf4c8db7fa1263cfaa1b79",
+        "usage": {
+          "input_tokens": 722,
+          "output_tokens": 2798,
+          "total_tokens": 3520
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(1.254902 0 0 1.254902 -65.254902 -75.921569)",
+        "minimum_padding": 32
+      },
+      "wordmark": {
+        "text": "hUMAnos",
+        "emphasis": "UMA",
+        "font": "Liberation Sans Bold",
+        "rendering": "outlined vector paths"
+      }
+    },
+    {
+      "id": "03-ligadura-uma",
+      "name": "Ligadura UMA",
+      "description": "Las tres letras, una sola identidad.",
+      "primary": "#4945B8",
+      "secondary": "#8A83D5",
+      "favicon_accent": "#D5D1FF",
+      "files": {
+        "symbol": "03-ligadura-uma-simbolo.svg",
+        "header": "03-ligadura-uma-cabecera.svg",
+        "favicon": "03-ligadura-uma-favicon.svg"
+      },
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A beautifully engineered compact UMA ligature: the Latin uppercase letters U, M and A are fused into a single square-proportioned geometric monogram using a shared thick continuous ribbon and generous negative space. A rounded outer U, a central two-peaked M rhythm and a triangular A counter should be discoverable on closer inspection, but the whole mark must be one simple memorable silhouette. Prioritize the silhouette and small-size legibility over making three separate letters. Use rich indigo #4945B8 and muted lavender #8A83D5 for a single connective segment. No separate letters laid out side-by-side and no other text.",
+        "instructions": "Create an original professional logo SYMBOL for the hackathon team hUMAnos. The capital letters UMA refer to Universidad de Málaga; the name also means humans in Spanish. The identity should balance warmth, university ingenuity and capable technology. This symbol must work both beside the hUMAnos wordmark in an app header and at 16x16 pixels as a favicon. Design on a square 512x512 SVG viewBox, with bold filled silhouettes, generous negative space and about 48 units of clear padding. No small details: at most six main shapes, important openings at least 32 units wide. Fully transparent canvas. Do not draw a background rectangle, frame, badge or presentation tile. Flat opaque two-color vector paths and basic shapes only. No gradients, shadows, filters, raster images, fonts, scripts or external assets. Do not include the written team name, words, tagline or text; the separate wordmark will be typeset later. Do not reproduce the official university seal or an existing company logo. Return exactly one cohesive symbol.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "98f82e7e-59bc-4913-97c2-049c68c7001e",
+      "generated_at": "2026-09-19T22:37:50.930904+00:00",
+      "response": {
+        "created": 1789857460,
+        "id": "3d8eb51d0e674696b650ba9d09f34c9e",
+        "usage": {
+          "input_tokens": 723,
+          "output_tokens": 3180,
+          "total_tokens": 3903
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(1.013575 0 0 1.013575 1.846154 1.719457)",
+        "minimum_padding": 32
+      },
+      "wordmark": {
+        "text": "hUMAnos",
+        "emphasis": "UMA",
+        "font": "Liberation Sans Bold",
+        "rendering": "outlined vector paths"
+      }
+    },
+    {
+      "id": "04-manos-que-suman",
+      "name": "Manos que suman",
+      "description": "El lado humano de construir en equipo.",
+      "primary": "#B95339",
+      "secondary": "#DFA483",
+      "favicon_accent": "#FFD6BE",
+      "files": {
+        "symbol": "04-manos-que-suman-simbolo.svg",
+        "header": "04-manos-que-suman-cabecera.svg",
+        "favicon": "04-manos-que-suman-favicon.svg"
+      },
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A distinctive human-centered team emblem: two opposing simplified hands, drawn as broad soft sculptural shapes with only one thumb notch each, interlock around a clean diamond of negative space. The hands feel supportive and collaborative, as if holding a shared idea. Asymmetrical but optically balanced, warm and capable, contemporary editorial brand design. Use warm burnt sienna #B95339 and light clay #DFA483. Avoid a literal handshake, finger detail, heart shape, medical cross or generic charity logo. Only two confident hand silhouettes and one memorable central opening.",
+        "instructions": "Create an original professional logo SYMBOL for the hackathon team hUMAnos. The capital letters UMA refer to Universidad de Málaga; the name also means humans in Spanish. The identity should balance warmth, university ingenuity and capable technology. This symbol must work both beside the hUMAnos wordmark in an app header and at 16x16 pixels as a favicon. Design on a square 512x512 SVG viewBox, with bold filled silhouettes, generous negative space and about 48 units of clear padding. No small details: at most six main shapes, important openings at least 32 units wide. Fully transparent canvas. Do not draw a background rectangle, frame, badge or presentation tile. Flat opaque two-color vector paths and basic shapes only. No gradients, shadows, filters, raster images, fonts, scripts or external assets. Do not include the written team name, words, tagline or text; the separate wordmark will be typeset later. Do not reproduce the official university seal or an existing company logo. Return exactly one cohesive symbol.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "546d4ed0-9276-4603-a97a-a2126cf0b461",
+      "generated_at": "2026-09-19T22:38:21.918420+00:00",
+      "response": {
+        "created": 1789857495,
+        "id": "9afebddf8cbf439ab5510bf5b25d62b6",
+        "usage": {
+          "input_tokens": 722,
+          "output_tokens": 3092,
+          "total_tokens": 3814
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 0,
+        "content_transform": "matrix(1.153896 0 0 1.153896 -40.118480 -40.118480)",
+        "minimum_padding": 32
+      },
+      "wordmark": {
+        "text": "hUMAnos",
+        "emphasis": "UMA",
+        "font": "Liberation Sans Bold",
+        "rendering": "outlined vector paths"
+      }
+    },
+    {
+      "id": "05-agora",
+      "name": "Ágora",
+      "description": "Tres personas, un centro compartido.",
+      "primary": "#244D4B",
+      "secondary": "#BD963F",
+      "favicon_accent": "#F4D78D",
+      "files": {
+        "symbol": "05-agora-simbolo.svg",
+        "header": "05-agora-cabecera.svg",
+        "favicon": "05-agora-favicon.svg"
+      },
+      "request": {
+        "model": "arrow-2",
+        "prompt": "An original compact agora emblem representing a university team collaborating: three abstract human figures placed at 120-degree intervals around a generous triangular central opening. Each figure combines a substantial round head and one broad curved shoulder arc; the three shoulder arcs fit together into a stable rounded triangular rosette. It should feel like people gathered around an idea, not recycling arrows or a sports federation logo. Use deep petrol green #244D4B as the dominant color and restrained gold #BD963F for one figure. Very few bold shapes, no additional nodes, sparkle, letters, tiny gaps or thin connecting lines.",
+        "instructions": "Create an original professional logo SYMBOL for the hackathon team hUMAnos. The capital letters UMA refer to Universidad de Málaga; the name also means humans in Spanish. The identity should balance warmth, university ingenuity and capable technology. This symbol must work both beside the hUMAnos wordmark in an app header and at 16x16 pixels as a favicon. Design on a square 512x512 SVG viewBox, with bold filled silhouettes, generous negative space and about 48 units of clear padding. No small details: at most six main shapes, important openings at least 32 units wide. Fully transparent canvas. Do not draw a background rectangle, frame, badge or presentation tile. Flat opaque two-color vector paths and basic shapes only. No gradients, shadows, filters, raster images, fonts, scripts or external assets. Do not include the written team name, words, tagline or text; the separate wordmark will be typeset later. Do not reproduce the official university seal or an existing company logo. Return exactly one cohesive symbol.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "1981186a-5e34-421e-a294-e878757a1def",
+      "generated_at": "2026-09-19T22:39:01.226857+00:00",
+      "response": {
+        "created": 1789857529,
+        "id": "e4eaf74237e34d83b24f3d025b5dcad9",
+        "usage": {
+          "input_tokens": 722,
+          "output_tokens": 3325,
+          "total_tokens": 4047
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(1.161374 0 0 1.161374 -41.456902 -16.777706)",
+        "minimum_padding": 32
+      },
+      "wordmark": {
+        "text": "hUMAnos",
+        "emphasis": "UMA",
+        "font": "Liberation Sans Bold",
+        "rendering": "outlined vector paths"
+      }
+    }
+  ]
+}

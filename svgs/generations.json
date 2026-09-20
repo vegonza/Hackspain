@@ -1,0 +1,81 @@
+{
+  "supplier": {
+    "supplier_id": "P015",
+    "legal_name": "Tokyo Systems K.K."
+  },
+  "source": "500-sombras-de-alberto/proveedores_nuevos.csv",
+  "endpoint": "https://api.quiver.ai/v1/svgs/generations",
+  "generated_at": "2026-09-19T22:18:01.147494+00:00",
+  "generations": [
+    {
+      "filename": "tokyo-systems-01-circuito.svg",
+      "direction": "Circuito índigo",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a distinctive logo symbol for Tokyo Systems K.K., a fictional Japanese technology and systems engineering supplier. Concept: a bold architectural capital T formed from precisely connected circuit-like geometry, combining Japanese graphic restraint with the feeling of a reliable digital network. Make a memorable compact silhouette with slightly softened corners, clean squared terminals, and carefully proportioned negative space. Use deep indigo #3434B8 for the main connected mark and electric blue #4F8CFF for one small intentional terminal or connection accent. Avoid a literal microchip, tiny nodes, busy circuitry, or a generic computer icon. Symbol only; no written company name.",
+        "instructions": "Create an original, polished corporate brand symbol as a standalone SVG. Square 512x512 viewBox, transparent background, centered optical balance, about 64 units of clear margin. This is for a small supplier avatar in an elegant invoice dashboard with a white background. Use bold simple silhouettes and generous negative space so the symbol reads at 32 and 40 pixels. Only flat filled vector paths and basic shapes. No raster images, external assets, fonts, filters, shadows, gradients, background tile, text labels, captions, mockups, or decorative presentation. Do not reproduce an existing company logo. Return one cohesive brand mark, not a sheet of alternatives.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "a55c1682-a219-4ee9-b345-419827597d59",
+      "response": {
+        "created": 1789856303,
+        "id": "1ef7da8a5962432e94e77cdb44124644",
+        "usage": {
+          "input_tokens": 723,
+          "output_tokens": 3199,
+          "total_tokens": 3922
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangle": true,
+        "content_transform": "matrix(0.908338 0 0 0.908338 13.814311 -0.605559)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "filename": "tokyo-systems-02-monograma.svg",
+      "direction": "Monograma bermellón",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a distinctive logo symbol for Tokyo Systems K.K., a fictional Japanese technology and systems engineering supplier. Concept: an ingenious interlocking TS monogram drawn as one compact geometric emblem. Let two confident ribbon-like forms and the negative space suggest the T and S, with the rhythm of a precise modular Japanese design. Use warm vermilion #E64B35 as the dominant color and very dark burgundy #642C39 for the second interlocking element. Flat two-color construction with no simulated 3D, no shading. The result should feel crafted, authoritative, and memorable, with a strong small-size silhouette and no tiny gaps. Avoid a flag, sun illustration, torii gate, or generic technology pictogram. Symbol only; no written company name.",
+        "instructions": "Create an original, polished corporate brand symbol as a standalone SVG. Square 512x512 viewBox, transparent background, centered optical balance, about 64 units of clear margin. This is for a small supplier avatar in an elegant invoice dashboard with a white background. Use bold simple silhouettes and generous negative space so the symbol reads at 32 and 40 pixels. Only flat filled vector paths and basic shapes. No raster images, external assets, fonts, filters, shadows, gradients, background tile, text labels, captions, mockups, or decorative presentation. Do not reproduce an existing company logo. Return one cohesive brand mark, not a sheet of alternatives.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "e4957c7f-700f-4e37-aba4-b01b7d271490",
+      "response": {
+        "created": 1789856340,
+        "id": "457adeba33334132a0b85630e056badb",
+        "usage": {
+          "input_tokens": 725,
+          "output_tokens": 2973,
+          "total_tokens": 3698
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangle": false,
+        "content_transform": "matrix(1.308348 0 0 1.308348 -78.446337 -84.170358)",
+        "minimum_padding": 64
+      }
+    }
+  ]
+}

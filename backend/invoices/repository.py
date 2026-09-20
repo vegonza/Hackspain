@@ -10,14 +10,28 @@ from shared.redis import get_redis
 from shared.identifiers import normalize_tax_id
 from shared.retries import RetryState
 from invoices.queue import RETRIES
-from extractor.extraction import InvoiceExtraction
+from extractor.extraction import InvoiceExtraction, InvoiceLine
 from shared.logger import get_logger
 from erp import ErpEntry
 from rules.models import Decision
 from rules.currency import reconciliation_rate
 
 
-INVOICE_VIRTUAL_FIELDS = {"payment_decision", "retry_attempts", "last_error", "next_retry_at", "total_cost_usd", "total_duration_ms", "finished_at"}
+INVOICE_VIRTUAL_FIELDS = {"payment_decision", "retry_attempts", "last_error", "next_retry_at", "total_cost_usd", "total_duration_ms", "finished_at", "billing"}
+
+
+class InvoiceBilling(BaseModel):
+    invoice_number: str | None
+    supplier_name: str | None
+    supplier_nif: str | None
+    invoice_date: str | None
+    purchase_order: str | None
+    line_items: list[InvoiceLine] | None
+    currency: str | None
+    tax_base: Decimal | None
+    total: Decimal | None
+    tax_base_eur: Decimal | None
+    total_eur: Decimal | None
 
 
 class Invoice(BaseModel):
@@ -28,6 +42,7 @@ class Invoice(BaseModel):
     finished_at: datetime | None = None
     status: Literal["queued", "processing", "ready", "error"] = "queued"
     pages: int = 0
+    billing: InvoiceBilling | None = None
     payment_decision: Decision | None = None
     total_cost_usd: Decimal | None = None
     total_duration_ms: int | None = None
@@ -54,17 +69,17 @@ def read_invoice(invoice_id: UUID) -> Invoice:
         raise HTTPException(status_code=404, detail="invoice_not_found")
     with get_redis() as redis:
         payload = redis.hget(RETRIES, str(invoice_id))
-    return with_retry_state(Invoice.model_validate(rows[0]), RetryState.model_validate_json(payload) if payload is not None else RetryState())
+    return with_retry_state(Invoice.model_validate({**rows[0], "billing": InvoiceBilling.model_validate(rows[0])}), RetryState.model_validate_json(payload) if payload is not None else RetryState())
 
 
 def list_invoices() -> list[Invoice]:
     invoices: list[Invoice] = []
     while True:
-        rows = get_client().rpc("get_documents", {"p_offset": len(invoices), "p_limit": 1000}).execute().data
+        rows = get_client().rpc("get_invoices", {"p_offset": len(invoices), "p_limit": 1000}).execute().data
         if rows:
             with get_redis() as redis:
                 states = redis.hmget(RETRIES, [row["id"] for row in rows])
-            page = [with_retry_state(Invoice.model_validate(row), RetryState.model_validate_json(state) if state is not None else RetryState()) for row, state in zip(rows, states)]
+            page = [with_retry_state(Invoice.model_validate({**row, "billing": InvoiceBilling.model_validate(row["billing"])}), RetryState.model_validate_json(state) if state is not None else RetryState()) for row, state in zip(rows, states)]
             for invoice_record in page:
                 if invoice_record.status not in ("ready", "error"):
                     invoice_record.finished_at = None

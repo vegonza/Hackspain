@@ -1,35 +1,20 @@
-import { useCallback, useMemo, useRef, useState, type ChangeEvent, type MouseEvent } from 'react'
+import { useCallback, useRef, useState, type ChangeEvent, type MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { invoicePath, useAppRoute } from '@/hooks/useAppRoute'
+import { useInvoiceTable } from '@/hooks/useInvoiceTable'
+import { useInvoiceImports, type InvoiceUpload } from '@/hooks/useInvoiceImports'
 import { useInvoiceDetail } from '@/hooks/useInvoiceDetail'
 import { invoiceErrorKey } from '@/hooks/invoiceError'
 import { invoiceMetrics } from '@/hooks/invoiceMetrics'
+import { invoiceLineCategory } from '@/hooks/invoiceLineCategory'
 import { deleteInvoice, redoInvoice, retryInvoice, fetchInvoices, uploadInvoice, type Invoice } from '@/api/invoices'
 import { formatAmount, formatStatus } from '@/lib/format'
 
 const isProcessing = (document: Invoice) => document.status === 'queued' || document.status === 'processing'
 
-export type InvoiceSortColumn = 'name' | 'status' | 'decision' | 'cost' | 'duration' | 'created'
-
-interface UploadingFile { id: string; name: string; created_at: string }
-
 export function useInvoices() {
   const { t } = useTranslation()
-  const [search, setSearch] = useState('')
-  const [sortColumn, setSortColumn] = useState<InvoiceSortColumn | null>(null)
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-  const onToggleSort = (column: InvoiceSortColumn) => {
-    if (sortColumn !== column) {
-      setSortColumn(column)
-      setSortDirection('asc')
-    } else if (sortDirection === 'asc') {
-      setSortDirection('desc')
-    } else {
-      setSortColumn(null)
-      setSortDirection('asc')
-    }
-  }
   const { view, invoiceId: selectedId, navigate, followLink } = useAppRoute()
   const [lineItemsState, setLineItemsState] = useState({ invoiceId: selectedId, expanded: false })
   if (lineItemsState.invoiceId !== selectedId) setLineItemsState({ invoiceId: selectedId, expanded: false })
@@ -37,7 +22,9 @@ export function useInvoices() {
   const { selected, loading, pdfUrl, pdfLoading, mountDetail, refreshDetail, updateMetrics, sourceTab, onSourceTab, dataTab, onDataTab } = useInvoiceDetail(selectedId)
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [invoicesLoading, setInvoicesLoading] = useState(true)
-  const [uploads, setUploads] = useState<UploadingFile[]>([])
+  const [uploads, setUploads] = useState<InvoiceUpload[]>([])
+  const uploadsInFlight = useRef(new Set<string>())
+  const imports = useInvoiceImports(invoices, uploads, view === 'invoices' && selectedId === null)
   const [deleting, setDeleting] = useState(false)
   const [retrying, setRetrying] = useState(false)
   const [redoing, setRedoing] = useState(false)
@@ -53,7 +40,7 @@ export function useInvoices() {
   }, [])
 
   const watchInvoices = useCallback((node: HTMLDivElement | null) => {
-    if (node === null || view !== 'invoices') return
+    if (node === null) return
     let active = true
     let timer: ReturnType<typeof setTimeout> | undefined
     let fetching = false
@@ -112,11 +99,7 @@ export function useInvoices() {
       schedulePolling.current = null
       document.removeEventListener('visibilitychange', onVisibilityChange)
     }
-  }, [t, updateInvoices, updateMetrics, view, selectedId, refreshDetail])
-
-  function onBack(): void {
-    navigate('/invoices')
-  }
+  }, [t, updateInvoices, updateMetrics, selectedId, refreshDetail])
 
   function onInvoiceLink(event: MouseEvent<HTMLAnchorElement>): void {
     event.stopPropagation()
@@ -130,25 +113,38 @@ export function useInvoices() {
     const valid = files.filter(file => file.name.toLowerCase().endsWith('.pdf'))
     if (valid.length !== files.length) toast.error(t('invoices.invalidPdf'))
     if (valid.length === 0) return
-    const pending = valid.map(file => ({ id: `upload-${crypto.randomUUID()}`, name: file.name, created_at: new Date().toISOString(), file }))
+    const pending = valid.map(file => ({ id: `upload-${crypto.randomUUID()}`, name: file.name, file, status: 'queued' as const }))
     setUploads(current => [...pending, ...current])
-    onBack()
-    setSearch('')
     const tasks = pending.values()
     async function transfer(): Promise<void> {
       for (const item of tasks) {
-        try {
-          const document = await uploadInvoice(item.file)
-          ++listRevision.current
-          updateInvoices([document, ...invoicesRef.current.filter(existing => existing.id !== document.id)])
-        } catch {
-          // The API client displays upload errors.
-        } finally {
-          setUploads(current => current.filter(upload => upload.id !== item.id))
-        }
+        await transferUpload(item)
       }
     }
     await Promise.all(Array.from({ length: Math.min(3, pending.length) }, () => transfer()))
+  }
+
+  async function transferUpload(item: InvoiceUpload): Promise<void> {
+    if (uploadsInFlight.current.has(item.id)) return
+    uploadsInFlight.current.add(item.id)
+    setUploads(current => current.map(upload => upload.id === item.id ? { ...upload, status: 'uploading' } : upload))
+    try {
+      const invoice = await uploadInvoice(item.file)
+      ++listRevision.current
+      imports.track(invoice.id)
+      updateInvoices([invoice, ...invoicesRef.current.filter(existing => existing.id !== invoice.id)])
+      setUploads(current => current.filter(upload => upload.id !== item.id))
+    } catch {
+      setUploads(current => current.map(upload => upload.id === item.id ? { ...upload, status: 'error' } : upload))
+    } finally {
+      uploadsInFlight.current.delete(item.id)
+    }
+  }
+
+  async function onRetryImport(id: string): Promise<void> {
+    const upload = uploads.find(item => item.id === id)
+    if (upload !== undefined) await transferUpload(upload)
+    else await onRedo(id)
   }
 
   async function onDelete(id: string): Promise<void> {
@@ -209,36 +205,7 @@ export function useInvoices() {
       ? t('processing.durationSeconds', { value: (centiseconds / 100).toFixed(2) })
       : t('processing.durationMinutes', { minutes: Math.floor(centiseconds / 6000), seconds: ((centiseconds % 6000) / 100).toFixed(2) })
   }
-  const rows = useMemo(() => [
-    ...uploads.map(upload => ({ ...upload, status: 'uploading' as const, payment_decision: null, total_cost_usd: null,
-      total_duration_ms: null, last_error: null, next_retry_at: null })),
-    ...invoices,
-  ], [uploads, invoices])
-
-  const filteredInvoices = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase()
-    const filtered = rows.filter(document => document.name.toLocaleLowerCase().includes(query))
-    const sortValue = (row: typeof rows[number]): string | number | null => {
-      switch (sortColumn) {
-        case 'name': return row.name
-        case 'status': return row.next_retry_at !== null ? t('invoices.retryQueued') : t(`invoices.${row.status}`)
-        case 'decision': return row.payment_decision === null ? null : t(`invoices.decisions.${row.payment_decision.classification}`)
-        case 'cost': return row.total_cost_usd === null ? null : Number(row.total_cost_usd)
-        case 'duration': return row.total_duration_ms
-        case 'created': return row.status === 'uploading' ? null : Date.parse(row.created_at)
-        default: return null
-      }
-    }
-    if (sortColumn !== null) filtered.sort((a, b) => {
-      const left = sortValue(a), right = sortValue(b)
-      if (left === null) return right === null ? 0 : 1
-      if (right === null) return -1
-      const comparison = typeof left === 'number' && typeof right === 'number'
-        ? left - right : String(left).localeCompare(String(right), 'es', { numeric: true, sensitivity: 'base' })
-      return sortDirection === 'asc' ? comparison : -comparison
-    })
-    return filtered
-  }, [rows, search, sortColumn, sortDirection, t])
+  const table = useInvoiceTable(invoices, invoicesLoading)
 
   const erp = selected === null ? null : selected.erp
   const extraction = selected === null ? null : selected.extraction
@@ -250,7 +217,13 @@ export function useInvoices() {
     vatAmount: featureMoney(extraction.vat_amount, extraction.currency),
     total: featureMoney(extraction.total, extraction.currency),
     lineItems: (lineItemsExpanded ? extraction.line_items : extraction.line_items.slice(0, 3))
-      .map(line => ({ description: line.description, amount: featureMoney(line.amount, extraction.currency) })),
+      .map(line => {
+        const category = invoiceLineCategory(line.description)
+        return {
+          description: line.description, amount: featureMoney(line.amount, extraction.currency),
+          category: category === undefined ? null : { icon: category.icon, label: t(`extraction.categories.${category.id}`) },
+        }
+      }),
     canExpandLineItems: extraction.line_items.length > 3,
     lineItemsExpanded,
     onToggleLineItems: () => setLineItemsState({ invoiceId: selectedId, expanded: !lineItemsExpanded }),
@@ -272,7 +245,7 @@ export function useInvoices() {
       ...(erp.warnings.length === 0 ? [] : [{ label: t('erp.warningsLabel'), value: erp.warnings.map(warning => t(`erp.warnings.${warning}`)).join('; ') }]),
     ]),
   ]
-  const selectedRow = rows.find(document => document.id === selectedId)
+  const selectedRow = invoices.find(document => document.id === selectedId)
   const metricsLoading = loading && selected === null && selectedRow === undefined
   const metrics = invoiceMetrics(selected, selectedRow)
   const totalDuration = formatDuration(metrics.total_duration_ms)
@@ -284,8 +257,7 @@ export function useInvoices() {
   return {
     redoing, onRedo,
     metricsLoading, emptyMessage, erpRows, totalDuration, totalCost,
-    filteredInvoices, invoicesLoading, sortColumn, sortDirection, onToggleSort,
-    search, onSearch: setSearch, onInvoiceLink, onNavigate: followLink,
+    table, imports, onRetryImport, invoicesLoading, onInvoiceLink, onNavigate: followLink,
     selected, selectedId, mountDetail, featureAmounts,
     loading, extractionLoading, pdfUrl, pdfLoading, deleting, sourceTab, onSourceTab, dataTab, onDataTab, watchInvoices,
     retrying,
@@ -297,7 +269,7 @@ export function useInvoices() {
     labels: {
       decision: t('invoices.decision'), justification: t('invoices.justification'),
       decisionLabel: selected === null || selected.payment_decision === null ? t('invoices.decisionPending') : t(`invoices.decisions.${selected.payment_decision.classification}`),
-      count: t('invoices.count', { count: rows.length }),
+      count: t('invoices.count', { count: invoices.length }),
       erp: t('erp.title'), erpData: t('erp.dataTitle'), totalTime: t('invoices.totalTime'),
       totalCost: t('usage.totalCost'), waiting: t('processing.waiting'), appName: t('app.name'), upload: t('invoices.upload'),
       library: t('invoices.library'), search: t('invoices.search'), back: t('invoices.back'),

@@ -1,0 +1,166 @@
+{
+  "checked_at": "2026-09-19T23:22:24.375Z",
+  "sources": [
+    "public.documents (all active invoices)",
+    "public.suppliers",
+    "500-sombras-de-alberto/proveedores_nuevos.csv"
+  ],
+  "company_count": 17,
+  "active_invoice_count": 540,
+  "registry_supplier_count": 15,
+  "csv_supplier_count": 4,
+  "invoices_with_svg": 540,
+  "invoices_with_initials": 0,
+  "missing_invoice_logos": 0,
+  "missing_registry_logos": 0,
+  "missing_csv_logos": 0,
+  "companies": [
+    {
+      "name": "Suministros Levante S.L.",
+      "svg": "p001-suministros-levante.svg",
+      "active_invoices": 53,
+      "observed_names": [
+        "Suministros Levante S.L.",
+        "SUMINISTROS LEVANTE S.L."
+      ]
+    },
+    {
+      "name": "Transportes Guadaira S.A.",
+      "svg": "p002-transportes-guadaira.svg",
+      "active_invoices": 55,
+      "observed_names": [
+        "TRANSPORTES GUADAIRA S.A.",
+        "Transportes Guadaira S.A."
+      ]
+    },
+    {
+      "name": "Ofimática Cieza S.L.",
+      "svg": "p003-ofimatica-cieza.svg",
+      "active_invoices": 55,
+      "observed_names": [
+        "Ofimática Cieza S.L.",
+        "OFIMÁTICA CIEZA S.L."
+      ]
+    },
+    {
+      "name": "Limpiezas Turia S.L.",
+      "svg": "p004-limpiezas-turia.svg",
+      "active_invoices": 55,
+      "observed_names": [
+        "Limpiezas Turia S.L.",
+        "LIMPIEZAS TURIA S.L."
+      ]
+    },
+    {
+      "name": "Catering Hermanos Pico S.L.",
+      "svg": "p005-catering-hermanos-pico.svg",
+      "active_invoices": 47,
+      "observed_names": [
+        "Catering Hermanos Pico S.L.",
+        "CATERING HERMANOS PICO S.L."
+      ]
+    },
+    {
+      "name": "Electricidad Montcada S.A.",
+      "svg": "p006-electricidad-montcada.svg",
+      "active_invoices": 55,
+      "observed_names": [
+        "Electricidad Montcada S.A.",
+        "ELECTRICIDAD MONTCADA S.A."
+      ]
+    },
+    {
+      "name": "Papelería Ruzafa S.C.",
+      "svg": "p007-papeleria-ruzafa.svg",
+      "active_invoices": 50,
+      "observed_names": [
+        "PAPELERÍA RUZAFA S.C.",
+        "Papelería Ruzafa S.C."
+      ]
+    },
+    {
+      "name": "Seguridad Alcores S.L.",
+      "svg": "p008-seguridad-alcores.svg",
+      "active_invoices": 46,
+      "observed_names": [
+        "Seguridad Alcores S.L.",
+        "SEGURIDAD ALCORES S.L."
+      ]
+    },
+    {
+      "name": "Construcciones Benimaclet S.A.",
+      "svg": "p009-construcciones-benimaclet.svg",
+      "active_invoices": 10,
+      "observed_names": [
+        "Construcciones Benimaclet S.A.",
+        "CONSTRUCCIONES BENIMACLET S.A."
+      ]
+    },
+    {
+      "name": "Informática Benimámet S.L.",
+      "svg": "p010-informatica-benimamet.svg",
+      "active_invoices": 49,
+      "observed_names": [
+        "INFORMÁTICA BENIMÁMET S.L.",
+        "Informática Benimámet S.L."
+      ]
+    },
+    {
+      "name": "Mensajería Rápida del Sur S.L.",
+      "svg": "p011-mensajeria-rapida-del-sur.svg",
+      "active_invoices": 57,
+      "observed_names": [
+        "Mensajería Rápida del Sur S.L.",
+        "MENSAJERÍA RÁPIDA DEL SUR S.L."
+      ]
+    },
+    {
+      "name": "Müller & Partner GmbH",
+      "svg": "p012-muller-partner.svg",
+      "active_invoices": 2,
+      "observed_names": [
+        "Müller & Partner GmbH"
+      ]
+    },
+    {
+      "name": "Consulting Méridional SARL",
+      "svg": "p013-consulting-meridional.svg",
+      "active_invoices": 1,
+      "observed_names": [
+        "Consulting Méridional SARL"
+      ]
+    },
+    {
+      "name": "Serviços Aljarafe Ltda",
+      "svg": "p014-servicos-aljarafe.svg",
+      "active_invoices": 1,
+      "observed_names": [
+        "Serviços Aljarafe Ltda"
+      ]
+    },
+    {
+      "name": "Tokyo Systems K.K.",
+      "svg": "p015-tokyo-systems.svg",
+      "active_invoices": 1,
+      "observed_names": [
+        "Tokyo Systems K.K."
+      ]
+    },
+    {
+      "name": "Consultoría Documental Aljarafe S.L.",
+      "svg": "consultoria-documental-aljarafe.svg",
+      "active_invoices": 2,
+      "observed_names": [
+        "CONSULTORÍA DOCUMENTAL ALJARAFE S.L."
+      ]
+    },
+    {
+      "name": "Consultoría Estratégica Ibérica S.L.",
+      "svg": "consultoria-estrategica-iberica.svg",
+      "active_invoices": 1,
+      "observed_names": [
+        "Consultoría Estratégica Ibérica S.L."
+      ]
+    }
+  ]
+}

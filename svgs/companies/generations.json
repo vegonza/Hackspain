@@ -1,0 +1,688 @@
+{
+  "source": "public.suppliers (supplier_id, legal_name; read-only query)",
+  "endpoint": "https://api.quiver.ai/v1/svgs/generations",
+  "generations": [
+    {
+      "supplier": {
+        "supplier_id": "P001",
+        "legal_name": "Suministros Levante S.L."
+      },
+      "filename": "p001-suministros-levante.svg",
+      "direction": "Amanecer modular",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Suministros Levante S.L.. A compact geometric rising sun emerging from an open faceted supply crate: three bold interlocking blocks form a welcoming sunrise silhouette. Convey dependable distribution and the Mediterranean east. Make the sun and the crate one clever integrated symbol, not two separate illustrations. Use burnt orange #DB6B2E and warm golden yellow #F1B53B.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "19ceafd9-ff30-4b01-90f3-de3a8ef290a3",
+      "generated_at": "2026-09-19T22:23:45.791328+00:00",
+      "response": {
+        "created": 1789856613,
+        "id": "9e68b6b6c6fd420b82d673a37ca426c7",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 3197,
+          "total_tokens": 3917
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(0.832069 0 0 0.832069 42.990249 42.782232)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P002",
+        "legal_name": "Transportes Guadaira S.A."
+      },
+      "filename": "p002-transportes-guadaira.svg",
+      "direction": "Río en movimiento",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Transportes Guadaira S.A.. A flowing river ribbon turning decisively into a forward arrow, like a smooth winding road seen from above. A single broad sweeping movement with a crisp arrowhead and one contrasting bend. Convey transport, momentum, reliability, and the Guadaira river. Use deep teal #087E83 and bright turquoise #35B9B0. No vehicles, wheels or letters.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "0959f8da-23b1-4901-9d84-52d04cf0a025",
+      "generated_at": "2026-09-19T22:24:20.794591+00:00",
+      "response": {
+        "created": 1789856650,
+        "id": "70a684b0d5fe415aa5c3e9bd9aaa037f",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 3026,
+          "total_tokens": 3746
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(1.028801 0 0 1.028801 -18.561286 18.346952)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P003",
+        "legal_name": "Ofimática Cieza S.L."
+      },
+      "filename": "p003-ofimatica-cieza.svg",
+      "direction": "Documento modular",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Ofimática Cieza S.L.. An ingenious folded document emblem made from two broad offset sheets that snap together into one modular office-system symbol. One sharply folded corner and a bold negative-space slot make it memorable. Geometric, orderly and efficient, not a literal detailed printer. Use rich violet #7751C9 with pale lavender #B49ADE. No writing or lines of simulated text.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "41cbe225-08d6-4eb1-99d4-0e306c0985db",
+      "generated_at": "2026-09-19T22:24:51.655914+00:00",
+      "response": {
+        "created": 1789856685,
+        "id": "0e7eff5eed674edeaebb5ebc175bcdbe",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 2988,
+          "total_tokens": 3708
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 0,
+        "content_transform": "matrix(1.000000 0 0 1.000000 -0.125000 -7.750000)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P004",
+        "legal_name": "Limpiezas Turia S.L."
+      },
+      "filename": "p004-limpiezas-turia.svg",
+      "direction": "Gota y destello",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Limpiezas Turia S.L.. A sculptural water droplet with one generous four-point sparkle carved into its side using negative space, with a small sweeping wave base integrated into the same silhouette. Freshness, cleanliness and flowing water. Use saturated aqua #009CA6 and dark turquoise #12656C. Keep the sparkle bold enough to read at 32px. No soap bubbles or tiny decorative sparkles.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "3d4cce18-6780-4bda-aedf-6f48aab7343f",
+      "generated_at": "2026-09-19T22:25:28.537674+00:00",
+      "response": {
+        "created": 1789856715,
+        "id": "a6bec82ce1bf49e4aeac8884427bd4af",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 3034,
+          "total_tokens": 3754
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(0.931474 0 0 0.931474 4.734991 27.439660)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P005",
+        "legal_name": "Catering Hermanos Pico S.L."
+      },
+      "filename": "p005-catering-hermanos-pico.svg",
+      "direction": "Campana y cumbres",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Catering Hermanos Pico S.L.. A distinctive serving-cloche silhouette whose dome subtly forms two friendly mountain peaks, a clever nod to the name Pico and the two brothers. A broad warm curved platter unifies the mark. Stylish hospitality identity, warm and appetizing, not a restaurant scene. Use tomato red #D94C3D and golden apricot #F1A43D. No cutlery, chef face or text.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "d1ec09e0-cb70-40b4-8dc3-710e81873c71",
+      "generated_at": "2026-09-19T22:26:07.269574+00:00",
+      "response": {
+        "created": 1789856753,
+        "id": "1a90cf922ddc4bfba62b75520c52d66a",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 3164,
+          "total_tokens": 3884
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(0.824919 0 0 0.824919 44.614393 44.923738)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P006",
+        "legal_name": "Electricidad Montcada S.A."
+      },
+      "filename": "p006-electricidad-montcada.svg",
+      "direction": "Energía circular",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Electricidad Montcada S.A.. A powerful angular lightning bolt cut through a nearly closed circular power ring, using negative space to make one cohesive energetic emblem. The bolt has a precise memorable stepped profile and the ring is thick and compact. Electrical installation and dependable power. Use warm amber #F0AE19 for the bolt and deep navy #263852 for the ring. No thin circuit lines or letters.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "abe4aeb7-972a-48a9-8720-0844e4aaac20",
+      "generated_at": "2026-09-19T22:26:57.837673+00:00",
+      "response": {
+        "created": 1789856810,
+        "id": "cba84d837554404d8404647680b63653",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 2882,
+          "total_tokens": 3602
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(0.902998 0 0 0.902998 24.155203 41.199295)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P007",
+        "legal_name": "Papelería Ruzafa S.C."
+      },
+      "filename": "p007-papeleria-ruzafa.svg",
+      "direction": "Ave de papel",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Papelería Ruzafa S.C.. A beautiful compact origami bird formed from three or four broad folded-paper facets, with an expressive upward wing and a crisp beak. Convey paper, craft, creativity and a lively neighborhood stationery shop. Use raspberry #C6407C and pink coral #EE849C. The bird should be perched or opening its wing, not a paper airplane. No feather detail, eye dot or lettering.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "8ff2150c-6669-4651-a1eb-e59b5ccd462d",
+      "generated_at": "2026-09-19T22:27:27.286713+00:00",
+      "response": {
+        "created": 1789856842,
+        "id": "bed1f97d9a5c400e9e0ff3cff234dfa3",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 2783,
+          "total_tokens": 3503
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 0,
+        "content_transform": "matrix(1.029491 0 0 1.029491 -19.260054 -7.549598)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P008",
+        "legal_name": "Seguridad Alcores S.L."
+      },
+      "filename": "p008-seguridad-alcores.svg",
+      "direction": "Búho protector",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Seguridad Alcores S.L.. A striking watchful owl face integrated into a solid shield outline: two broad angular brow shapes and generous negative-space eye openings, with the shield taper suggesting the beak. Security and vigilance, dignified rather than aggressive or cartoonish. Use midnight blue #294268 and muted gold #C7A25F as a small central beak accent. No pupils, feathers, tiny details or lettering.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "13af1182-d61c-48a7-98b0-c128d314090b",
+      "generated_at": "2026-09-19T22:28:08.764464+00:00",
+      "response": {
+        "created": 1789856876,
+        "id": "f98e456975de4dfb9e2989630c5cb333",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 3379,
+          "total_tokens": 4099
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(0.928097 0 0 0.928097 18.407251 18.291239)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P009",
+        "legal_name": "Construcciones Benimaclet S.A."
+      },
+      "filename": "p009-construcciones-benimaclet.svg",
+      "direction": "Arco construido",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Construcciones Benimaclet S.A.. An elegant architectural gateway formed by three substantial masonry blocks, with a carefully shaped arch cutout in negative space and one offset capstone suggesting skilled construction. Grounded, solid, contemporary Mediterranean architecture. Use terracotta #C65C42 and dark brick #793E34. No house roof, skyline, tools or letters.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "044dd21d-b49c-438b-8095-27255f83a01f",
+      "generated_at": "2026-09-19T22:28:39.675750+00:00",
+      "response": {
+        "created": 1789856915,
+        "id": "d46c6d3e7b0d48c59613a444c2b9f6f8",
+        "usage": {
+          "input_tokens": 719,
+          "output_tokens": 2740,
+          "total_tokens": 3459
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 0,
+        "content_transform": "matrix(1.401460 0 0 1.401460 -102.598540 -102.773723)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P010",
+        "legal_name": "Informática Benimámet S.L."
+      },
+      "filename": "p010-informatica-benimamet.svg",
+      "direction": "Núcleo conectado",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Informática Benimámet S.L.. Two interlocking geometric modules forming an abstract compact hexagonal computing core, with a crisp central diamond of negative space. Convey connected hardware and intelligent systems using broad flat shapes and a distinctive asymmetric connection. Use cobalt blue #2865CE and sky blue #53ACD6. No microchip pins, monitor, circuit lines, letters or dimensional shading.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "30512622-8900-4668-939e-85bf235018b8",
+      "generated_at": "2026-09-19T22:29:10.259558+00:00",
+      "response": {
+        "created": 1789856944,
+        "id": "fc04139dd5b540ec8d6461f646d7e7b2",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 2794,
+          "total_tokens": 3514
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 0,
+        "content_transform": "matrix(1.049180 0 0 1.049180 -12.459016 -12.852459)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P011",
+        "legal_name": "Mensajería Rápida del Sur S.L."
+      },
+      "filename": "p011-mensajeria-rapida-del-sur.svg",
+      "direction": "Envío veloz",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Mensajería Rápida del Sur S.L.. A confident forward-flying paper airplane whose trailing wing becomes a single bold speed swoosh. One compact aerodynamic silhouette with a cleverly folded negative-space diagonal. Express quick delivery and a warm southern character. Use vivid coral #F06A38 and dark rust #AE412C. The plane points up and right. No envelope, tiny speed stripes or letters.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "2711ec77-78a7-4243-aa5b-d577566f0d42",
+      "generated_at": "2026-09-19T22:29:41.338545+00:00",
+      "response": {
+        "created": 1789856972,
+        "id": "70f4af4118914d71990e89870d218e08",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 2746,
+          "total_tokens": 3466
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(0.998700 0 0 0.998700 0.582575 16.936281)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P012",
+        "legal_name": "Müller & Partner GmbH"
+      },
+      "filename": "p012-muller-partner.svg",
+      "direction": "Alianza entrelazada",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Müller & Partner GmbH. An original partnership emblem formed by two substantial interlocking open links, squared at the outside and gently rounded at their joining corners. Use precise negative-space crossings to suggest two equal partners working together. Restrained German design, trustworthy, balanced and premium. Use deep forest green #285A4A and warm brass #C5A35B. Avoid an infinity symbol, handshake, initials or letters.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "bc58b871-128d-442a-801c-5c4281c5cc2e",
+      "generated_at": "2026-09-19T22:30:18.163728+00:00",
+      "response": {
+        "created": 1789857007,
+        "id": "3b7d4907642643af9d71d451b7d2d62d",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 3279,
+          "total_tokens": 3999
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(1.229784 0 0 1.229784 -66.664532 -53.444355)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P013",
+        "legal_name": "Consulting Méridional SARL"
+      },
+      "filename": "p013-consulting-meridional.svg",
+      "direction": "Rumbo al sur",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Consulting Méridional SARL. An elegant compass-inspired directional emblem: one broad faceted pointer set against a partial sun arc, subtly oriented toward the south. The pointer and arc interlock into one compact distinctive symbol of guidance and strategic clarity. Use deep plum #77486D and golden ochre #DDA64B. Minimal two or three shapes, no compass ticks, map, letters or stars with many points.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "e2a0d54b-733e-4108-98bd-3638bdbab00e",
+      "generated_at": "2026-09-19T22:30:55.828897+00:00",
+      "response": {
+        "created": 1789857046,
+        "id": "9af1f6af2cc449d59c8cbe3e1c38cff9",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 2787,
+          "total_tokens": 3507
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(0.983985 0 0 0.983985 6.805894 37.678411)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "supplier_id": "P014",
+        "legal_name": "Serviços Aljarafe Ltda"
+      },
+      "filename": "p014-servicos-aljarafe.svg",
+      "direction": "Servicios en unión",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a logo for Serviços Aljarafe Ltda. Three broad curved fan-like blades interlocking around a clean triangular negative-space center, suggesting coordinated services, collaboration and a welcoming regional business. Organic but disciplined, with a sense of growth and continuity. Use rich emerald #21815B and bright leaf green #8BB84A, at most two colors. Avoid a recycling symbol, arrows, literal leaves, letters and tiny gaps.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "e00a134f-ca15-4cf4-95da-c1244b2740b6",
+      "generated_at": "2026-09-19T22:31:33.338833+00:00",
+      "response": {
+        "created": 1789857081,
+        "id": "191c6243198143f78655794a301e52f8",
+        "usage": {
+          "input_tokens": 720,
+          "output_tokens": 2983,
+          "total_tokens": 3703
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(0.983985 0 0 0.983985 33.250480 34.849455)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "filename": "p015-tokyo-systems.svg",
+      "direction": "Circuito índigo",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a distinctive logo symbol for Tokyo Systems K.K., a fictional Japanese technology and systems engineering supplier. Concept: a bold architectural capital T formed from precisely connected circuit-like geometry, combining Japanese graphic restraint with the feeling of a reliable digital network. Make a memorable compact silhouette with slightly softened corners, clean squared terminals, and carefully proportioned negative space. Use deep indigo #3434B8 for the main connected mark and electric blue #4F8CFF for one small intentional terminal or connection accent. Avoid a literal microchip, tiny nodes, busy circuitry, or a generic computer icon. Symbol only; no written company name.",
+        "instructions": "Create an original, polished corporate brand symbol as a standalone SVG. Square 512x512 viewBox, transparent background, centered optical balance, about 64 units of clear margin. This is for a small supplier avatar in an elegant invoice dashboard with a white background. Use bold simple silhouettes and generous negative space so the symbol reads at 32 and 40 pixels. Only flat filled vector paths and basic shapes. No raster images, external assets, fonts, filters, shadows, gradients, background tile, text labels, captions, mockups, or decorative presentation. Do not reproduce an existing company logo. Return one cohesive brand mark, not a sheet of alternatives.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "a55c1682-a219-4ee9-b345-419827597d59",
+      "response": {
+        "created": 1789856303,
+        "id": "1ef7da8a5962432e94e77cdb44124644",
+        "usage": {
+          "input_tokens": 723,
+          "output_tokens": 3199,
+          "total_tokens": 3922
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangle": true,
+        "content_transform": "matrix(0.908338 0 0 0.908338 13.814311 -0.605559)",
+        "minimum_padding": 64
+      },
+      "supplier": {
+        "supplier_id": "P015",
+        "legal_name": "Tokyo Systems K.K."
+      },
+      "reused_from": "../tokyo-systems-01-circuito.svg"
+    },
+    {
+      "supplier": {
+        "legal_name": "Consultoría Documental Aljarafe S.L.",
+        "tax_id": "B41908877"
+      },
+      "source": "public.documents (supplier_name, supplier_nif; read-only query)",
+      "filename": "consultoria-documental-aljarafe.svg",
+      "direction": "Archivo del Aljarafe",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design a memorable corporate logo for the fictional Spanish company Consultoría Documental Aljarafe S.L., a document consultancy in Andalusia. Create one cohesive emblem made from two broad layered upright document sheets that together form a graceful arched gateway in their negative space. The leading sheet has one clearly folded ochre corner. The symbol should immediately evoke orderly documents and trusted expertise, with a subtle Andalusian architectural character. Use deep teal #0C746C and warm ochre #D69A45. Bold, beautifully balanced, compact and minimal. No letters, initials, monograms, writing, thin decorative lines, checkmarks or small details.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "c9da6e05-2e60-4027-8e9b-2e097940f30b",
+      "generated_at": "2026-09-19T23:08:41.722008+00:00",
+      "response": {
+        "created": 1789859313,
+        "id": "dfe6ce6172e74b0b9a2978966bec9aeb",
+        "usage": {
+          "input_tokens": 723,
+          "output_tokens": 2925,
+          "total_tokens": 3648
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(1.306122 0 0 1.306122 -78.530612 -78.693878)",
+        "minimum_padding": 64
+      }
+    },
+    {
+      "supplier": {
+        "legal_name": "Consultoría Estratégica Ibérica S.L.",
+        "tax_id": "B87654321"
+      },
+      "source": "public.documents (supplier_name, supplier_nif; read-only query)",
+      "filename": "consultoria-estrategica-iberica.svg",
+      "direction": "Rumbo estratégico",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design an original corporate brand symbol for the fictional Spanish company Consultoría Estratégica Ibérica S.L., a strategy consultancy. A bold geometric compass rose integrated with one ascending terraced path: a single confident north-pointing angular arrow with two broad stepping planes at its base. Convey clear direction, strategic thinking and progress. Use rich oxblood burgundy #8F3546 and warm copper #D89957. Keep the silhouette compact, elegant and distinctive. It should look like a professionally designed company emblem, readable immediately at 36 pixels. No compass circle, fine tick marks, tiny details, letters, initials, monogram, text, charts or separate objects.",
+        "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "32667849-3240-46af-89c0-f87f7130f49c",
+      "generated_at": "2026-09-19T23:20:18.698511+00:00",
+      "response": {
+        "created": 1789860009,
+        "id": "cae24a1248cd4889b4aff83b69cec51b",
+        "usage": {
+          "input_tokens": 723,
+          "output_tokens": 2855,
+          "total_tokens": 3578
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(0.842105 0 0 0.842105 40.105263 41.052632)",
+        "minimum_padding": 64
+      }
+    }
+  ]
+}

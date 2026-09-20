@@ -1,0 +1,437 @@
+{
+  "kind": "category",
+  "endpoint": "https://api.quiver.ai/v1/svgs/generations",
+  "palette": {
+    "navy": "#214C70",
+    "gold": "#D0A34D"
+  },
+  "viewBox": [
+    0,
+    0,
+    512,
+    512
+  ],
+  "assets": [
+    {
+      "id": "01-material-de-oficina",
+      "name": "Material de oficina",
+      "description": "Material de oficina y consumibles",
+      "filename": "01-material-de-oficina.svg",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A clearly recognizable stationery tray holding one short notebook and one pencil. A solid navy tray with one bold front cutout, a simple upright navy notebook with a gold folded corner, and a single chunky gold pencil tilted slightly to the right. Combine these into a compact balanced silhouette. No writing, ruling, tiny pencil details or multiple loose objects.",
+        "instructions": "Create one polished category icon for invoice line items in the hUMAnos app. This is part of a coherent family of ten icons. Use only navy #214C70 as the main color and warm gold #D0A34D for one restrained accent, both fully opaque. The style is a premium flat filled pictogram: recognizable everyday object, bold consistent visual weight, gently rounded corners, simple geometry, generous negative space. The icon must be instantly identifiable at 20px and 24px. At most six main shapes; keep essential gaps at least 32 SVG units wide, avoid tiny details and fine strokes. Square 512x512 SVG viewBox, centered artwork and approximately 48 units of clear margin. Fully transparent canvas. Do not draw any white background rectangle, colored tile, circular badge, surrounding frame or decorative backdrop. Only filled vector paths and basic geometric shapes. No gradients, shading, shadows, filters, raster images, external assets, lettering, digits or captions. Return one icon only, not a presentation sheet. Use the same navy-and-gold brand language as an elegant lighthouse emblem, but do not add a lighthouse to the category icon.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "e6307621-cd63-4ac9-b887-c3770a1ba2be",
+      "generated_at": "2026-09-19T22:58:48.919332+00:00",
+      "response": {
+        "created": 1789858726,
+        "id": "b971a7cdc0994213bcec118a48a3d787",
+        "usage": {
+          "input_tokens": 719,
+          "output_tokens": 3032,
+          "total_tokens": 3751
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 1,
+        "color_adjustments": {
+          "#1B446A": "#214C70",
+          "#D1A54D": "#D0A34D",
+          "#CEA149": "#D0A34D"
+        },
+        "content_transform": "matrix(1.092683 0 0 1.092683 -0.780488 8.689431)",
+        "minimum_padding": 32
+      }
+    },
+    {
+      "id": "02-mantenimiento-reparacion",
+      "name": "Mantenimiento y reparación",
+      "description": "Mantenimiento y reparación de equipos",
+      "filename": "02-mantenimiento-reparacion.svg",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A clearly recognizable stout navy gear with six broad teeth and one large central opening, with a chunky gold open-ended wrench laid diagonally across its lower-right quadrant. The gear and wrench should read as one compact maintenance emblem. Exactly one gear and one wrench, generous openings, no nuts, screws, extra tools or thin outlines.",
+        "instructions": "Create one polished category icon for invoice line items in the hUMAnos app. This is part of a coherent family of ten icons. Use only navy #214C70 as the main color and warm gold #D0A34D for one restrained accent, both fully opaque. The style is a premium flat filled pictogram: recognizable everyday object, bold consistent visual weight, gently rounded corners, simple geometry, generous negative space. The icon must be instantly identifiable at 20px and 24px. At most six main shapes; keep essential gaps at least 32 SVG units wide, avoid tiny details and fine strokes. Square 512x512 SVG viewBox, centered artwork and approximately 48 units of clear margin. Fully transparent canvas. Do not draw any white background rectangle, colored tile, circular badge, surrounding frame or decorative backdrop. Only filled vector paths and basic geometric shapes. No gradients, shading, shadows, filters, raster images, external assets, lettering, digits or captions. Return one icon only, not a presentation sheet. Use the same navy-and-gold brand language as an elegant lighthouse emblem, but do not add a lighthouse to the category icon.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "9f3bee63-9c8a-4d39-9ca2-92227d989767",
+      "generated_at": "2026-09-19T22:59:14.318586+00:00",
+      "response": {
+        "created": 1789858750,
+        "id": "1047797e29184ac7810e173da67c4a48",
+        "usage": {
+          "input_tokens": 718,
+          "output_tokens": 3470,
+          "total_tokens": 4188
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 1,
+        "color_adjustments": {
+          "#1D456B": "#214C70",
+          "#CA993E": "#D0A34D"
+        },
+        "content_transform": "matrix(1.057435 0 0 1.057435 -15.232101 -15.232101)",
+        "minimum_padding": 32
+      }
+    },
+    {
+      "id": "03-servicios-recurrentes",
+      "name": "Servicios recurrentes",
+      "description": "Cuotas y servicios periódicos",
+      "filename": "03-servicios-recurrentes.svg",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A clearly recognizable compact desk-calendar page with two sturdy binder tabs, a broad navy top bar and one bold gold clockwise circular arrow in the lower half. Use a simple solid navy page silhouette with a generous negative-space interior. No dates, digits, small calendar grid, text, mini arrows or extra badges.",
+        "instructions": "Create one polished category icon for invoice line items in the hUMAnos app. This is part of a coherent family of ten icons. Use only navy #214C70 as the main color and warm gold #D0A34D for one restrained accent, both fully opaque. The style is a premium flat filled pictogram: recognizable everyday object, bold consistent visual weight, gently rounded corners, simple geometry, generous negative space. The icon must be instantly identifiable at 20px and 24px. At most six main shapes; keep essential gaps at least 32 SVG units wide, avoid tiny details and fine strokes. Square 512x512 SVG viewBox, centered artwork and approximately 48 units of clear margin. Fully transparent canvas. Do not draw any white background rectangle, colored tile, circular badge, surrounding frame or decorative backdrop. Only filled vector paths and basic geometric shapes. No gradients, shading, shadows, filters, raster images, external assets, lettering, digits or captions. Return one icon only, not a presentation sheet. Use the same navy-and-gold brand language as an elegant lighthouse emblem, but do not add a lighthouse to the category icon.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "cd1d2ffc-c1df-4145-8b1e-9011a9885c48",
+      "generated_at": "2026-09-19T22:59:48.031884+00:00",
+      "response": {
+        "created": 1789858780,
+        "id": "ca8eb9b19a684131889afa93e00fb014",
+        "usage": {
+          "input_tokens": 718,
+          "output_tokens": 3157,
+          "total_tokens": 3875
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 0,
+        "color_adjustments": {
+          "#1A466D": "#214C70",
+          "#D3A047": "#D0A34D"
+        },
+        "content_transform": "matrix(1.348044 0 0 1.348044 -89.099298 -79.438315)",
+        "minimum_padding": 32
+      }
+    },
+    {
+      "id": "04-revision-inspeccion",
+      "name": "Revisión e inspección",
+      "description": "Revisiones y comprobaciones",
+      "filename": "04-revision-inspeccion.svg",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A clearly recognizable navy clipboard with one prominent gold checkmark centered on its page. Rounded rectangular clipboard silhouette, short broad clip at the top, clean negative-space page opening. The checkmark is thick and confident and occupies most of the page. No lines of writing, mini ticks, pen, magnifying glass or extra documents.",
+        "instructions": "Create one polished category icon for invoice line items in the hUMAnos app. This is part of a coherent family of ten icons. Use only navy #214C70 as the main color and warm gold #D0A34D for one restrained accent, both fully opaque. The style is a premium flat filled pictogram: recognizable everyday object, bold consistent visual weight, gently rounded corners, simple geometry, generous negative space. The icon must be instantly identifiable at 20px and 24px. At most six main shapes; keep essential gaps at least 32 SVG units wide, avoid tiny details and fine strokes. Square 512x512 SVG viewBox, centered artwork and approximately 48 units of clear margin. Fully transparent canvas. Do not draw any white background rectangle, colored tile, circular badge, surrounding frame or decorative backdrop. Only filled vector paths and basic geometric shapes. No gradients, shading, shadows, filters, raster images, external assets, lettering, digits or captions. Return one icon only, not a presentation sheet. Use the same navy-and-gold brand language as an elegant lighthouse emblem, but do not add a lighthouse to the category icon.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "d6531ed6-6792-410d-aa3d-351abe077f47",
+      "generated_at": "2026-09-19T23:00:18.640388+00:00",
+      "response": {
+        "created": 1789858813,
+        "id": "1a1bb90b17054f4eb23e401790acfbd6",
+        "usage": {
+          "input_tokens": 718,
+          "output_tokens": 2939,
+          "total_tokens": 3657
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 0,
+        "color_adjustments": {
+          "#18446D": "#214C70",
+          "#D19E42": "#D0A34D"
+        },
+        "content_transform": "matrix(1.150685 0 0 1.150685 -38.767123 -38.958904)",
+        "minimum_padding": 32
+      }
+    },
+    {
+      "id": "05-suministros",
+      "name": "Suministros",
+      "description": "Suministro de pedidos",
+      "filename": "05-suministros.svg",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A clearly recognizable closed delivery box in a compact three-quarter view, built from two broad navy faces and one gold packing-tape strip crossing the top and descending the front. A clear negative-space seam separates the faces. Flat graphic construction, not 3D shading. No arrows, labels, barcode, tiny tape edges or background.",
+        "instructions": "Create one polished category icon for invoice line items in the hUMAnos app. This is part of a coherent family of ten icons. Use only navy #214C70 as the main color and warm gold #D0A34D for one restrained accent, both fully opaque. The style is a premium flat filled pictogram: recognizable everyday object, bold consistent visual weight, gently rounded corners, simple geometry, generous negative space. The icon must be instantly identifiable at 20px and 24px. At most six main shapes; keep essential gaps at least 32 SVG units wide, avoid tiny details and fine strokes. Square 512x512 SVG viewBox, centered artwork and approximately 48 units of clear margin. Fully transparent canvas. Do not draw any white background rectangle, colored tile, circular badge, surrounding frame or decorative backdrop. Only filled vector paths and basic geometric shapes. No gradients, shading, shadows, filters, raster images, external assets, lettering, digits or captions. Return one icon only, not a presentation sheet. Use the same navy-and-gold brand language as an elegant lighthouse emblem, but do not add a lighthouse to the category icon.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "3d2d93db-d7ad-4cea-8c2e-aec6fa830bdf",
+      "generated_at": "2026-09-19T23:00:46.275238+00:00",
+      "response": {
+        "created": 1789858840,
+        "id": "6c3d20e57fbd43099d04daf7f32f70b9",
+        "usage": {
+          "input_tokens": 719,
+          "output_tokens": 2949,
+          "total_tokens": 3668
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 0,
+        "color_adjustments": {
+          "#1E486D": "#214C70",
+          "#D2A44A": "#D0A34D"
+        },
+        "content_transform": "matrix(1.009767 0 0 1.009767 -2.668670 -3.005259)",
+        "minimum_padding": 32
+      }
+    },
+    {
+      "id": "06-instalacion",
+      "name": "Instalación",
+      "description": "Montaje e instalación",
+      "filename": "06-instalacion.svg",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A clearly recognizable compact navy toolbox with a strong top handle and a single chunky gold screwdriver resting diagonally against its right side. The box has a broad lid line made of negative space and one large simple clasp. Make this unmistakably a toolbox used for installation. No gears, cables, plug, tiny screws, labels or extra tools.",
+        "instructions": "Create one polished category icon for invoice line items in the hUMAnos app. This is part of a coherent family of ten icons. Use only navy #214C70 as the main color and warm gold #D0A34D for one restrained accent, both fully opaque. The style is a premium flat filled pictogram: recognizable everyday object, bold consistent visual weight, gently rounded corners, simple geometry, generous negative space. The icon must be instantly identifiable at 20px and 24px. At most six main shapes; keep essential gaps at least 32 SVG units wide, avoid tiny details and fine strokes. Square 512x512 SVG viewBox, centered artwork and approximately 48 units of clear margin. Fully transparent canvas. Do not draw any white background rectangle, colored tile, circular badge, surrounding frame or decorative backdrop. Only filled vector paths and basic geometric shapes. No gradients, shading, shadows, filters, raster images, external assets, lettering, digits or captions. Return one icon only, not a presentation sheet. Use the same navy-and-gold brand language as an elegant lighthouse emblem, but do not add a lighthouse to the category icon.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "c6b4d9a7-e4b9-4265-960e-33835aa7ade0",
+      "generated_at": "2026-09-19T23:01:17.067461+00:00",
+      "response": {
+        "created": 1789858870,
+        "id": "c920b8934fa740c6988d439ea48f7259",
+        "usage": {
+          "input_tokens": 719,
+          "output_tokens": 3639,
+          "total_tokens": 4358
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 0,
+        "color_adjustments": {
+          "#D6A647": "#D0A34D",
+          "#1D446C": "#214C70"
+        },
+        "content_transform": "matrix(1.220708 0 0 1.220708 -65.249773 -62.808356)",
+        "minimum_padding": 32
+      }
+    },
+    {
+      "id": "07-limpieza",
+      "name": "Limpieza",
+      "description": "Servicios de limpieza",
+      "filename": "07-limpieza.svg",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A clearly recognizable navy trigger-spray cleaning bottle beside a single folded gold cleaning cloth at its lower-right base. The bottle has one substantial trigger and a broad tapered body, with a generous negative-space grip opening. The cloth is one simple softly folded shape. No lettering, spray droplets, sparkles, bubbles or tiny detail.",
+        "instructions": "Create one polished category icon for invoice line items in the hUMAnos app. This is part of a coherent family of ten icons. Use only navy #214C70 as the main color and warm gold #D0A34D for one restrained accent, both fully opaque. The style is a premium flat filled pictogram: recognizable everyday object, bold consistent visual weight, gently rounded corners, simple geometry, generous negative space. The icon must be instantly identifiable at 20px and 24px. At most six main shapes; keep essential gaps at least 32 SVG units wide, avoid tiny details and fine strokes. Square 512x512 SVG viewBox, centered artwork and approximately 48 units of clear margin. Fully transparent canvas. Do not draw any white background rectangle, colored tile, circular badge, surrounding frame or decorative backdrop. Only filled vector paths and basic geometric shapes. No gradients, shading, shadows, filters, raster images, external assets, lettering, digits or captions. Return one icon only, not a presentation sheet. Use the same navy-and-gold brand language as an elegant lighthouse emblem, but do not add a lighthouse to the category icon.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "55cc1f92-8e33-444e-80d2-9fb5408311ec",
+      "generated_at": "2026-09-19T23:01:49.167606+00:00",
+      "response": {
+        "created": 1789858901,
+        "id": "6286da472ba34f53b9f1dd3797bfd073",
+        "usage": {
+          "input_tokens": 718,
+          "output_tokens": 3552,
+          "total_tokens": 4270
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 0,
+        "color_adjustments": {
+          "#CE9E49": "#D0A34D",
+          "#1B4367": "#214C70"
+        },
+        "content_transform": "matrix(1.135135 0 0 1.135135 -46.513514 -46.702703)",
+        "minimum_padding": 32
+      }
+    },
+    {
+      "id": "08-transporte",
+      "name": "Transporte",
+      "description": "Transporte y envíos urgentes",
+      "filename": "08-transporte.svg",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A clearly recognizable small navy delivery van in side view, with two substantial circular wheels, a gold cab window and one broad gold horizontal speed stroke behind the vehicle. Simple sturdy van silhouette, box-shaped cargo body, short cab and one generous negative-space separation. No road, driver, tiny door handles, clock, labels, text or many speed lines.",
+        "instructions": "Create one polished category icon for invoice line items in the hUMAnos app. This is part of a coherent family of ten icons. Use only navy #214C70 as the main color and warm gold #D0A34D for one restrained accent, both fully opaque. The style is a premium flat filled pictogram: recognizable everyday object, bold consistent visual weight, gently rounded corners, simple geometry, generous negative space. The icon must be instantly identifiable at 20px and 24px. At most six main shapes; keep essential gaps at least 32 SVG units wide, avoid tiny details and fine strokes. Square 512x512 SVG viewBox, centered artwork and approximately 48 units of clear margin. Fully transparent canvas. Do not draw any white background rectangle, colored tile, circular badge, surrounding frame or decorative backdrop. Only filled vector paths and basic geometric shapes. No gradients, shading, shadows, filters, raster images, external assets, lettering, digits or captions. Return one icon only, not a presentation sheet. Use the same navy-and-gold brand language as an elegant lighthouse emblem, but do not add a lighthouse to the category icon.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "0fd3d348-fcf0-4e5a-9b29-10007cb5361a",
+      "generated_at": "2026-09-19T23:02:18.416309+00:00",
+      "response": {
+        "created": 1789858935,
+        "id": "be4936da143d4c9684141bb5d4e73f9b",
+        "usage": {
+          "input_tokens": 719,
+          "output_tokens": 3104,
+          "total_tokens": 3823
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 1,
+        "color_adjustments": {
+          "#214A70": "#214C70",
+          "#D5A748": "#D0A34D"
+        },
+        "content_transform": "matrix(1.070916 0 0 1.070916 -17.976096 -32.790438)",
+        "minimum_padding": 32
+      }
+    },
+    {
+      "id": "09-soporte-tecnico",
+      "name": "Soporte técnico",
+      "description": "Horas de soporte y asistencia",
+      "filename": "09-soporte-tecnico.svg",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A clearly recognizable navy support headset with a thick semicircular headband, two substantial rounded ear cups and a single short gold microphone boom ending in a broad rounded capsule. Keep the middle open and spacious. No face, head silhouette, speech bubble, tiny controls, wires or extra objects.",
+        "instructions": "Create one polished category icon for invoice line items in the hUMAnos app. This is part of a coherent family of ten icons. Use only navy #214C70 as the main color and warm gold #D0A34D for one restrained accent, both fully opaque. The style is a premium flat filled pictogram: recognizable everyday object, bold consistent visual weight, gently rounded corners, simple geometry, generous negative space. The icon must be instantly identifiable at 20px and 24px. At most six main shapes; keep essential gaps at least 32 SVG units wide, avoid tiny details and fine strokes. Square 512x512 SVG viewBox, centered artwork and approximately 48 units of clear margin. Fully transparent canvas. Do not draw any white background rectangle, colored tile, circular badge, surrounding frame or decorative backdrop. Only filled vector paths and basic geometric shapes. No gradients, shading, shadows, filters, raster images, external assets, lettering, digits or captions. Return one icon only, not a presentation sheet. Use the same navy-and-gold brand language as an elegant lighthouse emblem, but do not add a lighthouse to the category icon.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "72e4a1ff-abb6-4491-9253-68f12853f3a3",
+      "generated_at": "2026-09-19T23:02:46.094508+00:00",
+      "response": {
+        "created": 1789858961,
+        "id": "6cb1e5ec015e4d76b56f143152d73748",
+        "usage": {
+          "input_tokens": 718,
+          "output_tokens": 2976,
+          "total_tokens": 3694
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 0,
+        "color_adjustments": {
+          "#1A466D": "#214C70",
+          "#CFA04A": "#D0A34D"
+        },
+        "content_transform": "matrix(1.190434 0 0 1.190434 -48.751107 -48.552702)",
+        "minimum_padding": 32
+      }
+    },
+    {
+      "id": "10-servicios-profesionales",
+      "name": "Servicios profesionales",
+      "description": "Consultoría y servicios profesionales",
+      "filename": "10-servicios-profesionales.svg",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "A clearly recognizable elegant navy briefcase with a broad top handle, soft rectangular corners and a single centered gold clasp. A clean horizontal negative-space lid seam gives it structure. More formal and upright than a toolbox, with a tall balanced silhouette and a wide sturdy handle. No letters, documents, tie, person, tiny stitching or supplementary badges.",
+        "instructions": "Create one polished category icon for invoice line items in the hUMAnos app. This is part of a coherent family of ten icons. Use only navy #214C70 as the main color and warm gold #D0A34D for one restrained accent, both fully opaque. The style is a premium flat filled pictogram: recognizable everyday object, bold consistent visual weight, gently rounded corners, simple geometry, generous negative space. The icon must be instantly identifiable at 20px and 24px. At most six main shapes; keep essential gaps at least 32 SVG units wide, avoid tiny details and fine strokes. Square 512x512 SVG viewBox, centered artwork and approximately 48 units of clear margin. Fully transparent canvas. Do not draw any white background rectangle, colored tile, circular badge, surrounding frame or decorative backdrop. Only filled vector paths and basic geometric shapes. No gradients, shading, shadows, filters, raster images, external assets, lettering, digits or captions. Return one icon only, not a presentation sheet. Use the same navy-and-gold brand language as an elegant lighthouse emblem, but do not add a lighthouse to the category icon.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "ca620a75-e407-43ee-9000-b5118c89cdf7",
+      "generated_at": "2026-09-19T23:03:09.783835+00:00",
+      "response": {
+        "created": 1789858987,
+        "id": "2f703b746d304daabc99a1ae784e7fd7",
+        "usage": {
+          "input_tokens": 719,
+          "output_tokens": 2876,
+          "total_tokens": 3595
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 1,
+        "color_adjustments": {
+          "#1E476D": "#214C70",
+          "#D7A149": "#D0A34D"
+        },
+        "content_transform": "matrix(1.405858 0 0 1.405858 -105.774059 -103.665272)",
+        "minimum_padding": 32
+      }
+    }
+  ]
+}

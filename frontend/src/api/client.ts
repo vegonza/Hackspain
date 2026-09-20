@@ -54,3 +54,8 @@ import { toast } from 'sonner'
 export async function fetchEmpty(url: string, options: RequestInit): Promise<void> {
   await baseFetch(url, options)
 }
+
+export async function fetchBlob(url: string, options: RequestInit = {}): Promise<Blob> {
+  const response = await baseFetch(url, options)
+  return response.blob()
+}

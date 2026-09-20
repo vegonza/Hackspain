@@ -4,7 +4,7 @@ import { InvoicesPage } from '@/pages/InvoicesPage'
 export function App() {
   return (
     <>
-      <Toaster position="bottom-right" duration={4000} />
+      <Toaster position="bottom-left" duration={4000} />
       <InvoicesPage />
     </>
   )

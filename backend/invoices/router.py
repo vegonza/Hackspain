@@ -5,6 +5,8 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, UploadFile
 from postgrest.exceptions import APIError
 from pydantic import ValidationError
+from fastapi.responses import Response
+from invoices.downloads import download_pdf
 
 from invoices.queue import enqueue, RETRIES, SCHEDULED, QUEUE, PROCESSING
 from shared.redis import get_redis
@@ -77,6 +79,11 @@ def upload_invoice(file: UploadFile) -> Invoice:
         logger.exception("[QUEUE] Could not enqueue %s", name)
         raise HTTPException(status_code=503, detail="queue_unavailable") from None
     return invoice_record
+
+
+@router.get("/{invoice_id}/download")
+def download_invoice(invoice_id: UUID) -> Response:
+    return download_pdf(invoice_id)
 
 
 @router.get("/{invoice_id}")

@@ -1,9 +1,23 @@
-import { fetchJson } from '@/api/client'
+import { fetchJson, fetchBlob } from '@/api/client'
 
 export interface PaymentDecision {
   classification: 'PAGAR' | 'NO_PAGAR' | 'ESCALAR'
   reasons: string[]
   checks: Record<string, boolean>
+}
+
+export interface InvoiceBilling {
+  invoice_number: string | null
+  supplier_name: string | null
+  supplier_nif: string | null
+  invoice_date: string | null
+  purchase_order: string | null
+  line_items: InvoiceLine[] | null
+  currency: string | null
+  tax_base: string | null
+  total: string | null
+  tax_base_eur: string | null
+  total_eur: string | null
 }
 
 export interface Invoice {
@@ -14,6 +28,7 @@ export interface Invoice {
   finished_at: string | null
   status: 'queued' | 'processing' | 'ready' | 'error'
   pages: number
+  billing: InvoiceBilling | null
   payment_decision: PaymentDecision | null
   total_cost_usd: string | null
   total_duration_ms: number | null
@@ -96,4 +111,8 @@ export function uploadInvoice(file: File): Promise<Invoice> {
   const body = new FormData()
   body.append('file', file)
   return fetchJson<Invoice>('/invoices', { method: 'POST', body })
+}
+
+export function downloadInvoice(id: string): Promise<Blob> {
+  return fetchBlob(`/invoices/${id}/download`)
 }
