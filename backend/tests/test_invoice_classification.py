@@ -75,11 +75,14 @@ class PipelineClassificationTests(unittest.TestCase):
         self.assertIsNone(self.invoice_record.payment_decision)
 
     def test_rules_claim_lookup_and_publication_work_together(self) -> None:
-        from extractor.extraction import InvoiceLine
+        from extractor.categories import CategorizedInvoiceExtraction, CategorizedInvoiceLine, InvoiceCategory
         from invoices.payment_notes import PaymentNotesReview
 
         self.invoice.purchase_order = 'PO-001'
-        self.invoice.line_items = [InvoiceLine(description='Servicio', amount='100')]
+        categorized = CategorizedInvoiceExtraction.model_validate({
+            **self.invoice.model_dump(),
+            'line_items': [CategorizedInvoiceLine(description='Servicio', amount='100', category=InvoiceCategory.OTHER)],
+        })
         other_id = uuid4()
         for owner, status, expected in (
             (self.invoice_record.id, 'PENDIENTE', 'PAGAR'),
@@ -112,7 +115,7 @@ class PipelineClassificationTests(unittest.TestCase):
 
                 client.rpc.side_effect = rpc
                 with (
-                    patch('invoices.decision.download_file', return_value=self.invoice.model_dump_json().encode()),
+                    patch('invoices.decision.download_file', return_value=categorized.model_dump_json().encode()),
                     patch('invoices.decision.track_usage', return_value=nullcontext(None)),
                     patch('invoices.decision.get_client', return_value=client),
                     patch('rules.resolver.get_client', return_value=client),

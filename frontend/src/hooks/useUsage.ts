@@ -5,10 +5,13 @@ import { formatDateLong } from '@/lib/format'
 
 
 const money = (amount: string) => `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(Number(amount))}`
-const detailFields = ['pages_processed', 'prompt_tokens', 'completion_tokens', 'total_tokens'] as const
-type UsageOperation = 'extraction' | 'classification'
+const detailFields = ['pages_processed', 'prompt_tokens', 'completion_tokens', 'total_tokens', 'input_tokens', 'line_items'] as const
+type UsageOperation = 'extraction' | 'classification' | 'categorization'
 
-const operationColors = { extraction: '#7c3aed', classification: '#059669' } satisfies Record<UsageOperation, string>
+const operationColors = { extraction: '#7c3aed', classification: '#059669', categorization: '#2563eb' } satisfies Record<UsageOperation, string>
+const providerBrand = (model: string): { name: string; logo: string } => model.startsWith('jev-')
+  ? { name: 'TypeSafe', logo: '/providers/typesafe.png' }
+  : { name: model.split('/')[0], logo: `/providers/${model.split('/')[0]}.svg` }
 
 export function useUsage() {
   const { t } = useTranslation()
@@ -89,8 +92,8 @@ export function useUsage() {
     records: (data === null ? [] : data.records).map(record => ({ ...record,
       operation: t(`usage.operations.${record.operation as UsageOperation}`),
       color: operationColors[record.operation as UsageOperation],
-      providerName: record.model.split('/')[0],
-      providerLogo: `/providers/${record.model.split('/')[0]}.svg`,
+      providerName: providerBrand(record.model).name,
+      providerLogo: providerBrand(record.model).logo,
       date: formatDateLong(record.created_at, 'es-ES'),
       cost: money(String(record.usage.reduce((sum, item) => sum + Number(item.cost), 0))),
       breakdown: record.usage.map(item => ({ model: item.model, cost: money(item.cost), details: detailFields.filter(key => key in item.details).map(key => ({ label: t(`usage.breakdown.${key}`), value: String(item.details[key]) })) })),

@@ -79,7 +79,9 @@
       "pages_processed": "Páginas",
       "prompt_tokens": "Tokens de entrada",
       "completion_tokens": "Tokens de salida",
-      "total_tokens": "Tokens totales"
+      "total_tokens": "Tokens totales",
+      "input_tokens": "Tokens de entrada",
+      "line_items": "Conceptos"
     },
     "history": "Registro de llamadas",
     "records_one": "{{count}} registro",
@@ -94,7 +96,8 @@
     "next": "Siguiente",
     "operations": {
       "extraction": "Extracción",
-      "classification": "Clasificación"
+      "classification": "Clasificación",
+      "categorization": "Categorización"
     }
   },
   "extraction": {
@@ -118,7 +121,8 @@
       "cleaning": "Limpieza",
       "transport": "Transporte",
       "technicalSupport": "Soporte técnico",
-      "professionalServices": "Servicios profesionales"
+      "professionalServices": "Servicios profesionales",
+      "other": "Otros"
     },
     "showMore": "Ver más",
     "showLess": "Ver menos",

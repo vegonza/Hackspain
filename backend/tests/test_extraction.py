@@ -6,10 +6,11 @@ from unittest.mock import MagicMock, patch
 
 from openai.types.chat import ChatCompletion
 
+from extractor.categories import CategorizedInvoiceExtraction, CategorizedInvoiceLine, InvoiceCategory
 from extractor.extraction import InvoiceExtraction, InvoiceLine
 from extractor.extractor import PROMPTS_DIRECTORY, inline_schema
 from extractor.processor import process
-from shared.usage import UsageRecord
+from shared.usage import UsageEntry, UsageRecord
 from tests.test_features import extracted_items
 from tests.test_extraction_lifecycle import queued_invoice
 from suppliers.models import Supplier
@@ -27,6 +28,7 @@ class ExtractionTests(unittest.TestCase):
         self.result.notes = ["Pago a 30 días"]
         self.events = MagicMock()
         self.suppliers = self.enterContext(patch("extractor.processor.list_suppliers", return_value=[]))
+        self.enterContext(patch("extractor.processor.categorize_invoice", side_effect=self.categorize))
         self.enterContext(patch.dict("os.environ", {"OPENROUTER_API_KEY": "test-key"}))
         self.download = self.enterContext(patch("extractor.processor.download_file", return_value=self.pdf))
         self.write_invoice = self.enterContext(patch("extractor.processor.write_invoice"))
@@ -43,6 +45,19 @@ class ExtractionTests(unittest.TestCase):
         self.redis = self.enterContext(patch("shared.usage.get_redis")).return_value.__enter__.return_value
         self.client_factory = self.enterContext(patch("extractor.extractor.OpenAI"))
         self.request = self.client_factory.return_value.__enter__.return_value.chat.completions.create
+
+    def categorize(self, extraction: InvoiceExtraction, usage: UsageRecord) -> CategorizedInvoiceExtraction:
+        usage.provider = "typesafe"
+        usage.usage.append(UsageEntry(provider="typesafe", model="jev-1.13.0", cost=Decimal("0.00001"),
+                                      details={"input_tokens": 238, "line_items": len(extraction.line_items)}))
+        return CategorizedInvoiceExtraction.model_validate({
+            **extraction.model_dump(),
+            "line_items": [CategorizedInvoiceLine(**line.model_dump(), category=InvoiceCategory.OTHER)
+                           for line in extraction.line_items],
+        })
+
+    def usage_records(self) -> list[UsageRecord]:
+        return [UsageRecord.model_validate_json(call.args[2]) for call in self.redis.hset.call_args_list]
 
     def prepare_response(self) -> None:
         self.request.return_value = ChatCompletion.model_validate({
@@ -62,7 +77,7 @@ class ExtractionTests(unittest.TestCase):
             f"{self.document.id}/original.pdf",
         ])
         artifacts = {call.args[0]: call.args[1] for call in self.events.upload.call_args_list}
-        extraction = InvoiceExtraction.model_validate_json(artifacts[f"{prefix}/features.json"])
+        extraction = CategorizedInvoiceExtraction.model_validate_json(artifacts[f"{prefix}/features.json"])
         self.assertEqual(extraction.line_items[0].amount, "31.50")
         self.assertEqual(extraction.currency, "USD")
         self.assertEqual(extraction.notes, ["Pago a 30 días"])
@@ -89,6 +104,7 @@ class ExtractionTests(unittest.TestCase):
         self.assertEqual(artifacts[f"{prefix}/pages/page-2.jpg"], self.pages[1])
         self.assertEqual(metadata["pdf_sha256"], sha256(self.pdf).hexdigest())
         self.assertEqual(metadata["page_sha256"], [sha256(page).hexdigest() for page in self.pages])
+        self.assertEqual(metadata["categorization_model"], "jev-1.13.0")
         self.write_invoice.assert_called_once_with(self.document)
         self.assertEqual(self.document.pages, 2)
         self.assertEqual(payload["model"], "google/gemini-3.8-flash")
@@ -104,10 +120,12 @@ class ExtractionTests(unittest.TestCase):
         self.assertEqual(payload["tools"][0]["function"]["parameters"], inline_schema(self.result.model_json_schema()))
         self.assertEqual(len(payload["tools"]), 1)
         self.assertNotIn("response_format", payload)
-        usage = UsageRecord.model_validate_json(self.redis.hset.call_args.args[2])
+        usage = next(record for record in self.usage_records() if record.operation == "extraction")
         self.assertEqual((usage.operation, usage.provider, usage.invoice_id),
                          ("extraction", "Google", str(self.document.id)))
         self.assertEqual(usage.usage[0].cost, Decimal("0.002"))
+        category_usage = next(record for record in self.usage_records() if record.operation == "categorization")
+        self.assertEqual(category_usage.usage[0].cost, Decimal("0.00001"))
 
     def test_invalid_tool_output_fails_without_publishing_extraction_and_keeps_usage(self) -> None:
         self.prepare_response()
@@ -134,7 +152,7 @@ class ExtractionTests(unittest.TestCase):
         process(self.document)
         prefix = f'{self.document.id}/extraction'
         artifacts = {call.args[0]: call.args[1] for call in self.events.upload.call_args_list}
-        recovered = InvoiceExtraction.model_validate_json(artifacts[f'{prefix}/features.json'])
+        recovered = CategorizedInvoiceExtraction.model_validate_json(artifacts[f'{prefix}/features.json'])
         self.assertEqual(recovered.supplier_nif, 'B98120774')
         self.events.save_extraction.assert_called_once_with(self.document.id, self.document.name, recovered)
         metadata = json.loads(artifacts[f'{prefix}/extraction.json'])
@@ -169,7 +187,7 @@ class ExtractionTests(unittest.TestCase):
         self.assertEqual(metadata['identifier_corrections'][0]['original'], 'B96120771')
         self.assertEqual(metadata['identifier_corrections'][0]['corrected'], 'B98120774')
         self.assertNotIn('identifier_reread', metadata)
-        self.redis.hset.assert_called_once()
+        self.assertEqual(self.redis.hset.call_count, 2)
 
     def test_render_failure_does_not_call_the_model_or_publish_extraction(self) -> None:
         self.render.side_effect = ValueError("PDF rendering returned no pages")
@@ -187,7 +205,7 @@ class ExtractionTests(unittest.TestCase):
             process(self.document)
         self.events.finish.assert_not_called()
         self.events.fail.assert_called_once()
-        self.redis.hset.assert_called_once()
+        self.assertEqual(self.redis.hset.call_count, 2)
         self.events.save_extraction.assert_not_called()
 
     def test_database_failure_keeps_usage_and_does_not_mark_extraction_ready(self) -> None:
@@ -205,4 +223,4 @@ class ExtractionTests(unittest.TestCase):
             process(self.document)
         self.events.finish.assert_not_called()
         self.events.fail.assert_called_once()
-        self.redis.hset.assert_called_once()
+        self.assertEqual(self.redis.hset.call_count, 2)

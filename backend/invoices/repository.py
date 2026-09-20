@@ -10,6 +10,7 @@ from shared.redis import get_redis
 from shared.identifiers import normalize_tax_id
 from shared.retries import RetryState
 from invoices.queue import RETRIES
+from extractor.categories import CategorizedInvoiceExtraction
 from extractor.extraction import InvoiceExtraction, InvoiceLine
 from shared.logger import get_logger
 from erp import ErpEntry
@@ -135,7 +136,7 @@ def read_invoice_detail(invoice_id: UUID) -> InvoiceDetails:
     return invoice_record
 
 
-def save_invoice_extraction(invoice_id: UUID, name: str, extraction: InvoiceExtraction) -> None:
+def save_invoice_extraction(invoice_id: UUID, name: str, extraction: CategorizedInvoiceExtraction) -> None:
     """Store searchable invoice fields; the extraction artifact retains notes and uncertainties."""
     fields = extraction.model_dump(mode="json", exclude={"notes", "uncertainties"})
     fields["supplier_nif"] = normalize_tax_id(extraction.supplier_nif)

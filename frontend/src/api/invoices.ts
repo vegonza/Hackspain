@@ -12,7 +12,7 @@ export interface InvoiceBilling {
   supplier_nif: string | null
   invoice_date: string | null
   purchase_order: string | null
-  line_items: InvoiceLine[] | null
+  line_items: InvoiceBillingLine[] | null
   currency: string | null
   tax_base: string | null
   total: string | null
@@ -73,9 +73,16 @@ export interface IdentifierCorrection {
   matched_value: string
 }
 
-export interface InvoiceLine {
+export interface InvoiceBillingLine {
   description: string
   amount: string
+}
+
+export type InvoiceCategory = 'officeSupplies' | 'maintenance' | 'recurringServices' | 'inspection' | 'supplies'
+  | 'installation' | 'cleaning' | 'transport' | 'technicalSupport' | 'professionalServices' | 'other'
+
+export interface InvoiceLine extends InvoiceBillingLine {
+  category: InvoiceCategory
 }
 
 export interface InvoiceExtraction {

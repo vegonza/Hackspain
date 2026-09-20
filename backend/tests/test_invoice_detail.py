@@ -7,6 +7,7 @@ from uuid import uuid4
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
+from extractor.categories import CategorizedInvoiceExtraction, CategorizedInvoiceLine, InvoiceCategory
 from extractor.extraction import InvoiceExtraction
 from invoices.repository import InvoiceDetails, read_invoice_detail, save_invoice_extraction
 from invoices.router import router
@@ -151,6 +152,22 @@ class InvoiceDetailTests(unittest.TestCase):
         for field in ("tax_base", "vat_rate", "vat_amount", "total"):
             self.assertIsNone(payload[field])
             self.assertEqual(getattr(extraction, field), "")
+
+    def test_line_item_categories_are_stored_with_the_extracted_concepts(self) -> None:
+        extraction = CategorizedInvoiceExtraction(
+            invoice_number="F-1", supplier_name="Proveedor", supplier_nif="B12345678",
+            iban="", invoice_date="2026-09-20", purchase_order="PO-1", currency="EUR",
+            line_items=[CategorizedInvoiceLine(
+                description="Servicio de limpieza", amount="100", category=InvoiceCategory.CLEANING,
+            )],
+            tax_base="100", vat_rate="21", vat_amount="21", total="121", notes=[], uncertainties=[],
+        )
+        with patch("invoices.repository.get_client") as client:
+            save_invoice_extraction(uuid4(), "invoice.pdf", extraction)
+        payload = client.return_value.table.return_value.update.call_args.args[0]
+        self.assertEqual(payload["line_items"], [{
+            "description": "Servicio de limpieza", "amount": "100", "category": "cleaning",
+        }])
 
     def test_fixed_exchange_rate_is_saved_without_inventing_a_date(self) -> None:
         from tests.test_features import extracted_items

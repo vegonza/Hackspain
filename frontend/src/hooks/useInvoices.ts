@@ -8,7 +8,7 @@ import { useInvoiceDetail } from '@/hooks/useInvoiceDetail'
 import { useIdentifierTrace } from '@/hooks/useIdentifierTrace'
 import { invoiceErrorKey } from '@/hooks/invoiceError'
 import { invoiceMetrics } from '@/hooks/invoiceMetrics'
-import { invoiceLineCategory } from '@/hooks/invoiceLineCategory'
+import { invoiceCategoryIcon } from '@/lib/invoiceCategory'
 import { deleteInvoice, redoInvoice, retryInvoice, fetchInvoices, uploadInvoice, type Invoice } from '@/api/invoices'
 import { formatAmount, formatStatus } from '@/lib/format'
 import { isSupportedInvoiceFile } from '@/lib/invoiceFiles'
@@ -220,10 +220,10 @@ export function useInvoices() {
     total: featureMoney(extraction.total, extraction.currency),
     lineItems: (lineItemsExpanded ? extraction.line_items : extraction.line_items.slice(0, 3))
       .map(line => {
-        const category = invoiceLineCategory(line.description)
+        const icon = invoiceCategoryIcon(line.category)
         return {
           description: line.description, amount: featureMoney(line.amount, extraction.currency),
-          category: category === undefined ? null : { icon: category.icon, label: t(`extraction.categories.${category.id}`) },
+          category: icon === null ? null : { icon, label: t(`extraction.categories.${line.category}`) },
         }
       }),
     canExpandLineItems: extraction.line_items.length > 3,

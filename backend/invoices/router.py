@@ -16,7 +16,7 @@ from invoices.repository import InvoiceDetails, read_invoice_detail, Invoice, ar
 from invoices.repository import list_invoices as read_invoices
 from invoices.repository import reset_invoice
 from erp import ErpEntry
-from extractor.extraction import InvoiceExtraction
+from extractor.categories import CategorizedInvoiceExtraction
 from extractor.recovery import IdentifierTrace
 from shared.logger import get_logger
 from shared.storage import download_file, invalidate_invoice_urls, signed_url, upload_file, delete_file
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/api/invoices")
 
 class InvoiceDetail(Invoice):
     native_text: str | None
-    extraction: InvoiceExtraction | None
+    extraction: CategorizedInvoiceExtraction | None
     erp_snapshot_id: UUID | None
     erp: ErpEntry | None
     identifier_trace: IdentifierTrace
@@ -40,7 +40,7 @@ def invoice_detail(invoice_record: InvoiceDetails) -> InvoiceDetail:
     if invoice_record.result_path is not None:
         payload = download_file(invoice_record.result_path)
         try:
-            extraction = InvoiceExtraction.model_validate_json(payload)
+            extraction = CategorizedInvoiceExtraction.model_validate_json(payload)
         except ValidationError:
             logger.warning("[INVOICES] Invalid saved extraction for %s (%s); reprocessing required", invoice_record.name, invoice_record.id)
             raise HTTPException(status_code=409, detail="invalid_saved_extraction") from None

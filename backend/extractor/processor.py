@@ -7,6 +7,7 @@ from invoices.erp import bind_snapshot, match_entry
 from invoices.repository import start_extraction, finish_extraction, fail_extraction
 from extractor.text import extract_text
 from extractor.extraction import extract_invoice
+from extractor.categories import CategorizedInvoiceExtraction, MODEL as CATEGORY_MODEL, categorize_invoice
 from extractor.pages import render_pages
 from extractor.extractor import MODEL
 from extractor.recovery import recover_identifiers
@@ -37,6 +38,11 @@ def process(document: InvoiceDetails) -> None:
         with track_usage("openrouter", MODEL, "extraction", str(document.id), document.name) as extraction_usage:
             extraction = extract_invoice(native.decode("utf-8"), pages, usage=extraction_usage)
         extraction, corrections = recover_identifiers(extraction, list_suppliers())
+        if extraction.line_items:
+            with track_usage("typesafe", CATEGORY_MODEL, "categorization", str(document.id), document.name) as usage:
+                extraction = categorize_invoice(extraction, usage)
+        else:
+            extraction = CategorizedInvoiceExtraction.model_validate(extraction.model_dump())
         for correction in corrections:
             logger.info("[EXTRACTION] Recovered %s for %s using supplier %s and exact %s: %s -> %s",
                         correction.field, document.name, correction.supplier_id, correction.matched_field,
@@ -48,6 +54,7 @@ def process(document: InvoiceDetails) -> None:
             "page_sha256": [sha256(page).hexdigest() for page in pages],
             "features_sha256": sha256(content).hexdigest(),
             "model": extraction_usage.model,
+            "categorization_model": CATEGORY_MODEL,
             "identifier_corrections": [correction.model_dump() for correction in corrections],
         }
         upload_file(f"{prefix}/extraction.json", json.dumps(metadata).encode("utf-8"), "application/json")
