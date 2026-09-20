@@ -209,8 +209,6 @@
   },
   "treasury": {
     "title": "Tesorería",
-    "overdue": "Vencido",
-    "overdueSubtitle": "Aprobado y ya fuera de plazo",
     "next7Days": "Próximos 7 días",
     "next7DaysSubtitle": "Efectivo necesario a corto plazo",
     "next30Days": "Próximos 30 días",

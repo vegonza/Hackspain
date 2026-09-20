@@ -1,7 +1,6 @@
 import { fetchJson } from '@/api/client'
 
 export interface TreasurySummary {
-  overdue: string
   next_7_days: string
   next_30_days: string
   blocked_in_review: string

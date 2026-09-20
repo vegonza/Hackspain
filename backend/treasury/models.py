@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 
 class TreasurySummary(BaseModel):
-    overdue: Decimal
     next_7_days: Decimal
     next_30_days: Decimal
     blocked_in_review: Decimal

@@ -10,8 +10,8 @@ import type { useTreasury } from '@/hooks/useTreasury'
 export function TreasuryView({ mount, loading, failed, summary, rows, calendar, onRetry, onDocumentLink, labels }: ReturnType<typeof useTreasury>) {
   return <section className="treasury-view" ref={mount} aria-label={labels.title} aria-busy={loading}>
     <div className="treasury-kpis">
-      {loading ? Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-32 w-full" />)
-        : summary.map(item => <div className="treasury-kpi" key={item.id} data-risk={item.risk}>
+      {loading ? Array.from({ length: 3 }, (_, index) => <Skeleton key={index} className="h-32 w-full" />)
+        : summary.map((item, index) => <div className="treasury-kpi" key={item.id} data-risk={index === 2}>
           <span>{item.label}</span><strong>{item.value}</strong><small>{item.subtitle}</small>
         </div>)}
     </div>

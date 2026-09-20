@@ -1,18 +1,11 @@
 from fastapi import HTTPException
 from postgrest.exceptions import APIError
 
-from shared.identifiers import normalize_tax_id
 from shared.logger import get_logger
 from shared.storage import get_client
 from suppliers.models import Supplier, SupplierInput
 
 logger = get_logger()
-
-
-def payment_terms() -> dict[str, int]:
-    """Payment terms keyed by normalized tax id, used to forecast due dates."""
-    rows = get_client().table('suppliers').select('tax_id,payment_terms_days').execute().data
-    return {normalize_tax_id(row['tax_id']): row['payment_terms_days'] for row in rows}
 
 
 def list_suppliers() -> list[Supplier]:

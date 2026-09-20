@@ -23,11 +23,8 @@ class TreasuryTests(unittest.TestCase):
             {"id": "00000000-0000-0000-0000-000000000007", "name": "sin-clasificar.pdf", "payment_decision": None},
             {"id": "00000000-0000-0000-0000-000000000008", "name": "decision-antigua.pdf", "payment_decision": {"classification": "PAGAR", "reasons": [], "checks": {}}},
         ]
-        database.table.return_value.select.return_value.execute.return_value.data = []
-        with (patch("treasury.repository.get_client", return_value=database),
-              patch("suppliers.repository.get_client", return_value=database)):
+        with patch("treasury.repository.get_client", return_value=database):
             report = read_treasury(date(2026, 9, 19))
-        self.assertEqual(str(report.summary.overdue), "0")
         self.assertEqual(str(report.summary.next_7_days), "100.25")
         self.assertEqual(str(report.summary.next_30_days), "601.50")
         self.assertEqual(str(report.summary.blocked_in_review), "50.10")
@@ -40,28 +37,9 @@ class TreasuryTests(unittest.TestCase):
         ])
         self.assertEqual(str(report.payments[0].amount), "100.25")
 
-    def test_rebuilds_missing_fields_from_the_document_row_and_reports_overdue(self) -> None:
-        database = MagicMock()
-        database.table.return_value.select.return_value.is_.return_value.execute.return_value.data = [
-            {"id": "00000000-0000-0000-0000-000000000001", "name": "vencida.pdf", "invoice_date": "2026-06-01",
-             "supplier_nif": "B12345678", "supplier_name": "Alfa", "total_eur": "500.00",
-             "payment_decision": {"classification": "PAGAR", "reasons": [], "checks": {}}},
-        ]
-        database.table.return_value.select.return_value.execute.return_value.data = [
-            {"tax_id": "B12345678", "payment_terms_days": 30},
-        ]
-        with (patch("treasury.repository.get_client", return_value=database),
-              patch("suppliers.repository.get_client", return_value=database)):
-            report = read_treasury(date(2026, 9, 19))
-        self.assertEqual(str(report.summary.overdue), "500.00")
-        self.assertEqual(str(report.summary.next_7_days), "0")
-        self.assertEqual(report.payments[0].due_date, date(2026, 7, 1))
-        self.assertEqual(report.payments[0].supplier_name, "Alfa")
-        self.assertEqual(str(report.payments[0].amount), "500.00")
-
     def test_endpoint_returns_decimal_amounts_without_losing_precision(self) -> None:
         report = TreasuryReport(
-            summary=TreasurySummary(overdue="0", next_7_days="100.25", next_30_days="300.75", blocked_in_review="50.10"),
+            summary=TreasurySummary(next_7_days="100.25", next_30_days="300.75", blocked_in_review="50.10"),
             by_supplier=[SupplierCommitment(
                 supplier_name="Alfa", approved_invoices=2,
                 committed_amount="300.75", next_due_date=date(2026, 9, 20),
