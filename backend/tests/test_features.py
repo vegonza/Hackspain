@@ -3,7 +3,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from extractor.extraction import InvoiceExtraction, InvoiceLine, extract_invoice
+from extractor.extraction import EXTRACTION_FALLBACK_MODELS, InvoiceExtraction, InvoiceLine, extract_invoice
 
 
 def extracted_items(items: list[InvoiceLine]) -> InvoiceExtraction:
@@ -56,6 +56,7 @@ class InvoiceExtractionTests(unittest.TestCase):
             result = extract_invoice("Suministro 66,73\nSuministro 66,73", [b"page one", b"page two"])
         self.assertEqual([item.amount for item in result.line_items], ["66.73", "133.46"])
         self.assertEqual(run.call_args.kwargs["page_images"], [b"page one", b"page two"])
+        self.assertEqual(run.call_args.kwargs["fallback_models"], EXTRACTION_FALLBACK_MODELS)
         self.assertEqual(run.call_args.args[2], InvoiceExtraction)
         run.assert_called_once()
 

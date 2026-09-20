@@ -6,7 +6,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any, TypeVar, cast
 
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 from openai.types.chat import ChatCompletionContentPartParam
 from pydantic import BaseModel, ValidationError
 from shared.logger import get_logger
@@ -47,7 +47,21 @@ class ExtractionManager:
         self, instruction: str, content: str, result_type: type[Result],
         usage: UsageRecord | None = None,
         page_images: Sequence[bytes] = (),
-        *, model: str = MODEL,
+        *, model: str = MODEL, fallback_models: Sequence[str] = (),
+    ) -> Result:
+        models: tuple[str, ...] = (model, *fallback_models)
+        for index, candidate in enumerate(models):
+            try:
+                return self._run_model(instruction, content, result_type, usage, page_images, candidate)
+            except (OpenAIError, InvalidModelResponse) as error:
+                if index == len(models) - 1:
+                    raise
+                logger.warning("[AI] %s failed with %s; trying %s", candidate, type(error).__name__, models[index + 1])
+        raise RuntimeError("AI model chain is empty")
+
+    def _run_model(
+        self, instruction: str, content: str, result_type: type[Result],
+        usage: UsageRecord | None, page_images: Sequence[bytes], model: str,
     ) -> Result:
         user_content: list[ChatCompletionContentPartParam] = [{"type": "text", "text": content}]
         for number, image in enumerate(page_images, start=1):
@@ -81,6 +95,7 @@ class ExtractionManager:
             reported_usage = result.usage.model_dump()
             provider = cast(dict[str, Any], result.model_extra)["provider"]
             usage.provider = provider
+            usage.model = result.model
             usage.usage.append(UsageEntry(
                 model=result.model, provider=provider,
                 cost=Decimal(str(reported_usage["cost"])),

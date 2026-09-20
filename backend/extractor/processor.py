@@ -34,8 +34,8 @@ def process(document: InvoiceDetails) -> None:
         for number, image in enumerate(pages, start=1):
             upload_file(f"{prefix}/pages/page-{number}.jpg", image, "image/jpeg")
         logger.info("[EXTRACTION] Extracting invoice fields from native text and %s page images for %s", len(pages), document.name)
-        with track_usage("openrouter", MODEL, "extraction", str(document.id), document.name) as usage:
-            extraction = extract_invoice(native.decode("utf-8"), pages, usage=usage)
+        with track_usage("openrouter", MODEL, "extraction", str(document.id), document.name) as extraction_usage:
+            extraction = extract_invoice(native.decode("utf-8"), pages, usage=extraction_usage)
         extraction, corrections = recover_identifiers(extraction, list_suppliers())
         for correction in corrections:
             logger.info("[EXTRACTION] Recovered %s for %s using supplier %s and exact %s: %s -> %s",
@@ -47,7 +47,7 @@ def process(document: InvoiceDetails) -> None:
             "pdf_sha256": sha256(pdf).hexdigest(),
             "page_sha256": [sha256(page).hexdigest() for page in pages],
             "features_sha256": sha256(content).hexdigest(),
-            "model": MODEL,
+            "model": extraction_usage.model,
             "identifier_corrections": [correction.model_dump() for correction in corrections],
         }
         upload_file(f"{prefix}/extraction.json", json.dumps(metadata).encode("utf-8"), "application/json")

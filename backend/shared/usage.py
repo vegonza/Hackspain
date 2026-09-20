@@ -54,4 +54,4 @@ def track_usage(provider: str, model: str, operation: str, invoice_id: str, invo
     finally:
         with get_redis() as redis:
             redis.hset(USAGE_OUTBOX, record.id, record.model_dump_json())
-        logger.info("[USAGE] Queued %s / %s for %s", provider, model, invoice_name)
+        logger.info("[USAGE] Queued %s / %s for %s", record.provider, record.model, invoice_name)

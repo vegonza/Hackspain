@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import httpx2
 from openai import APIConnectionError, APITimeoutError, APIResponseValidationError, InternalServerError, OpenAI
+from openai.types.chat import ChatCompletion
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from extractor.extractor import MODEL, ExtractionManager, create_extractor
@@ -78,6 +79,53 @@ class RequiredOutputToolTests(unittest.TestCase):
         self.assertEqual(json.loads(self.requests[-1].content)["model"], "openai/gpt-5.6-luna")
         self.manager.run("Extract invoice", "Invoice", ExtractedText)
         self.assertEqual(json.loads(self.requests[-1].content)["model"], "google/gemini-3.8-flash")
+
+    def test_fallback_models_are_tried_in_order_after_invalid_responses(self) -> None:
+        invalid = ChatCompletion.model_validate(response([]))
+        luna_response = response([tool_call('{"text":"Factura"}')])
+        luna_response["model"] = "openai/gpt-5.6-luna"
+        valid = ChatCompletion.model_validate(luna_response)
+        with patch.object(self.manager.client.chat.completions, "create", side_effect=[invalid, valid]) as create:
+            result = self.manager.run(
+                "Read", "Text", ExtractedText, usage=self.usage,
+                fallback_models=("openai/gpt-5.6-luna", "openai/gpt-5.6-terra"),
+            )
+        self.assertEqual(result.text, "Factura")
+        self.assertEqual([call.kwargs["model"] for call in create.call_args_list], [
+            "google/gemini-3.8-flash", "openai/gpt-5.6-luna",
+        ])
+        self.assertEqual(self.usage.model, "openai/gpt-5.6-luna")
+        self.assertEqual(len(self.usage.usage), 2)
+
+    def test_last_fallback_error_is_propagated(self) -> None:
+        invalid = ChatCompletion.model_validate(response([]))
+        with patch.object(self.manager.client.chat.completions, "create", side_effect=[invalid, invalid, invalid]) as create:
+            with self.assertRaises(InvalidModelResponse):
+                self.manager.run(
+                    "Read", "Text", ExtractedText,
+                    fallback_models=("openai/gpt-5.6-luna", "openai/gpt-5.6-terra"),
+                )
+        self.assertEqual([call.kwargs["model"] for call in create.call_args_list], [
+            "google/gemini-3.8-flash", "openai/gpt-5.6-luna", "openai/gpt-5.6-terra",
+        ])
+
+    def test_provider_error_uses_the_next_model(self) -> None:
+        request = httpx2.Request("POST", "https://openrouter.ai/api/v1/chat/completions")
+        error = InternalServerError(
+            "Provider unavailable", response=httpx2.Response(500, request=request), body={},
+        )
+        terra_response = response([tool_call('{"text":"Factura"}')])
+        terra_response["model"] = "openai/gpt-5.6-terra"
+        valid = ChatCompletion.model_validate(terra_response)
+        with patch.object(self.manager.client.chat.completions, "create", side_effect=[error, valid]) as create:
+            result = self.manager.run(
+                "Read", "Text", ExtractedText, model="openai/gpt-5.6-luna",
+                fallback_models=("openai/gpt-5.6-terra", "google/gemini-3.8-flash"),
+            )
+        self.assertEqual(result.text, "Factura")
+        self.assertEqual([call.kwargs["model"] for call in create.call_args_list], [
+            "openai/gpt-5.6-luna", "openai/gpt-5.6-terra",
+        ])
 
     def test_missing_tool_call_is_retryable_and_keeps_billed_usage(self) -> None:
         self.response_body["choices"][0]["message"]["tool_calls"] = None

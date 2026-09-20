@@ -6,6 +6,8 @@ from pydantic import BaseModel, ConfigDict
 from extractor.extractor import create_extractor, load_prompt
 from shared.usage import UsageRecord
 
+EXTRACTION_FALLBACK_MODELS: tuple[str, ...] = ("openai/gpt-5.6-luna", "openai/gpt-5.6-terra")
+
 
 class InvoiceLine(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -47,7 +49,10 @@ def extract_invoice(
     sources = json.dumps({"native_text": native_text}, ensure_ascii=False)
     content = f"Extract the invoice fields from this raw PDF text and the attached page images: {sources}"
     with create_extractor() as extractor:
-        extracted = extractor.run(instruction, content, InvoiceExtraction, usage=usage, page_images=page_images)
+        extracted = extractor.run(
+            instruction, content, InvoiceExtraction, usage=usage, page_images=page_images,
+            fallback_models=EXTRACTION_FALLBACK_MODELS,
+        )
     items = [InvoiceLine(description=item.description, amount=normalize_decimal(item.amount)) for item in extracted.line_items]
     totals = {field: normalize_decimal(getattr(extracted, field)) for field in ("tax_base", "vat_rate", "vat_amount", "total")}
     return InvoiceExtraction.model_validate({**extracted.model_dump(exclude={"line_items"}), **totals, "line_items": items})

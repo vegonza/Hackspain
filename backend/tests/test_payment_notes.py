@@ -10,7 +10,7 @@ from suppliers.models import Supplier
 from orders.models import Order
 from erp import ErpEntry
 from extractor.extraction import InvoiceExtraction, InvoiceLine
-from invoices.payment_notes import PaymentConcern, PaymentNotesReview, SourcedPaymentConcern, SourcedPaymentNotesReview, review_payment_notes
+from invoices.payment_notes import CLASSIFICATION_FALLBACK_MODELS, PaymentConcern, PaymentNotesReview, SourcedPaymentConcern, SourcedPaymentNotesReview, review_payment_notes
 
 
 class PaymentNotesTests(unittest.TestCase):
@@ -34,6 +34,8 @@ class PaymentNotesTests(unittest.TestCase):
             factory.return_value.__enter__.return_value.run.return_value = review
             result = review_payment_notes(["Pago a 30 días. Pedido anulado."], {})
         self.assertEqual(factory.return_value.__enter__.return_value.run.call_args.kwargs["model"], "openai/gpt-5.6-luna")
+        self.assertEqual(factory.return_value.__enter__.return_value.run.call_args.kwargs["fallback_models"],
+                         CLASSIFICATION_FALLBACK_MODELS)
         self.assertEqual(result.concerns[0].evidence, "Pago a 30 días. Pedido anulado.")
 
 
