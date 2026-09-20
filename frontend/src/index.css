@@ -198,11 +198,11 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .analytics-vat-legend strong { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .analytics-vat-legend small { min-width: 44px; color: var(--muted-foreground); font-size: 11px; font-variant-numeric: tabular-nums; text-align: right; }
 .analytics-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 12px; }
-.analytics-metric-card { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 96px; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: white; box-shadow: 0 1px 2px #00000008, 0 8px 24px #00000008; }
-.analytics-metric-icon { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 9px; background: var(--accent-soft); color: var(--primary); }
-.analytics-metric-copy { display: flex; min-width: 0; flex-direction: column; gap: 5px; }
-.analytics-metric-copy span { color: var(--muted-foreground); font-size: 12px; }
-.analytics-metric-copy strong { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.4px; }
+.analytics-metric { display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: start; gap: 12px; min-height: 96px; padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: white; box-shadow: 0 1px 2px #00000008, 0 8px 24px #00000008; }
+.analytics-metric-icon { margin-top: 1px; color: var(--primary); }
+.analytics-metric-copy { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
+.analytics-metric-copy span { color: var(--muted-foreground); font-size: 12px; line-height: 18px; }
+.analytics-metric-copy strong { color: #171717; font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; line-height: 28px; }
 @media (max-width: 900px) {
   .analytics-content { grid-template-columns: 1fr; grid-template-rows: none; overflow: auto; }
   .analytics-card { min-height: 440px; }
