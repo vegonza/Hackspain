@@ -48,6 +48,12 @@ describe('billing periods, search and totals', () => {
     expect(sortInvoices([unknown, invoice, smaller], 'amount', 'asc').map(row => row.id)).toEqual(['2', '1', '3'])
     expect(sortInvoices([unknown, smaller, invoice], 'amount', 'desc').map(row => row.id)).toEqual(['1', '2', '3'])
   })
+
+  test('sorts by review decision and preserves input order without an active sort', () => {
+    const review = { ...invoice, id: '2', payment_decision: { classification: 'ESCALAR' as const, reasons: [], checks: { not_paid: true } } }
+    expect(sortInvoices([invoice, review], 'review', 'asc').map(row => row.id)).toEqual(['2', '1'])
+    expect(sortInvoices([review, invoice], null, 'asc').map(row => row.id)).toEqual(['2', '1'])
+  })
   test('month navigation crosses year boundaries', () => {
     expect(shiftMonth('2026-01', -1)).toBe('2025-12')
     expect(shiftMonth('2026-12', 1)).toBe('2027-01')

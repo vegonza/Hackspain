@@ -4,6 +4,7 @@ import { downloadInvoice } from '@/api/invoices'
 import { invoiceErrorKey } from '@/hooks/invoiceError'
 import { invoicePath } from '@/hooks/useAppRoute'
 import { useMonthShortcuts } from '@/hooks/useMonthShortcuts'
+import { useTableSort } from '@/hooks/useTableSort'
 import { formatAmount, formatStatus } from '@/lib/format'
 import { supplierLogo } from '@/lib/supplierLogos'
 import { billingDecision, euroTotal, invoiceDate, matchesInvoice, periodInvoices, shiftMonth, sortInvoices,
@@ -15,7 +16,7 @@ export function useInvoiceTable(invoices: BillingInvoice[], loading: boolean) {
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   const [period, setPeriod] = useState(currentMonth)
   const [search, setSearch] = useState('')
-  const [sort, setSort] = useState<{ column: BillingSort; direction: 'asc' | 'desc' }>({ column: 'date', direction: 'desc' })
+  const { sortColumn, sortDirection, onToggleSort } = useTableSort<BillingSort>()
   const [downloading, setDownloading] = useState<string | null>(null)
   const downloadInFlight = useRef(false)
   const canNavigateMonths = period !== 'all' && period !== 'undated'
@@ -48,7 +49,7 @@ export function useInvoiceTable(invoices: BillingInvoice[], loading: boolean) {
       .map(([value, count]) => ({ value, count })), undatedCount }
   }, [invoices, period, currentMonth])
   const inPeriod = useMemo(() => periodInvoices(invoices, period), [invoices, period])
-  const filtered = sortInvoices(inPeriod.filter(invoice => matchesInvoice(invoice, search)), sort.column, sort.direction)
+  const filtered = sortInvoices(inPeriod.filter(invoice => matchesInvoice(invoice, search)), sortColumn, sortDirection)
   const summaries = (['all', 'PAGAR', 'ESCALAR'] as const).map(value => {
     const total = euroTotal(value === 'all' ? inPeriod : inPeriod.filter(invoice => billingDecision(invoice) === value))
     return { value, label: value === 'all' ? t('billing.periodTotal') : value === 'PAGAR' ? t('billing.payable') : t('billing.rowDecisions.ESCALAR'),
@@ -118,8 +119,8 @@ export function useInvoiceTable(invoices: BillingInvoice[], loading: boolean) {
   return {
     rows, search, onSearch: setSearch, period,
     onPeriod: (value: string) => { if (value === 'all' || value === 'undated' || value <= currentMonth) setPeriod(value) },
-    summaries, sort,
-    onSort: (column: BillingSort) => setSort({ column, direction: sort.column === column && sort.direction === 'asc' ? 'desc' : 'asc' }),
+    summaries, sort: { column: sortColumn, direction: sortDirection },
+    onSort: onToggleSort,
     monthOptions: [{ value: 'all', label: t('billing.allMonths'), count: invoices.length },
       ...months.map(month => ({ ...month, label: monthLabel(month.value) })),
       { value: 'undated', label: t('billing.undated'), count: undatedCount }],

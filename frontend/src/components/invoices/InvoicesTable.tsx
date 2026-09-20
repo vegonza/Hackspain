@@ -1,4 +1,4 @@
-import { Building2, CalendarDays, Euro } from 'lucide-react'
+import { Building2, CalendarDays, Euro, ListChecks } from 'lucide-react'
 import { InvoiceBillingHeader } from '@/components/invoices/InvoiceBillingHeader'
 import { InvoiceBillingRow } from '@/components/invoices/InvoiceBillingRow'
 import { SortableTableHead } from '@/components/ui/sortable-table-head'
@@ -18,12 +18,12 @@ export function InvoicesTable({ invoicesLoading, onUpload, table: { mountMonthSh
     <div className="invoices-table-scroll" key={table.period}>
       <table className="invoices-table billing-table" aria-busy={invoicesLoading}>
         <colgroup><col /><col className="billing-review-column" /><col style={{ width: '104px' }} /><col style={{ width: '160px' }} /><col style={{ width: '52px' }} /></colgroup>
-        <TableHeader><TableRow className="hover:bg-transparent">
-          <SortableTableHead column="supplier" label={table.labels.supplier} icon={Building2} activeColumn={table.sort.column} direction={table.sort.direction} onToggle={table.onSort} />
-          <TableHead>{table.labels.review}</TableHead>
-          <SortableTableHead column="date" label={table.labels.date} icon={CalendarDays} activeColumn={table.sort.column} direction={table.sort.direction} onToggle={table.onSort} />
-          <SortableTableHead column="amount" label={table.labels.amount} icon={Euro} activeColumn={table.sort.column} direction={table.sort.direction} onToggle={table.onSort} className="billing-money-head" />
-          <TableHead><span className="sr-only">{table.labels.actions}</span></TableHead>
+        <TableHeader className="[&_tr]:border-b-0"><TableRow className="hover:bg-transparent">
+          <SortableTableHead column="supplier" label={table.labels.supplier} icon={Building2} activeColumn={table.sort.column} direction={table.sort.direction} onToggle={table.onSort} className="sticky top-0 z-20 border-b bg-muted" />
+          <SortableTableHead column="review" label={table.labels.review} icon={ListChecks} activeColumn={table.sort.column} direction={table.sort.direction} onToggle={table.onSort} className="sticky top-0 z-20 border-b bg-muted" />
+          <SortableTableHead column="date" label={table.labels.date} icon={CalendarDays} activeColumn={table.sort.column} direction={table.sort.direction} onToggle={table.onSort} className="sticky top-0 z-20 border-b bg-muted" />
+          <SortableTableHead column="amount" label={table.labels.amount} icon={Euro} activeColumn={table.sort.column} direction={table.sort.direction} onToggle={table.onSort} className="billing-money-head sticky top-0 z-20 border-b bg-muted" />
+          <TableHead className="sticky top-0 z-20 border-b bg-muted"><span className="sr-only">{table.labels.actions}</span></TableHead>
         </TableRow></TableHeader>
         <TableBody>
           {invoicesLoading ? <TableSkeleton columns={5} /> : table.rows.map(invoice => <InvoiceBillingRow key={invoice.id} invoice={invoice} labels={table.labels}

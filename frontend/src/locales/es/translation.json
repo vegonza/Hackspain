@@ -261,12 +261,12 @@
     "downloadPdf": "Descargar PDF",
     "rowDecisions": {
       "PAGAR": "Lista para pagar",
-      "ESCALAR": "Por revisar",
+      "ESCALAR": "A revisar",
       "NO_PAGAR": "No pagar",
       "paid": "Pagada en ERP",
       "pending": "Pendiente de revisión"
     },
-    "payable": "Para pagar",
+    "payable": "A pagar",
     "grossAmount": "Con IVA {{amount}}",
     "originalAmount": "Original {{amount}} sin IVA"
   }

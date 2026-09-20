@@ -4,7 +4,7 @@ export type BillingInvoice = Pick<Invoice, 'id' | 'name' | 'created_at' | 'billi
   status: Invoice['status'] | 'uploading'
 }
 export type BillingDecision = 'PAGAR' | 'ESCALAR' | 'NO_PAGAR' | 'paid' | 'pending'
-export type BillingSort = 'supplier' | 'date' | 'amount'
+export type BillingSort = 'supplier' | 'review' | 'date' | 'amount'
 
 export function invoiceDate(invoice: BillingInvoice): string | null {
   const value = invoice.billing === null ? null : invoice.billing.invoice_date
@@ -53,8 +53,10 @@ export function euroTotal(invoices: BillingInvoice[]): { cents: number; unknown:
   return { cents, unknown, count: invoices.length }
 }
 
-export function sortInvoices(invoices: BillingInvoice[], column: BillingSort, direction: 'asc' | 'desc'): BillingInvoice[] {
+export function sortInvoices(invoices: BillingInvoice[], column: BillingSort | null, direction: 'asc' | 'desc'): BillingInvoice[] {
+  if (column === null) return invoices
   const value = (invoice: BillingInvoice): string | number | null => {
+    if (column === 'review') return billingDecision(invoice)
     if (column === 'date') return invoiceDate(invoice)
     if (invoice.billing === null) return null
     if (column === 'amount') return invoice.billing.tax_base_eur === null ? null : Number(invoice.billing.tax_base_eur)
