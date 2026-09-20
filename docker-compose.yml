@@ -37,7 +37,9 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - internal
+      internal:
+        aliases:
+          - hackspain-backend
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8766/api/health', timeout=3).read()"]
       interval: 10s
