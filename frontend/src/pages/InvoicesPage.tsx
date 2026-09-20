@@ -5,6 +5,7 @@ import { useOrders } from '@/hooks/useOrders'
 import { useSuppliers } from '@/hooks/useSuppliers'
 import { useClients } from '@/hooks/useClients'
 import { useUsage } from '@/hooks/useUsage'
+import { useAnalytics } from '@/hooks/useAnalytics'
 
 export function InvoicesPage() {
   const invoices = useInvoices()
@@ -13,5 +14,6 @@ export function InvoicesPage() {
   const suppliers = useSuppliers()
   const erp = useErpSnapshot()
   const clients = useClients()
-  return <InvoicesView {...invoices} usage={usage} suppliers={suppliers} orders={orders} erp={erp} clients={clients} />
+  const analytics = useAnalytics()
+  return <InvoicesView {...invoices} usage={usage} suppliers={suppliers} orders={orders} erp={erp} clients={clients} analytics={analytics} />
 }

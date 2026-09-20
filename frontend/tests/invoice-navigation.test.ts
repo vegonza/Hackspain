@@ -28,6 +28,7 @@ describe('invoice URLs', () => {
   test('invoice URLs restore the selected invoice without phase subpaths', () => {
     expect(parseRoute('/invoices')).toEqual({ view: 'invoices', invoiceId: null })
     expect(parseRoute('/cost').view).toBe('usage')
+    expect(parseRoute('/analytics')).toEqual({ view: 'analytics', invoiceId: null })
     expect(parseRoute(invoicePath('invoice-1'))).toEqual({ view: 'invoices', invoiceId: 'invoice-1' })
     for (const section of ['text', 'ocr', 'merge', 'extraction', 'erp']) {
       expect(parseRoute(`/invoices/invoice-1/${section}`).view).toBe('not-found')

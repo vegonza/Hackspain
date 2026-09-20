@@ -15,6 +15,7 @@ from orders.router import router as orders_router
 from suppliers.router import router as suppliers_router
 from usage.worker import start_usage_worker
 from shared.logger import setup_logger
+from analytics.router import router as analytics_router
 from auth import PasswordMiddleware, router as auth_router
 
 environment = os.environ["ENV"]
@@ -52,6 +53,7 @@ app.include_router(erp_router)
 app.include_router(usage_router)
 app.include_router(suppliers_router)
 app.include_router(orders_router)
+app.include_router(analytics_router)
 
 
 @app.get("/api/health")

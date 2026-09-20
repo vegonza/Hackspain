@@ -109,6 +109,24 @@
       "categorization": "Categorización"
     }
   },
+  "analytics": {
+    "title": "Análisis",
+    "spendingDistribution": "Distribución de gastos",
+    "total": "Total",
+    "vatDeduction": "Tratamiento del IVA",
+    "deductibleSpain": "Deducible en España",
+    "foreignVat": "IVA extranjero",
+    "usageDistribution": "Distribución del coste medio por factura",
+    "averageCost": "Coste medio",
+    "metrics": "Métricas de procesamiento",
+    "averageDuration": "Tiempo medio de procesamiento",
+    "estimatedCadence": "Cadencia estimada",
+    "estimatedCadenceWorkers": "Cadencia estimada · {{workers}} workers",
+    "cadenceValue": "{{value}} s/factura",
+    "empty": "No hay gastos categorizados.",
+    "vatEmpty": "No hay IVA en facturas aprobadas.",
+    "usageEmpty": "No hay consumo registrado."
+  },
   "extraction": {
     "identifierTrace": "Campo inferido",
     "identifierCorrection": "Corrección inferida · Original:",
