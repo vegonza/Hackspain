@@ -13,7 +13,6 @@ interface Labels {
   invoiceNumber: string
   invoiceDate: string
   purchaseOrder: string
-  supplierName: string
   supplierNif: string
   iban: string
   lineItems: string
@@ -38,7 +37,6 @@ export function InvoiceExtraction({ title, extraction, amounts, labels, identifi
     <section className="invoice-data" aria-label={title}>
       <div className="extraction-view">
         <dl className="extraction-grid">
-          <div><dt>{labels.supplierName}</dt><Tooltip text={extraction.supplier_name} onlyWhenTruncated asChild><dd>{extraction.supplier_name}</dd></Tooltip></div>
           <div><dt>{labels.invoiceNumber}</dt><Tooltip text={extraction.invoice_number} onlyWhenTruncated asChild><dd>{extraction.invoice_number}</dd></Tooltip></div>
           <div><dt>{labels.invoiceDate}</dt><Tooltip text={extraction.invoice_date} onlyWhenTruncated asChild><dd>{extraction.invoice_date}</dd></Tooltip></div>
           <div><dt>{labels.purchaseOrder}</dt><Tooltip text={extraction.purchase_order} onlyWhenTruncated asChild><dd>{extraction.purchase_order}</dd></Tooltip></div>

@@ -12,7 +12,6 @@
   },
   "invoices": {
     "decision": "Decisión",
-    "justification": "Justificación",
     "decisionPending": "Sin decisión",
     "decisions": {
       "PAGAR": "Pagar",
@@ -31,6 +30,7 @@
     "search": "Buscar facturas…",
     "back": "Volver a facturas",
     "totalTime": "Tiempo",
+    "processingSummary": "Procesamiento",
     "status": "Estado",
     "created": "Fecha de subida",
     "noResults": "No hay facturas que coincidan con la búsqueda.",

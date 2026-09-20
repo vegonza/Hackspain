@@ -17,7 +17,7 @@ type Props = ReturnType<typeof useInvoices> & { usage: ReturnType<typeof useUsag
 
 export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, suppliers, orders, erp, selectedId,
   sortColumn, sortDirection, onToggleSort, onUpload, filteredInvoices, invoicesLoading, search, onSearch, onSelect,
-  onInvoiceLink, onDelete, deleting, mountDetail, invoiceName, selected, loading, extractionLoading,
+  onInvoiceLink, onDelete, deleting, mountDetail, invoiceName, supplierName, selected, loading, extractionLoading,
   pdfUrl, pdfLoading, sourceTab, dataTab, onDataTab, emptyMessage, extractionLabels, canRetry, onRetrySelected,
   retrying, metricsLoading, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts,
   redoing, onRedo, identifierTrace }: Props) {
@@ -49,7 +49,7 @@ export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, s
           : view === 'suppliers' ? <SuppliersView {...suppliers} />
           : view === 'erp' ? <ErpView {...erp} />
           : view === 'not-found' ? <section className="invoice-unavailable"><h1>{labels.notFound}</h1><Button variant="link" asChild><a href="/invoices" onClick={onNavigate}>{labels.library}</a></Button></section>
-          : selectedId !== null ? <InvoiceDetails mountDetail={mountDetail} invoiceName={invoiceName} selectedId={selectedId}
+          : selectedId !== null ? <InvoiceDetails mountDetail={mountDetail} invoiceName={invoiceName} supplierName={supplierName} selectedId={selectedId}
             selected={selected} identifierTrace={identifierTrace} featureAmounts={featureAmounts} loading={loading} extractionLoading={extractionLoading} pdfUrl={pdfUrl} pdfLoading={pdfLoading}
             sourceTab={sourceTab} dataTab={dataTab} onDataTab={onDataTab} emptyMessage={emptyMessage} labels={labels} extractionLabels={extractionLabels}
             canRetry={canRetry} onRetrySelected={onRetrySelected} retrying={retrying} metricsLoading={metricsLoading}
