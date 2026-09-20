@@ -2,6 +2,7 @@ import { useCallback, useRef, useState, type ChangeEvent, type MouseEvent } from
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { invoicePath, useAppRoute } from '@/hooks/useAppRoute'
+import { useGestoria } from '@/hooks/useGestoria'
 import { useIssuedInvoices } from '@/hooks/useIssuedInvoices'
 import { useIssuedList } from '@/hooks/useIssuedList'
 import { useInvoiceTable } from '@/hooks/useInvoiceTable'
@@ -14,6 +15,7 @@ import { invoiceCategoryIcon } from '@/lib/invoiceCategory'
 import { deleteInvoice, redoInvoice, retryInvoice, fetchInvoices, uploadInvoice, type Invoice } from '@/api/invoices'
 import { formatAmount, formatStatus } from '@/lib/format'
 import { isSupportedInvoiceFile } from '@/lib/invoiceFiles'
+import { supplierLogo } from '@/lib/supplierLogos'
 
 const isProcessing = (document: Invoice) => document.status === 'queued' || document.status === 'processing'
 
@@ -212,10 +214,12 @@ export function useInvoices() {
       : t('processing.durationMinutes', { minutes: Math.floor(centiseconds / 6000), seconds: ((centiseconds % 6000) / 100).toFixed(2) })
   }
   const table = useInvoiceTable(invoices, invoicesLoading || issued.loading, issued.invoices)
+  const gestoria = useGestoria(table.period, table.monthOptions.find(option => option.value === table.period)!.label)
   const issuedList = useIssuedList(issued.invoices, table.period, table.search, table.sort)
 
   const erp = selected === null ? null : selected.erp
   const extraction = selected === null ? null : selected.extraction
+  const supplierName = extraction === null ? null : extraction.supplier_name
   const featureMoney = (value: string, currency: string): string => value === '' ? t('extraction.unavailable')
     : formatAmount(Number(value), currency)
   const featureAmounts = extraction === null ? null : {
@@ -263,7 +267,7 @@ export function useInvoices() {
   const identifierTrace = useIdentifierTrace(selected === null ? [] : selected.identifier_trace.identifier_corrections)
 
   return {
-    issued, issuedList, issuedId: route.view === 'issued' ? route.issuedId : null,
+    gestoria, issued, issuedList, issuedId: route.view === 'issued' ? route.issuedId : null,
     redoing, onRedo,
     metricsLoading, emptyMessage, erpRows, totalDuration, totalCost, identifierTrace,
     table, imports, onRetryImport, invoicesLoading, onInvoiceLink, onNavigate: followLink,
@@ -273,7 +277,7 @@ export function useInvoices() {
     canRetry: (selected !== null && selected.status === 'error') || (selectedRow !== undefined && selectedRow.status === 'error'),
     onRetrySelected: () => { if (selectedId !== null) void onRetry(selectedId) },
     invoiceName: selected !== null ? selected.name : selectedRow === undefined ? null : selectedRow.name,
-    supplierName: selected !== null && selected.extraction !== null ? selected.extraction.supplier_name : null,
+    supplierName, supplierLogo: supplierLogo(supplierName),
     view,
     onUpload, onDelete, onSelect: (id: string) => navigate(invoicePath(id)),
     labels: {
@@ -298,6 +302,8 @@ export function useInvoices() {
       actions: t('invoices.actions'),
     },
     extractionLabels: {
+      verifactu: t('extraction.verifactu'),
+      verifactuLink: t(selected !== null && selected.verifactu !== null && selected.verifactu.environment === 'test' ? 'extraction.verifactuTest' : 'extraction.verifactuCheck'),
       inferred: t('extraction.identifierTrace'),
       notes: t('extraction.notes'), uncertainties: t('extraction.uncertainties'),
       invoiceNumber: t('extraction.invoiceNumber'), invoiceDate: t('extraction.invoiceDate'),

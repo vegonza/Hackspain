@@ -15,6 +15,7 @@ import p014 from '@/assets/suppliers/p014-servicos-aljarafe.svg'
 import p015 from '@/assets/suppliers/p015-tokyo-systems.svg'
 import consultoriaDocumentalAljarafe from '@/assets/suppliers/consultoria-documental-aljarafe.svg'
 import consultoriaEstrategicaIberica from '@/assets/suppliers/consultoria-estrategica-iberica.svg'
+import ireneSolutions from '@/assets/suppliers/irene-solutions.svg'
 import bancoMiralmar from '@/assets/banco-miralmar.svg'
 
 function normalizeSupplierName(name: string): string {
@@ -39,6 +40,7 @@ const logosByName = new Map<string, string>([
   ['Tokyo Systems K.K.', p015],
   ['Consultoría Documental Aljarafe S.L.', consultoriaDocumentalAljarafe],
   ['Consultoría Estratégica Ibérica S.L.', consultoriaEstrategicaIberica],
+  ['IRENE SOLUTIONS SL', ireneSolutions],
   ['Banco Miralmar S.A.', bancoMiralmar],
 ].map(([name, logo]) => [normalizeSupplierName(name), logo]))
 

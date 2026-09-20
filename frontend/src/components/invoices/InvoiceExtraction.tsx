@@ -1,5 +1,5 @@
-import { ChevronRight, CircleAlert } from 'lucide-react'
-import type { InvoiceExtraction as InvoiceExtractionData } from '@/api/invoices'
+import { ChevronRight, CircleAlert, ExternalLink } from 'lucide-react'
+import type { InvoiceExtraction as InvoiceExtractionData, VerifactuQR } from '@/api/invoices'
 import { Tooltip } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -7,6 +7,8 @@ import { InvoiceIdentifierTooltip } from '@/components/invoices/InvoiceIdentifie
 import type { useInvoices } from '@/hooks/useInvoices'
 
 interface Labels {
+  verifactu: string
+  verifactuLink: string
   inferred: string
   notes: string
   uncertainties: string
@@ -25,6 +27,7 @@ interface Labels {
 }
 
 interface Props {
+  verifactu: VerifactuQR | null
   title: string
   extraction: InvoiceExtractionData
   amounts: NonNullable<ReturnType<typeof useInvoices>['featureAmounts']>
@@ -32,11 +35,12 @@ interface Props {
   identifierTrace: ReturnType<typeof useInvoices>['identifierTrace']
 }
 
-export function InvoiceExtraction({ title, extraction, amounts, labels, identifierTrace }: Props) {
+export function InvoiceExtraction({ title, extraction, amounts, labels, identifierTrace, verifactu }: Props) {
   return (
     <section className="invoice-data" aria-label={title}>
       <div className="extraction-view">
         <dl className="extraction-grid">
+          {verifactu !== null && <div><dt>{labels.verifactu}</dt><dd><a className="inline-flex items-center gap-1 underline underline-offset-4" href={verifactu.url} target="_blank" rel="noopener noreferrer">{labels.verifactuLink}<ExternalLink size={13} aria-hidden="true" /></a></dd></div>}
           <div><dt>{labels.invoiceNumber}</dt><Tooltip text={extraction.invoice_number} onlyWhenTruncated asChild><dd>{extraction.invoice_number}</dd></Tooltip></div>
           <div><dt>{labels.invoiceDate}</dt><Tooltip text={extraction.invoice_date} onlyWhenTruncated asChild><dd>{extraction.invoice_date}</dd></Tooltip></div>
           <div><dt>{labels.purchaseOrder}</dt><Tooltip text={extraction.purchase_order} onlyWhenTruncated asChild><dd>{extraction.purchase_order}</dd></Tooltip></div>

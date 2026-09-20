@@ -1,3 +1,4 @@
+import { useGestoria } from '../src/hooks/useGestoria'
 import { describe, expect, test } from 'bun:test'
 import { useState } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -50,7 +51,7 @@ function Lifecycle({ scenario }: { scenario: Scenario }) {
     setStep(2)
   }
   return <div data-period={table.period}>
-    <InvoicesTable issued={{ ...issued, loading: false }} issuedList={issuedList} table={table} invoicesLoading={false} onUpload={async () => {}} onSelect={() => {}}
+    <InvoicesTable gestoria={useGestoria(table.period, table.monthOptions.find(option => option.value === table.period)!.label)} issued={{ ...issued, loading: false }} issuedList={issuedList} table={table} invoicesLoading={false} onUpload={async () => {}} onSelect={() => {}}
       onInvoiceLink={() => {}} onDelete={async () => {}} onRedo={async () => {}} deleting={false} redoDisabled={false} />
     <InvoiceImportPanel {...imports} onInvoiceLink={() => {}} onRetry={async () => {}} retryDisabled={false} />
   </div>

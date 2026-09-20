@@ -128,6 +128,9 @@
     "usageEmpty": "No hay consumo registrado."
   },
   "extraction": {
+    "verifactu": "QR Veri*Factu",
+    "verifactuCheck": "Consultar en AEAT",
+    "verifactuTest": "Consultar en AEAT · Pruebas",
     "identifierTrace": "Campo inferido",
     "identifierCorrection": "Corrección inferida · Original:",
     "unavailable": "No disponible",
@@ -293,7 +296,6 @@
       "PAGAR": "Lista para pagar",
       "ESCALAR": "A revisar",
       "NO_PAGAR": "No pagar",
-      "paid": "Pagada en ERP",
       "pending": "Pendiente de revisión"
     },
     "payable": "A pagar",
@@ -397,5 +399,27 @@
     "saved": "Cliente guardado",
     "deleted": "Cliente eliminado",
     "hasInvoices": "No se puede eliminar un cliente con facturas emitidas asociadas."
+  },
+  "gestoria": {
+    "title": "Enviar a tu Gestoria",
+    "email": "Correo de la gestoría",
+    "send": "Enviar ({{count}})",
+    "save": "Guardar",
+    "sending": "Enviando…",
+    "saved": "Correo de la gestoría guardado.",
+    "sent_zero": "No quedan facturas pendientes de enviar.",
+    "sent_one": "{{count}} factura enviada a gestoría.",
+    "sent_other": "{{count}} facturas enviadas a gestoría.",
+    "errors": {
+      "notConfigured": "Falta configurar Resend para enviar facturas.",
+      "busy": "Ya hay un envío a gestoría en curso.",
+      "fileTooLarge": "Una de las facturas supera el tamaño máximo de los adjuntos.",
+      "failed": "Resend ha rechazado el envío. Las facturas pendientes no se han marcado como enviadas.",
+      "uncertain": "No se pudo confirmar el envío. Vuelve a intentarlo para completar el mismo envío sin duplicarlo.",
+      "expired": "Hay un envío sin confirmar. Comprueba su estado en Resend antes de volver a enviar.",
+      "pending": "Hay un envío pendiente de confirmar. Reintenta con el mismo correo y las mismas facturas."
+    },
+    "empty": "No hay facturas listas para enviar",
+    "ready": "Listo para enviar"
   }
 }

@@ -1,0 +1,10 @@
+{
+  "subject_one": "Factura para gestoría",
+  "subject_other": "Facturas para gestoría",
+  "received_one": "{count} factura recibida",
+  "received_other": "{count} facturas recibidas",
+  "issued_one": "{count} factura emitida",
+  "issued_other": "{count} facturas emitidas",
+  "conjunction": " y ",
+  "body": "Adjuntamos {invoices} para su gestión."
+}

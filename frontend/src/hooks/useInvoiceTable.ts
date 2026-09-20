@@ -110,7 +110,7 @@ export function useInvoiceTable(invoices: BillingInvoice[], loading: boolean, is
         tone: invoice.status !== 'ready' ? 'neutral' : decision === 'PAGAR' ? 'success' : decision === 'ESCALAR' ? 'warning' : decision === 'NO_PAGAR' ? 'error' : 'neutral',
         icon: invoice.status === 'ready' ? null : invoice.status === 'processing' || invoice.status === 'uploading' ? 'spinner' : invoice.status === 'error' ? 'error' : 'clock',
         processing: invoice.status !== 'ready', status: invoice.status,
-        classification: decision === 'paid' || decision === 'pending' ? null : decision,
+        classification: decision === 'pending' ? null : decision,
       } satisfies BillingRow['badge'],
       href: invoicePath(invoice.id), canOpen: invoice.status !== 'uploading',
       canManage: invoice.status === 'ready' || invoice.status === 'error',
@@ -141,7 +141,7 @@ export function useInvoiceTable(invoices: BillingInvoice[], loading: boolean, is
   return {
     rows, search, onSearch: setSearch, period,
     onPeriod: (value: string) => { if (value === 'all' || value === 'undated' || value <= currentMonth) setPeriod(value) },
-    summaries: financialSummary, receivedSummaries: summaries, sort: { column: sortColumn, direction: sortDirection },
+    receivedSummaries: [financialSummary[1], ...summaries], issuedSummaries: [financialSummary[0], financialSummary[2]], sort: { column: sortColumn, direction: sortDirection },
     onSort: onToggleSort,
     monthOptions: [{ value: 'all', label: t('billing.allMonths'), count: invoices.length + issued.length },
       ...months.map(month => ({ ...month, label: monthLabel(month.value) })),
@@ -150,7 +150,7 @@ export function useInvoiceTable(invoices: BillingInvoice[], loading: boolean, is
     onPreviousMonth: () => onMoveMonth(-1), onNextMonth: () => onMoveMonth(1),
     downloading, onDownload: (id: string) => void download(id),
     labels: {
-      title: t('invoices.library'), search: t('issued.search'), upload: t('invoices.upload'),
+      gestoria: t('gestoria.title'), title: t('invoices.library'), search: t('issued.search'), upload: t('invoices.upload'),
       downloadPdf: t('billing.downloadPdf'), delete: t('invoices.delete'), redo: t('invoices.redo'),
       period: t('billing.period'),
       previousMonth: t('billing.previousMonth'), nextMonth: t('billing.nextMonth'),

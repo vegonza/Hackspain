@@ -30,6 +30,7 @@ CREATE TABLE public.issued_invoices (
     pdf_path TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     paid_at TIMESTAMPTZ,
+    gestoria_sent_at TIMESTAMPTZ,
     verifactu_test JSONB,
     CHECK (status NOT IN ('issued', 'paid') OR pdf_path IS NOT NULL)
 );

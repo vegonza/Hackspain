@@ -1,3 +1,4 @@
+import { useGestoria } from '../src/hooks/useGestoria'
 import { describe, expect, test } from 'bun:test'
 import { useState } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -30,7 +31,7 @@ function Harness({ rows, loading }: { rows: Invoice[]; loading: boolean }) {
   const table = useInvoiceTable(rows, loading, [])
   const issued = useIssuedInvoices()
   const issuedList = useIssuedList([], table.period, table.search, table.sort)
-  return <InvoicesTable issued={{ ...issued, loading: false }} issuedList={issuedList} table={table} invoicesLoading={loading} onUpload={async () => {}} onSelect={() => {}}
+  return <InvoicesTable gestoria={useGestoria(table.period, table.monthOptions.find(option => option.value === table.period)!.label)} issued={{ ...issued, loading: false }} issuedList={issuedList} table={table} invoicesLoading={loading} onUpload={async () => {}} onSelect={() => {}}
     onInvoiceLink={() => {}} onDelete={async () => {}} onRedo={async () => {}} deleting={false} redoDisabled={false} />
 }
 function render(rows: Invoice[], loading = false): string {
@@ -111,6 +112,20 @@ describe('invoice billing table rendering', () => {
     expect(markup).not.toContain('Completado')
     expect(markup).toContain('href="/invoices/invoice-499"')
   })
+  test('keeps Gestoría in the top toolbar and financial totals in their invoice section headers', () => {
+    const markup = render(invoices.slice(0, 1))
+    const toolbar = markup.slice(markup.indexOf('<header'), markup.indexOf('</header>'))
+    expect(toolbar).toContain(es.gestoria.title)
+    expect(toolbar).not.toContain('Ingresos facturados')
+    expect(toolbar).not.toContain('Balance')
+    expect(toolbar).not.toContain('Gastos')
+    const receivedSection = markup.slice(markup.indexOf('aria-label="Facturas recibidas"'), markup.indexOf('aria-label="Facturas emitidas"'))
+    const issuedSection = markup.slice(markup.indexOf('aria-label="Facturas emitidas"'))
+    expect(receivedSection).toContain('data-summary="expenses"')
+    expect(receivedSection).not.toContain('data-summary="income"')
+    expect(issuedSection).toContain('data-summary="income"')
+    expect(issuedSection).toContain('data-summary="balance"')
+  })
   test('processing rows show a single actions menu instead of individual action icons', () => {
     const markup = render([{ ...invoices[499], status: 'processing' }])
     expect(markup).toContain('href="/invoices/invoice-499"')
@@ -165,7 +180,9 @@ describe('invoice billing table rendering', () => {
   })
   test('does not label an ERP-paid invoice as ready to pay', () => {
     const markup = render([{ ...invoices[0], payment_decision: { classification: 'NO_PAGAR', reasons: ['Ya pagada'], checks: { not_paid: false } } }])
-    expect(markup).toContain('Pagada en ERP')
+    expect(markup).toContain('No pagar')
+    expect(markup).toContain('data-decision="NO_PAGAR"')
+    expect(markup).not.toContain('Pagada en ERP')
     expect(markup).not.toContain('data-decision="PAGAR"')
   })
 })

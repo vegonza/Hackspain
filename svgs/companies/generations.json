@@ -683,6 +683,51 @@
         "content_transform": "matrix(0.842105 0 0 0.842105 40.105263 41.052632)",
         "minimum_padding": 64
       }
+    },
+    {
+      "supplier": {
+        "legal_name": "IRENE SOLUTIONS SL",
+        "tax_id": "B12959755"
+      },
+      "source": "public.documents (read-only): ejemplo-verifactu-recibida.pdf, invoice F-2026-0005 dated 2026-09-15",
+      "filename": "irene-solutions.svg",
+      "direction": "Documento verificado",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Design an original demo logo for IRENE SOLUTIONS SL, a software and digital invoicing solutions company. One compact geometric folded document integrated with a confident checkmark: the deep indigo document has a clear folded upper corner and an electric teal ribbon check that becomes its lower edge. Convey trustworthy software, connected information and verified documents. Use deep indigo #3E458D and electric teal #22B3A5, two colors only. Build one cohesive distinctive corporate emblem, with generous negative space and chunky simple filled shapes legible at 24 and 36 pixels. No letters, initials, text, QR pattern, detailed circuits, badge border, enclosing square, background or tiny decorative parts. Do not imitate the actual company logo.",
+        "instructions": "Create an original, polished corporate brand symbol for the company named in the prompt, for use in a demo application. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "284ffe42-d15b-47c5-bdb7-294620afa8af",
+      "generated_at": "2026-09-20T05:42:28.463449+00:00",
+      "response": {
+        "created": 1789882940,
+        "id": "4767bdc488394d90b24613a01d4ddeef",
+        "usage": {
+          "input_tokens": 724,
+          "output_tokens": 2947,
+          "total_tokens": 3671
+        }
+      },
+      "collection_postprocessing": {
+        "removed_background_rectangles": 1,
+        "content_transform": "matrix(1.225858 0 0 1.225858 -58.126097 -69.312051)",
+        "minimum_padding": 64,
+        "palette": {
+          "#23B5AA": "#22B3A5",
+          "#3D428B": "#3E458D"
+        }
+      }
     }
   ]
 }

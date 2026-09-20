@@ -3,7 +3,7 @@ import type { Invoice, PaymentDecision } from '@/api/invoices'
 export type BillingInvoice = Pick<Invoice, 'id' | 'name' | 'created_at' | 'billing' | 'payment_decision' | 'last_error' | 'next_retry_at'> & {
   status: Invoice['status'] | 'uploading'
 }
-export type BillingDecision = 'PAGAR' | 'ESCALAR' | 'NO_PAGAR' | 'paid' | 'pending'
+export type BillingDecision = 'PAGAR' | 'ESCALAR' | 'NO_PAGAR' | 'pending'
 export type BillingSort = 'supplier' | 'review' | 'date' | 'amount'
 
 export function invoiceDate(invoice: BillingInvoice): string | null {
@@ -15,7 +15,6 @@ export function invoiceDate(invoice: BillingInvoice): string | null {
 
 export function billingDecision(invoice: BillingInvoice): BillingDecision {
   if (invoice.status !== 'ready' || invoice.payment_decision === null) return 'pending'
-  if (invoice.payment_decision.checks.not_paid === false) return 'paid'
   return invoice.payment_decision.classification
 }
 

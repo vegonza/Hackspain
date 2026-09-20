@@ -18,6 +18,8 @@ from invoices.repository import reset_invoice
 from erp import ErpEntry
 from extractor.categories import CategorizedInvoiceExtraction
 from extractor.recovery import IdentifierTrace
+from extractor.metadata import ExtractionMetadata
+from extractor.verifactu import VerifactuQR
 from shared.logger import get_logger
 from shared.storage import download_file, invalidate_invoice_urls, signed_url, upload_file, delete_file
 
@@ -26,6 +28,7 @@ router = APIRouter(prefix="/api/invoices")
 
 
 class InvoiceDetail(Invoice):
+    verifactu: VerifactuQR | None
     native_text: str | None
     extraction: CategorizedInvoiceExtraction | None
     erp_snapshot_id: UUID | None
@@ -36,7 +39,7 @@ class InvoiceDetail(Invoice):
 def invoice_detail(invoice_record: InvoiceDetails) -> InvoiceDetail:
     extraction = None
     native_text = None
-    identifier_trace = IdentifierTrace()
+    metadata = ExtractionMetadata()
     if invoice_record.result_path is not None:
         payload = download_file(invoice_record.result_path)
         try:
@@ -45,9 +48,10 @@ def invoice_detail(invoice_record: InvoiceDetails) -> InvoiceDetail:
             logger.warning("[INVOICES] Invalid saved extraction for %s (%s); reprocessing required", invoice_record.name, invoice_record.id)
             raise HTTPException(status_code=409, detail="invalid_saved_extraction") from None
         native_text = download_file(f"{invoice_record.id}/native.txt").decode("utf-8")
-        identifier_trace = IdentifierTrace.model_validate_json(download_file(f"{invoice_record.id}/extraction/extraction.json"))
+        metadata = ExtractionMetadata.model_validate_json(download_file(f"{invoice_record.id}/extraction/extraction.json"))
     return InvoiceDetail(**invoice_record.model_dump(exclude={"result_path"}), native_text=native_text,
-                         extraction=extraction, identifier_trace=identifier_trace)
+                         extraction=extraction, identifier_trace=IdentifierTrace(identifier_corrections=metadata.identifier_corrections),
+                         verifactu=metadata.verifactu)
 
 
 @router.get("")

@@ -9,6 +9,7 @@ from extractor.text import extract_text
 from extractor.extraction import extract_invoice
 from extractor.categories import CategorizedInvoiceExtraction, MODEL as CATEGORY_MODEL, categorize_invoice
 from extractor.pages import render_pages
+from extractor.verifactu import detect_verifactu
 from extractor.extractor import MODEL
 from extractor.recovery import recover_identifiers
 from suppliers.repository import list_suppliers
@@ -30,6 +31,9 @@ def process(document: InvoiceDetails) -> None:
         native = extract_text(pdf).encode("utf-8")
         upload_file(f"{document.id}/native.txt", native, "text/plain; charset=utf-8")
         pages = render_pages(pdf)
+        verifactu = detect_verifactu(pages)
+        logger.info('[EXTRACTION] Veri*Factu QR for %s: %s', document.name,
+                    'not detected' if verifactu is None else f'{verifactu.environment}, page {verifactu.page}')
         document.pages = len(pages)
         write_invoice(document)
         for number, image in enumerate(pages, start=1):
@@ -49,6 +53,7 @@ def process(document: InvoiceDetails) -> None:
                         correction.original, correction.corrected)
         content = extraction.model_dump_json(indent=2).encode("utf-8")
         metadata = {
+            "verifactu": None if verifactu is None else verifactu.model_dump(),
             "native_sha256": sha256(native).hexdigest(),
             "pdf_sha256": sha256(pdf).hexdigest(),
             "page_sha256": [sha256(page).hexdigest() for page in pages],

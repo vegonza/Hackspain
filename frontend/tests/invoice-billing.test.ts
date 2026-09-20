@@ -30,9 +30,9 @@ describe('billing periods, search and totals', () => {
     expect(matchesInvoice({ ...invoice, id: 'ef6c24dd-9b6e-456a-b425-bf242150684f' }, 'EF6C24DD-9B6E-456A-B425-BF242150684F')).toBe(true)
     expect(matchesInvoice({ ...invoice, id: 'ef6c24dd-9b6e-456a-b425-bf242150684f', billing: null }, 'ef6c24dd')).toBe(true)
   })
-  test('distinguishes recommendation from paid ERP entries and incomplete processing', () => {
+  test('preserves the classification for paid ERP entries and handles incomplete processing', () => {
     expect(billingDecision(invoice)).toBe('PAGAR')
-    expect(billingDecision({ ...invoice, payment_decision: { classification: 'NO_PAGAR', reasons: [], checks: { not_paid: false } } })).toBe('paid')
+    expect(billingDecision({ ...invoice, payment_decision: { classification: 'NO_PAGAR', reasons: [], checks: { not_paid: false } } })).toBe('NO_PAGAR')
     expect(billingDecision({ ...invoice, payment_decision: { classification: 'NO_PAGAR', reasons: [], checks: { not_paid: true } } })).toBe('NO_PAGAR')
     expect(billingDecision({ ...invoice, status: 'processing' })).toBe('pending')
   })

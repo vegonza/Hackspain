@@ -22,8 +22,8 @@ import logo from '@/assets/logo.svg'
 type Props = ReturnType<typeof useInvoices> & { analytics: ReturnType<typeof useAnalytics>; clients: ReturnType<typeof useClients>; usage: ReturnType<typeof useUsage>; suppliers: ReturnType<typeof useSuppliers>; orders: ReturnType<typeof useOrders>; erp: ReturnType<typeof useErpSnapshot> }
 
 export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, analytics, suppliers, orders, erp, clients, selectedId,
-  table, onUpload, invoicesLoading, onSelect, imports, onRetryImport,
-  onInvoiceLink, onDelete, deleting, mountDetail, invoiceName, supplierName, selected, loading, extractionLoading,
+  table, gestoria, onUpload, invoicesLoading, onSelect, imports, onRetryImport,
+  onInvoiceLink, onDelete, deleting, mountDetail, invoiceName, supplierName, supplierLogo, selected, loading, extractionLoading,
   pdfUrl, pdfLoading, sourceTab, dataTab, onDataTab, emptyMessage, extractionLabels, canRetry, onRetrySelected,
   retrying, metricsLoading, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts,
   redoing, onRedo, identifierTrace, issued: { mount: mountIssued, ...issued }, issuedList, issuedId }: Props) {
@@ -64,12 +64,12 @@ export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, a
           : view === 'erp' ? <ErpView {...erp} />
           : view === 'not-found' ? <section className="invoice-unavailable"><h1>{labels.notFound}</h1><Button variant="link" asChild><a href="/invoices" onClick={onNavigate}>{labels.library}</a></Button></section>
           : view === 'issued' && issuedId !== null ? <IssuedInvoicePage key={issuedId} id={issuedId} onUpdated={issued.update} />
-          : selectedId !== null ? <InvoiceDetails mountDetail={mountDetail} invoiceName={invoiceName} supplierName={supplierName} selectedId={selectedId}
+          : selectedId !== null ? <InvoiceDetails mountDetail={mountDetail} invoiceName={invoiceName} supplierName={supplierName} supplierLogo={supplierLogo} selectedId={selectedId}
             selected={selected} identifierTrace={identifierTrace} featureAmounts={featureAmounts} loading={loading} extractionLoading={extractionLoading} pdfUrl={pdfUrl} pdfLoading={pdfLoading}
             sourceTab={sourceTab} dataTab={dataTab} onDataTab={onDataTab} emptyMessage={emptyMessage} labels={labels} extractionLabels={extractionLabels}
             canRetry={canRetry} onRetrySelected={onRetrySelected} retrying={retrying} metricsLoading={metricsLoading}
             onNavigate={onNavigate} onSourceTab={onSourceTab} erpRows={erpRows} totalDuration={totalDuration} totalCost={totalCost} />
-          : <InvoicesTable issued={{ ...issued, mount: mountIssued }} issuedList={issuedList} table={table} onUpload={onUpload} invoicesLoading={invoicesLoading}
+          : <InvoicesTable gestoria={gestoria} issued={{ ...issued, mount: mountIssued }} issuedList={issuedList} table={table} onUpload={onUpload} invoicesLoading={invoicesLoading}
             onSelect={onSelect} onInvoiceLink={onInvoiceLink} onDelete={onDelete} deleting={deleting}
             onRedo={onRedo} redoDisabled={redoing || retrying || deleting} />}
       </main>

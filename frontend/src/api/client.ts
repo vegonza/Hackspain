@@ -91,6 +91,13 @@ export async function fetchStatus(url: string, options: RequestInit = {}): Promi
 }
 
 const billingErrors: Record<string, ParseKeys> = {
+  gestoria_not_configured: 'gestoria.errors.notConfigured',
+  gestoria_busy: 'gestoria.errors.busy',
+  gestoria_file_too_large: 'gestoria.errors.fileTooLarge',
+  gestoria_send_failed: 'gestoria.errors.failed',
+  gestoria_send_uncertain: 'gestoria.errors.uncertain',
+  gestoria_send_expired: 'gestoria.errors.expired',
+  gestoria_pending_send: 'gestoria.errors.pending',
   verifactu_test_only: 'issued.errors.testOnly',
   verifactu_test_pending: 'issued.errors.testPending',
   verifactu_test_failed: 'issued.errors.testFailed',

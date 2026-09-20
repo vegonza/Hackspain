@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS public.documents (
     erp_entry_id UUID,
     deleted_at TIMESTAMPTZ,
     payment_decision JSONB,
+    gestoria_sent_at TIMESTAMPTZ,
     CONSTRAINT documents_approved_invoice_identity_present
         CHECK (deleted_at IS NOT NULL OR payment_decision->>'classification' <> 'PAGAR'
             OR (public.normalize_tax_id(COALESCE(supplier_nif, '')) <> '' AND upper(regexp_replace(COALESCE(invoice_number, ''), '^[[:space:]]+|[[:space:]]+$', '', 'g')) <> '')),

@@ -54,7 +54,10 @@ export interface InvoiceErpEntry {
   status: string
 }
 
+export interface VerifactuQR { url: string; page: number; environment: 'production' | 'test' }
+
 export interface InvoiceDetail extends Invoice {
+  verifactu: VerifactuQR | null
   native_text: string | null
   extraction: InvoiceExtraction | null
   erp: InvoiceErpEntry | null

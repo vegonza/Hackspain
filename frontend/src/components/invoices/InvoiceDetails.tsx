@@ -12,12 +12,12 @@ import { PdfViewer } from '@/components/invoices/PdfViewer'
 import type { useInvoices } from '@/hooks/useInvoices'
 
 type Props = Pick<ReturnType<typeof useInvoices>,
-  'mountDetail' | 'invoiceName' | 'supplierName' | 'selectedId' | 'selected' | 'loading' | 'extractionLoading' |
+  'mountDetail' | 'invoiceName' | 'supplierName' | 'supplierLogo' | 'selectedId' | 'selected' | 'loading' | 'extractionLoading' |
   'pdfUrl' | 'pdfLoading' | 'dataTab' | 'onDataTab' | 'sourceTab' | 'emptyMessage' | 'labels' | 'extractionLabels' |
   'canRetry' | 'onRetrySelected' | 'retrying' | 'metricsLoading' | 'totalDuration' | 'totalCost' |
   'onNavigate' | 'onSourceTab' | 'erpRows' | 'featureAmounts' | 'identifierTrace'>
 
-export function InvoiceDetails({ mountDetail, invoiceName, supplierName, selectedId, selected, loading, extractionLoading,
+export function InvoiceDetails({ mountDetail, invoiceName, supplierName, supplierLogo, selectedId, selected, loading, extractionLoading,
   pdfUrl, pdfLoading, sourceTab, dataTab, onDataTab, emptyMessage, labels, extractionLabels, canRetry, onRetrySelected,
   retrying, metricsLoading, onNavigate, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts, identifierTrace }: Props) {
   return (
@@ -49,8 +49,11 @@ export function InvoiceDetails({ mountDetail, invoiceName, supplierName, selecte
       </section>
       <section className="viewer-panel invoice-result-pane" aria-label={labels.extraction}>
         <header className="invoice-pane-header">
-          {extractionLoading ? <Skeleton className="h-5 w-48 max-w-full" />
-            : supplierName !== null && supplierName !== '' ? <Tooltip text={supplierName} onlyWhenTruncated asChild><h2 className="invoice-company-name">{supplierName}</h2></Tooltip>
+          {extractionLoading ? <><Skeleton className="size-9 shrink-0" /><Skeleton className="h-5 w-48 max-w-full" /></>
+            : supplierName !== null && supplierName !== '' ? <>
+              {supplierLogo !== undefined && <img src={supplierLogo} alt="" width={36} height={36} className="size-9 shrink-0 object-contain" />}
+              <Tooltip text={supplierName} onlyWhenTruncated asChild><h2 className="invoice-company-name">{supplierName}</h2></Tooltip>
+            </>
             : <h2>{labels.extraction}</h2>}
           <SegmentedControl label={labels.extraction} value={dataTab} onValueChange={onDataTab} className="ml-auto shrink-0 [&>button]:min-h-6"
             options={[{ value: 'extraction', label: labels.extraction }, { value: 'erp', label: labels.erp }]} />
@@ -69,7 +72,7 @@ export function InvoiceDetails({ mountDetail, invoiceName, supplierName, selecte
           {!loading && selected === null ? <p role="alert" className="markdown-error">{labels.invoiceUnavailable}</p>
             : dataTab === 'erp' ? <InvoiceErp loading={loading} rows={erpRows} />
             : extractionLoading ? <InvoiceExtractionSkeleton title={labels.extraction} labels={extractionLabels} />
-            : selected !== null && selected.extraction !== null && featureAmounts !== null ? <InvoiceExtraction title={labels.extraction} extraction={selected.extraction} amounts={featureAmounts} labels={extractionLabels} identifierTrace={identifierTrace} />
+            : selected !== null && selected.extraction !== null && featureAmounts !== null ? <InvoiceExtraction verifactu={selected.verifactu} title={labels.extraction} extraction={selected.extraction} amounts={featureAmounts} labels={extractionLabels} identifierTrace={identifierTrace} />
             : <p className="invoice-empty" role="status">{labels.noExtraction}</p>}
           {dataTab !== 'erp' && <section className="invoice-processing-summary" aria-label={labels.processingSummary}>
             <dl className="invoice-detail-metrics" aria-busy={metricsLoading}>

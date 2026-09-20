@@ -1,6 +1,6 @@
 import type { MouseEvent, ReactNode } from 'react'
-import { Building2, CircleAlert, Clock, LoaderCircle } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Building2, CircleAlert } from 'lucide-react'
+import { InvoiceStatusBadge } from '@/components/invoices/InvoiceStatusBadge'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { Tooltip } from '@/components/ui/tooltip'
 import type { BillingRow } from '@/hooks/invoiceBilling'
@@ -28,13 +28,7 @@ export function InvoiceBillingRow({ invoice, actions, onSelect, onInvoiceLink }:
     </TableCell>
     <TableCell>
       <Tooltip text={invoice.badge.description} asChild><span className="billing-status">
-        <Badge variant="secondary" className={invoice.badge.processing ? 'invoice-table-status' : 'invoice-decision-badge'}
-          data-tone={invoice.badge.tone} data-status={invoice.badge.status} data-decision={invoice.badge.classification}>
-          {invoice.badge.icon === 'spinner' && <LoaderCircle size={13} className="animate-spin" />}
-          {invoice.badge.icon === 'error' && <CircleAlert size={13} />}
-          {invoice.badge.icon === 'clock' && <Clock size={13} />}
-          {invoice.badge.label}
-        </Badge>
+        <InvoiceStatusBadge badge={invoice.badge} />
       </span></Tooltip>
     </TableCell>
     <TableCell className="billing-date">{invoice.date}</TableCell>

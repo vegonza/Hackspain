@@ -16,7 +16,7 @@ const invoice: InvoiceDetail = {
   id: 'invoice-1', name: 'factura.pdf', sha256: 'hash', created_at: '2026-09-19T14:00:00Z',
   billing: null, finished_at: null, status: 'ready', pages: 1, total_cost_usd: '0.004', total_duration_ms: 2000,
   retry_attempts: 0, last_error: null, next_retry_at: null, native_text: 'Texto original de la factura',
-  erp: null, erp_snapshot_id: null,
+  erp: null, erp_snapshot_id: null, verifactu: null,
   identifier_trace: { identifier_corrections: [] },
   payment_decision: { classification: 'ESCALAR', reasons: ['Revisar importe'], checks: {} },
   extraction: { invoice_number: 'FA-123', supplier_name: 'Proveedor extraído', supplier_nif: 'B12345678',
@@ -25,7 +25,7 @@ const invoice: InvoiceDetail = {
 }
 
 const props: Props = {
-  mountDetail: () => {}, invoiceName: invoice.name, supplierName: 'Proveedor extraído', selectedId: invoice.id, selected: invoice,
+  mountDetail: () => {}, invoiceName: invoice.name, supplierName: 'Proveedor extraído', supplierLogo: undefined, selectedId: invoice.id, selected: invoice,
   loading: false, extractionLoading: false, pdfUrl: 'invoice.pdf', pdfLoading: false,
   sourceTab: 'pdf', dataTab: 'extraction', emptyMessage: null,
   canRetry: false, onRetrySelected: () => {}, retrying: false, metricsLoading: false,
@@ -33,7 +33,7 @@ const props: Props = {
   erpRows: [{ label: 'Pedido ERP', value: 'ERP-123' }],
   featureAmounts: { taxBase: '100 €', vatRate: '21%', vatAmount: '21 €', total: '121 €', lineItems: [],
     canExpandLineItems: false, lineItemsExpanded: false, onToggleLineItems: () => {} },
-  extractionLabels: { ...es.extraction, inferred: es.extraction.identifierTrace },
+  extractionLabels: { ...es.extraction, verifactuLink: es.extraction.verifactuCheck, inferred: es.extraction.identifierTrace },
   identifierTrace: { supplier_nif: null, iban: null },
   labels: { ...es.invoices, decisionLabel: 'Escalar', count: '', erp: es.erp.title, erpData: es.erp.dataTitle,
     totalCost: es.invoices.processingCost, waiting: es.processing.waiting, appName: es.app.name,
@@ -41,6 +41,17 @@ const props: Props = {
 }
 
 describe('split invoice details', () => {
+  test('hides absent QR metadata and links detected test codes without claiming verification', () => {
+    expect(renderToStaticMarkup(<InvoiceDetails {...props} />)).not.toContain('QR Veri*Factu');
+    const url = 'https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=B12959755';
+    const markup = renderToStaticMarkup(<InvoiceDetails {...props}
+      selected={{ ...invoice, verifactu: { url, page: 1, environment: 'test' } }}
+      extractionLabels={{ ...props.extractionLabels, verifactuLink: es.extraction.verifactuTest }} />)
+    expect(markup).toContain(`href="${url}"`)
+    expect(markup).toContain('rel="noopener noreferrer"')
+    expect(markup).toContain(es.extraction.verifactuTest)
+    expect(markup).not.toContain('Factura verificada')
+  })
   test('marks only the inferred field without a separate trace block', () => {
     const entry = { label: es.extraction.identifierCorrection, characters: [{ value: '6', changed: true }] }
     const markup = renderToStaticMarkup(<InvoiceDetails {...props} identifierTrace={{ supplier_nif: entry, iban: null }} />)

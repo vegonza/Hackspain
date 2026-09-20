@@ -1,3 +1,4 @@
+import { useGestoria } from '../src/hooks/useGestoria'
 import { describe, expect, test } from 'bun:test'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createInstance } from 'i18next'
@@ -39,7 +40,7 @@ function TableHarness({ state }: { state: 'ready' | 'loading' | 'empty' | 'error
   const issuedRows = state === 'empty' ? [] : [invoice]
   const table = useInvoiceTable(state === 'empty' ? [] : [received], state === 'loading', issuedRows)
   const list = useIssuedList(issuedRows, table.period, table.search, table.sort)
-  return <InvoicesTable table={table} issued={{ ...issued, loading: state === 'loading', failed: state === 'error' }} issuedList={list}
+  return <InvoicesTable gestoria={useGestoria(table.period, table.monthOptions.find(option => option.value === table.period)!.label)} table={table} issued={{ ...issued, loading: state === 'loading', failed: state === 'error' }} issuedList={list}
     invoicesLoading={state === 'loading'} onUpload={async () => {}} onSelect={() => {}} onInvoiceLink={() => {}}
     onDelete={async () => {}} onRedo={async () => {}} deleting={false} redoDisabled={false} />
 }
@@ -187,9 +188,10 @@ describe('issued invoice billing', () => {
     const issued = [invoice, { ...invoice, id: 'paid', status: 'paid' as const }, { ...invoice, id: 'issuing', status: 'issuing' as const }]
     function Harness() {
       const table = useInvoiceTable([received], false, issued)
-      expect(table.summaries.map(row => row.cents)).toEqual([20000, 2000, 18000])
+      expect(table.issuedSummaries.map(row => row.cents)).toEqual([20000, 18000])
+      expect(table.receivedSummaries[0].cents).toBe(2000)
       expect(table.monthOptions.find(option => option.value === month)!.count).toBe(4)
-      expect(table.receivedSummaries).toHaveLength(2)
+      expect(table.receivedSummaries).toHaveLength(3)
       return null
     }
     renderToStaticMarkup(<I18nextProvider i18n={i18n}><Harness /></I18nextProvider>)

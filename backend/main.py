@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from invoices.router import router as invoices_router
 from issued.router import router as issued_router
+from gestoria.router import router as gestoria_router
 from erp.router import router as erp_router
 from usage.router import router as usage_router
 from orders.router import router as orders_router
@@ -49,6 +50,7 @@ app.add_middleware(PasswordMiddleware)
 app.include_router(auth_router)
 app.include_router(invoices_router)
 app.include_router(issued_router)
+app.include_router(gestoria_router)
 app.include_router(erp_router)
 app.include_router(usage_router)
 app.include_router(suppliers_router)

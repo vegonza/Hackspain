@@ -1,6 +1,7 @@
 .billing-section-sticky { position: sticky; top: 0; z-index: 20; }
 .billing-section-title-cell { height: auto; padding: 0; }
 .billing-section-header { height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 12px; border-bottom: 1px solid var(--border); background: #fafafa; }
+.billing-section-tools { display: flex; align-items: center; gap: 16px; }
 .billing-section-header h2 { margin: 0; font-size: 12px; font-weight: 600; color: var(--muted-foreground); }
 .billing-received-summary { border-left: 0; }
 .billing-summary [data-summary='income'] dd { color: #1b5e43; }

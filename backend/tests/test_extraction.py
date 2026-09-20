@@ -35,6 +35,7 @@ class ExtractionTests(unittest.TestCase):
         self.enterContext(patch("extractor.processor.extract_text", return_value=self.native.decode("utf-8")))
         self.enterContext(patch("extractor.processor.bind_snapshot"))
         self.render = self.enterContext(patch("extractor.processor.render_pages", return_value=self.pages))
+        self.qr = self.enterContext(patch("extractor.processor.detect_verifactu", return_value=None))
         self.enterContext(patch("extractor.processor.upload_file", self.events.upload))
         self.enterContext(patch("extractor.processor.save_invoice_extraction", self.events.save_extraction))
         self.enterContext(patch("extractor.processor.match_entry", self.events.match_entry))
@@ -83,6 +84,8 @@ class ExtractionTests(unittest.TestCase):
         self.assertEqual(extraction.notes, ["Pago a 30 días"])
         self.assertEqual(extraction.uncertainties, ["Firma ilegible"])
         metadata = json.loads(artifacts[f"{prefix}/extraction.json"])
+        self.assertIsNone(metadata['verifactu'])
+        self.qr.assert_called_once_with(self.pages)
         self.assertEqual(metadata["native_sha256"], sha256(self.native).hexdigest())
         self.assertEqual(metadata["features_sha256"], sha256(artifacts[f"{prefix}/features.json"]).hexdigest())
         self.events.finish.assert_called_once_with(
