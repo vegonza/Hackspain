@@ -28,7 +28,7 @@ export function SpendingDistributionChart({ items, totalLabel, activeIndex, onAc
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-        <div className="analytics-pie-total"><span>{labels.total}</span><strong>{totalLabel}</strong></div>
+        <div className="analytics-pie-total analytics-spending-total"><span>{labels.total}</span><strong>{totalLabel}</strong></div>
       </div>
       <div className="analytics-legend">
         {items.map((item, index) => <button key={item.category} type="button"
