@@ -18,6 +18,15 @@ const emptyDraft = (): IssuedDraft => {
   return { client_id: '', issue_date: dateInput(today), due_date: dateInput(dueDate), notes: '', items: [emptyLine()] }
 }
 
+export function issuedQrPreview(invoice: IssuedInvoice | null, testEnabled: boolean, loading: boolean, isDraft: boolean) {
+  const receipt = invoice === null ? null : invoice.verifactu_test
+  return {
+    receipt,
+    showQr: loading || testEnabled || receipt !== null,
+    previewQr: isDraft ? templateQr : receipt === null || receipt.csv === null ? null : receipt.qr_code,
+  }
+}
+
 export function useIssuedEditor(id: string, onUpdated: (invoice: IssuedInvoice) => void) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<IssuedDraft>(emptyDraft)
@@ -112,7 +121,7 @@ export function useIssuedEditor(id: string, onUpdated: (invoice: IssuedInvoice) 
       setTimeout(() => URL.revokeObjectURL(url), 1000)
     })
   }
-  const testReceipt = testEnabled && invoice !== null ? invoice.verifactu_test : null
+  const { receipt: testReceipt, ...qrPreview } = issuedQrPreview(invoice, testEnabled, loading, !locked && id === 'new')
   return {
     mount, reload, loading, valuesLoading: loading && id !== 'new', isNew: id === 'new', failed, busy, locked, dirty, draft, invoice, company: issuer, client, dialog,
     companyLogo: supplierLogo(issuer === null ? null : issuer.name),
@@ -135,8 +144,7 @@ export function useIssuedEditor(id: string, onUpdated: (invoice: IssuedInvoice) 
       issuer: t('issued.testIssuer', testReceipt.parties.issuer),
       client: t('issued.testClient', testReceipt.parties.client),
     },
-    showQr: loading || testEnabled,
-    previewQr: !locked && id === 'new' ? templateQr : testReceipt === null || testReceipt.csv === null ? null : testReceipt.qr_code,
+    ...qrPreview,
     previewQrAlt: t(!locked && id === 'new' ? 'issued.templateQr' : 'issued.verifactuQr'),
     onRequestVerifactu: () => setDialog('verifactu'),
     onSubmitVerifactu: () => {

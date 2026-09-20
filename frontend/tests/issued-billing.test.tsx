@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { createInstance } from 'i18next'
 import { I18nextProvider } from 'react-i18next'
 import { IssuedInvoiceEditor } from '../src/components/issued/IssuedInvoiceEditor'
-import { useIssuedEditor } from '../src/hooks/useIssuedEditor'
+import { issuedQrPreview, useIssuedEditor } from '../src/hooks/useIssuedEditor'
 import { InvoicesTable } from '../src/components/invoices/InvoicesTable'
 import { useIssuedInvoices } from '../src/hooks/useIssuedInvoices'
 import { issuedTotals } from '../src/hooks/issuedAmounts'
@@ -102,13 +102,19 @@ describe('issued invoice billing', () => {
     expect(markup).not.toContain(es.issued.paymentInfo)
   })
 
-  test.each([null, 'TEST-CSV'])('issued QR with receipt %s stays separate from registration', csv => {
+  test.each([
+    ['issued', true, null], ['issued', true, 'TEST-CSV'], ['issued', false, 'TEST-CSV'],
+    ['paid', true, 'TEST-CSV'], ['paid', false, 'TEST-CSV'],
+  ] as const)('shows the saved QR for a %s invoice with submissions enabled=%s and receipt=%s', (status, testEnabled, csv) => {
     const receipt = { parties: null, qr_code: 'data:image/bmp;base64,real-provider-qr', csv, submitted_at: csv === null ? null : '2026-09-20T10:00:00Z', pdf_path: invoice.pdf_path }
+    const savedInvoice = { ...invoice, status, verifactu_test: receipt }
+    const preview = issuedQrPreview(savedInvoice, testEnabled, false, false)
+    expect(preview.receipt).toEqual(receipt)
     function EditorHarness() {
       const editor = useIssuedEditor(invoice.id, () => {})
       return <IssuedInvoiceEditor editor={{ ...editor, loading: false, valuesLoading: false, locked: true,
-        invoice: { ...invoice, verifactu_test: receipt }, canSubmitVerifactu: csv === null, showQr: true,
-        previewQr: csv === null ? null : receipt.qr_code, previewQrAlt: es.issued.verifactuQr }} />
+        invoice: savedInvoice, canSubmitVerifactu: testEnabled && csv === null,
+        ...preview, previewQrAlt: es.issued.verifactuQr }} />
     }
     const markup = renderToStaticMarkup(<I18nextProvider i18n={i18n}><EditorHarness /></I18nextProvider>)
     expect(markup).not.toContain(`src="${templateQr}"`)
@@ -123,6 +129,12 @@ describe('issued invoice billing', () => {
       expect(markup).toContain(`src="${receipt.qr_code}"`)
       expect(markup).not.toContain(es.issued.verifactu)
     }
+  })
+
+  test('does not show a QR for an invoice without a receipt when submissions are disabled', () => {
+    const preview = issuedQrPreview(invoice, false, false, false)
+    expect(preview.showQr).toBe(false)
+    expect(preview.previewQr).toBeNull()
   })
 
   test.each(['new', 'issued-1'])('loading %s preserves the editor controls and invoice headings', id => {
