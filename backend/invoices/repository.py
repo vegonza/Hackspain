@@ -10,8 +10,8 @@ from shared.redis import get_redis
 from shared.identifiers import normalize_tax_id
 from shared.retries import RetryState
 from invoices.queue import RETRIES
-from extractor.categories import CategorizedInvoiceExtraction
-from extractor.extraction import InvoiceExtraction, InvoiceLine
+from extractor.categories import CategorizedInvoiceExtraction, CategorizedInvoiceLine
+from extractor.extraction import InvoiceExtraction
 from shared.logger import get_logger
 from erp import ErpEntry
 from rules.models import Decision
@@ -27,7 +27,7 @@ class InvoiceBilling(BaseModel):
     supplier_nif: str | None
     invoice_date: str | None
     purchase_order: str | None
-    line_items: list[InvoiceLine] | None
+    line_items: list[CategorizedInvoiceLine] | None
     currency: str | None
     tax_base: Decimal | None
     total: Decimal | None
