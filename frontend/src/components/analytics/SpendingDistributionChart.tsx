@@ -22,7 +22,7 @@ export function SpendingDistributionChart({ items, totalLabel, activeIndex, onAc
       <div className="analytics-pie">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Tooltip content={<SpendingDistributionTooltip />} isAnimationActive={false} />
+            <Tooltip content={<SpendingDistributionTooltip />} isAnimationActive={false} wrapperStyle={{ zIndex: 1 }} />
             <Pie data={items} dataKey="amount" nameKey="label" innerRadius="58%" outerRadius="86%" paddingAngle={1}
               stroke="white" strokeWidth={2} onMouseEnter={(_, index) => onActiveIndexChange(index)}
               onMouseLeave={() => onActiveIndexChange(undefined)} isAnimationActive={false}

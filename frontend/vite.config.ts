@@ -15,6 +15,7 @@ export default defineConfig({
     targets: ['cmaps', 'wasm', 'iccs', 'standard_fonts'].map(directory => ({
       src: `node_modules/pdfjs-dist/${directory}`,
       dest: 'pdfjs',
+      rename: { stripBase: 2 },
     })),
   })],
   resolve: {
