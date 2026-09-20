@@ -71,12 +71,12 @@ export function InvoiceDetails({ mountDetail, invoiceName, supplierName, selecte
             : extractionLoading ? <InvoiceExtractionSkeleton title={labels.extraction} />
             : selected !== null && selected.extraction !== null && featureAmounts !== null ? <InvoiceExtraction title={labels.extraction} extraction={selected.extraction} amounts={featureAmounts} labels={extractionLabels} identifierTrace={identifierTrace} />
             : <p className="invoice-empty" role="status">{labels.noExtraction}</p>}
-          <section className="invoice-processing-summary" aria-label={labels.processingSummary}>
+          {dataTab !== 'erp' && <section className="invoice-processing-summary" aria-label={labels.processingSummary}>
             <dl className="invoice-detail-metrics" aria-busy={metricsLoading}>
               <div><dt>{labels.totalCost}</dt><dd>{metricsLoading ? <Skeleton className="h-4 w-12" /> : totalCost}</dd></div>
               <div><dt>{labels.totalTime}</dt><dd>{metricsLoading ? <Skeleton className="h-4 w-12" /> : totalDuration}</dd></div>
             </dl>
-          </section>
+          </section>}
         </div>
       </section>
     </div>

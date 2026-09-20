@@ -12,3 +12,7 @@ export function formatDateLong(iso: string, locale: string): string {
   const formattedTime = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false })
   return `${formattedDate}, ${formattedTime}`
 }
+
+export function formatDateShort(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' })
+}

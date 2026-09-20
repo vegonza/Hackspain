@@ -140,11 +140,12 @@ describe('invoice billing table rendering', () => {
     expect(markup).toContain('Lista para pagar')
     expect(markup).toContain('aria-label="Acciones"')
   })
-  test('review rows keep reasons out of the row and use padded dates', () => {
-    const markup = render([{ ...invoices[0], payment_decision: { classification: 'ESCALAR', reasons: ['El IBAN no coincide.', 'Revisar el pedido.'], checks: { not_paid: true } } }])
+  test('review rows keep reasons out of the row and use readable dates', () => {
+    const singleDigitDay = `${invoiceDate.slice(0, 8)}02`
+    const markup = render([{ ...invoices[0], billing: { ...invoices[0].billing!, invoice_date: singleDigitDay }, payment_decision: { classification: 'ESCALAR', reasons: ['El IBAN no coincide.', 'Revisar el pedido.'], checks: { not_paid: true } } }])
     expect(markup).not.toContain('El IBAN no coincide.')
     expect(markup).not.toContain('Revisar el pedido.')
-    expect(markup).toContain(`12/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`)
+    expect(markup).toContain(new Date(`${singleDigitDay}T12:00:00`).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }))
   })
   test('missing net amounts do not substitute the gross amount', () => {
     const markup = render([{ ...invoices[0], billing: { ...invoices[0].billing!, tax_base: null, tax_base_eur: null } }])

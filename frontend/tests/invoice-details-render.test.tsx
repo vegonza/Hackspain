@@ -35,7 +35,7 @@ const props: Props = {
   extractionLabels: { ...es.extraction, inferred: es.extraction.identifierTrace },
   identifierTrace: { supplier_nif: null, iban: null },
   labels: { ...es.invoices, decisionLabel: 'Escalar', count: '', erp: es.erp.title, erpData: es.erp.dataTitle,
-    totalCost: es.usage.totalCost, waiting: es.processing.waiting, appName: es.app.name,
+    totalCost: es.invoices.processingCost, waiting: es.processing.waiting, appName: es.app.name,
     invoiceUnavailable: es.invoices.unavailable, notFound: es.invoices.pageNotFound, usage: es.usage.title },
 }
 
@@ -71,6 +71,7 @@ describe('split invoice details', () => {
         expect(markup.includes('class="source-body" hidden=""')).toBe(sourceTab === 'text')
         expect(markup).toContain('Proveedor extraído')
         expect(markup.includes('ERP-123')).toBe(dataTab === 'erp')
+        expect(markup.includes('invoice-processing-summary')).toBe(dataTab === 'extraction')
       }
     }
   })

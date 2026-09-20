@@ -5,7 +5,7 @@ import { invoiceErrorKey } from '@/hooks/invoiceError'
 import { invoicePath } from '@/hooks/useAppRoute'
 import { useMonthShortcuts } from '@/hooks/useMonthShortcuts'
 import { useTableSort } from '@/hooks/useTableSort'
-import { formatAmount, formatStatus } from '@/lib/format'
+import { formatAmount, formatDateShort, formatStatus } from '@/lib/format'
 import { supplierLogo } from '@/lib/supplierLogos'
 import { billingDecision, euroTotal, invoiceDate, matchesInvoice, periodInvoices, shiftMonth, sortInvoices,
   type BillingInvoice, type BillingSort } from '@/hooks/invoiceBilling'
@@ -84,7 +84,7 @@ export function useInvoiceTable(invoices: BillingInvoice[], loading: boolean) {
       id: invoice.id, name: invoice.name, supplier: name, initials,
       logo: supplierLogo(supplierName),
       secondary: [number, invoice.name, concept].filter(value => value !== null && value !== '').join(' · '),
-      date: date === null ? t('billing.undated') : new Date(`${date}T12:00:00`).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      date: date === null ? t('billing.undated') : formatDateShort(`${date}T12:00:00`, 'es-ES'),
       amount, gross: t('billing.grossAmount', { amount: gross }), originalAmount,
       decision, decisionLabel: rowDecisionLabel, decisionDescription,
       classification: decision === 'paid' || decision === 'pending' ? null : decision,

@@ -276,7 +276,7 @@ export function useInvoices() {
       decisionLabel: selected === null || selected.payment_decision === null ? t('invoices.decisionPending') : t(`invoices.decisions.${selected.payment_decision.classification}`),
       count: t('invoices.count', { count: invoices.length }),
       erp: t('erp.title'), erpData: t('erp.dataTitle'), totalTime: t('invoices.totalTime'),
-      totalCost: t('usage.totalCost'), waiting: t('processing.waiting'), appName: t('app.name'), upload: t('invoices.upload'),
+      totalCost: t('invoices.processingCost'), waiting: t('processing.waiting'), appName: t('app.name'), upload: t('invoices.upload'),
       library: t('invoices.library'), search: t('invoices.search'), back: t('invoices.back'),
       errorStatus: t('invoices.errorStatus'), status: t('invoices.status'), created: t('invoices.created'), noResults: t('invoices.noResults'),
       emptyList: t('invoices.emptyList'), pdf: t('invoices.pdf'),

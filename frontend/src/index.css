@@ -179,7 +179,6 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 .extraction-line-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; padding: 8px 0; }
 .extraction-line-list li:first-child { padding-top: 0; }
 .extraction-line-list li:last-child { padding-bottom: 0; }
-.extraction-line-list li + li { border-top: 1px solid var(--border); }
 .extraction-line-description { display: flex; align-items: flex-start; gap: 8px; min-width: 0; overflow-wrap: anywhere; }
 .extraction-line-description > span { min-width: 0; }
 .extraction-category-icon { width: 24px; height: 24px; flex-shrink: 0; object-fit: contain; }

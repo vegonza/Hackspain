@@ -29,7 +29,8 @@
     "library": "Facturas",
     "search": "Buscar facturas…",
     "back": "Volver a facturas",
-    "totalTime": "Tiempo",
+    "totalTime": "Tiempo total",
+    "processingCost": "Coste de procesamiento",
     "processingSummary": "Procesamiento",
     "status": "Estado",
     "created": "Fecha de subida",
@@ -256,7 +257,7 @@
     "supplier": "Proveedor / Factura",
     "review": "Revisión",
     "date": "Fecha",
-    "amount": "Sin IVA",
+    "amount": "Base imponible",
     "empty": "No hay facturas en este periodo.",
     "downloadPdf": "Descargar PDF",
     "rowDecisions": {
