@@ -89,7 +89,7 @@ class ExtractionManager:
             }],
             tool_choice="required",
             parallel_tool_calls=False,
-            extra_body={"usage": {"include": True}},
+            extra_body={"usage": {"include": True}, "provider": {"sort": "throughput"}},
         )
         if usage is not None:
             reported_usage = result.usage.model_dump()

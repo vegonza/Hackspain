@@ -60,7 +60,7 @@ class RequiredOutputToolTests(unittest.TestCase):
         self.assertEqual(request.headers["authorization"], "Bearer test-key")
         self.assertEqual(payload["tool_choice"], "required")
         self.assertEqual(payload["usage"], {"include": True})
-        self.assertNotIn("provider", payload)
+        self.assertEqual(payload["provider"], {"sort": "throughput"})
         self.assertNotIn("temperature", payload)
         self.assertFalse(payload["stream"])
         self.assertFalse(payload["parallel_tool_calls"])
