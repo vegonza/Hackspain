@@ -4,6 +4,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { createInstance } from 'i18next'
 import { I18nextProvider } from 'react-i18next'
 import { useInvoiceImports, type InvoiceUpload } from '../src/hooks/useInvoiceImports'
+import { useIssuedInvoices } from '../src/hooks/useIssuedInvoices'
+import { useIssuedList } from '../src/hooks/useIssuedList'
 import { useInvoiceTable } from '../src/hooks/useInvoiceTable'
 import { InvoiceImportPanel } from '../src/components/invoices/InvoiceImportPanel'
 import { InvoicesTable } from '../src/components/invoices/InvoicesTable'
@@ -36,7 +38,9 @@ function Lifecycle({ scenario }: { scenario: Scenario }) {
     ...((scenario === 'new-batch' || scenario === 'reopened') && step > 1 ? [{ ...pending, id: 'second', name: 'second.pdf' }] : []),
   ]
   const imports = useInvoiceImports(invoices, scenario === 'replacement' && step === 0 ? [upload] : [], true)
-  const table = useInvoiceTable(invoices, false)
+  const table = useInvoiceTable(invoices, false, [])
+  const issued = useIssuedInvoices()
+  const issuedList = useIssuedList([], table.period, table.search, table.sort)
   if (step === 0) {
     table.onPeriod('2025-01')
     if (scenario === 'replacement') imports.track(completed.id)
@@ -46,7 +50,7 @@ function Lifecycle({ scenario }: { scenario: Scenario }) {
     setStep(2)
   }
   return <div data-period={table.period}>
-    <InvoicesTable table={table} invoicesLoading={false} onUpload={async () => {}} onSelect={() => {}}
+    <InvoicesTable issued={{ ...issued, loading: false }} issuedList={issuedList} table={table} invoicesLoading={false} onUpload={async () => {}} onSelect={() => {}}
       onInvoiceLink={() => {}} onDelete={async () => {}} onRedo={async () => {}} deleting={false} redoDisabled={false} />
     <InvoiceImportPanel {...imports} onInvoiceLink={() => {}} onRetry={async () => {}} retryDisabled={false} />
   </div>

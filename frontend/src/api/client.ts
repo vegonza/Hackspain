@@ -1,5 +1,17 @@
 export const API_BASE = '/api'
 
+export class ApiError extends Error {
+  readonly status: number
+  readonly detail: unknown
+
+  constructor(message: string, status: number, detail: unknown) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.detail = detail
+  }
+}
+
 async function baseFetch(url: string, options: RequestInit): Promise<Response> {
   try {
     const response = await fetch(`${API_BASE}${url}`, options)
@@ -8,7 +20,11 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
         throw new Error(i18n.t('invoices.requestFailed'))
       }
       const error: { detail: unknown } = await response.json()
-      const message = error.detail === 'supplier_has_orders'
+      const message = typeof error.detail === 'string' && error.detail.startsWith('verifactu_test_rejected: ')
+        ? i18n.t('issued.errors.testRejectedDetail', { reason: error.detail.slice('verifactu_test_rejected: '.length) })
+        : typeof error.detail === 'string' && error.detail in billingErrors
+        ? i18n.t(billingErrors[error.detail])
+        : error.detail === 'supplier_has_orders'
         ? i18n.t('suppliers.hasOrders')
         : error.detail === 'order_exists'
         ? i18n.t('orders.exists')
@@ -35,7 +51,7 @@ async function baseFetch(url: string, options: RequestInit): Promise<Response> {
           : error.detail === 'extraction_failed'
             ? i18n.t('invoices.extractionFailed')
           : i18n.t('invoices.requestFailed')
-      throw new Error(message)
+      throw new ApiError(message, response.status, error.detail)
     }
     return response
   } catch (error) {
@@ -52,6 +68,7 @@ export async function fetchJson<T>(url: string, options: RequestInit = {}): Prom
   return response.json()
 }
 
+import type { ParseKeys } from 'i18next'
 import i18n from '@/i18n'
 import { toast } from 'sonner'
 
@@ -71,4 +88,18 @@ export async function fetchStatus(url: string, options: RequestInit = {}): Promi
     toast.error(i18n.t('invoices.requestFailed'))
     throw error
   }
+}
+
+const billingErrors: Record<string, ParseKeys> = {
+  verifactu_test_only: 'issued.errors.testOnly',
+  verifactu_test_pending: 'issued.errors.testPending',
+  verifactu_test_failed: 'issued.errors.testFailed',
+  verifactu_test_rejected: 'issued.errors.testRejected',
+  issued_invoice_locked: 'issued.errors.locked',
+  billing_company_required: 'issued.errors.companyRequired',
+  billing_client_exists: 'issued.errors.clientExists',
+  billing_client_not_found: 'issued.errors.clientMissing',
+  billing_client_has_invoices: 'clients.hasInvoices',
+  issued_invoice_not_found: 'issued.errors.missing',
+  issued_invoice_pdf_pending: 'issued.errors.pdfPending',
 }

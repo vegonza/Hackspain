@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import type { InvoiceDetail } from '../src/api/invoices'
 import es from '../src/locales/es/translation.json'
 import maintenanceIcon from '../src/assets/categories/02-mantenimiento-reparacion.svg'
+import otherIcon from '../src/assets/categories/11-otros.svg'
 
 mock.module('../src/components/invoices/PdfViewer', () => ({
   PdfViewer: ({ url }: { url: string }) => <div data-pdf={url} />,
@@ -83,22 +84,29 @@ describe('split invoice details', () => {
     expect(markup).toContain('invoice-pdf-skeleton')
     expect(markup).toContain('data-slot="skeleton"')
     expect(markup).not.toContain('$0.0040')
+    for (const field of ['invoiceNumber', 'invoiceDate', 'purchaseOrder', 'supplierNif', 'iban', 'taxBase', 'vatRate', 'vatAmount', 'total', 'lineItems'] as const) {
+      expect(markup).toContain(`<dt>${props.extractionLabels[field]}</dt>`)
+    }
+    expect(markup).not.toMatch(/<dt><div[^>]*data-slot="skeleton"/)
   })
 
-  test('shows category icons beside extracted concepts and preserves uncategorized lines', () => {
+  test('shows category icons beside extracted concepts, including Otros for unmatched lines', () => {
     const featureAmounts: NonNullable<Props['featureAmounts']> = {
       ...props.featureAmounts!,
       lineItems: [
         { description: 'Mantenimiento trimestral (1 ud)', amount: '100 €',
           category: { icon: maintenanceIcon, label: es.extraction.categories.maintenance } },
-        { description: 'Ajuste por redondeo', amount: '-0,01 €', category: null },
+        { description: 'Ajuste por redondeo', amount: '-0,01 €',
+          category: { icon: otherIcon, label: es.extraction.categories.other } },
       ],
     }
     const markup = renderToStaticMarkup(<InvoiceDetails {...props} featureAmounts={featureAmounts} />)
     expect(markup).toContain(`src="${maintenanceIcon}"`)
     expect(markup).toContain(`alt="${es.extraction.categories.maintenance}"`)
+    expect(markup).toContain(`src="${otherIcon}"`)
+    expect(markup).toContain(`alt="${es.extraction.categories.other}"`)
     expect(markup).toContain('width="24" height="24"')
-    expect(markup.match(/class="extraction-category-icon"/g)).toHaveLength(1)
+    expect(markup.match(/class="extraction-category-icon"/g)).toHaveLength(2)
     expect(markup).toContain('Mantenimiento trimestral (1 ud)</span></span><span>100 €')
     expect(markup).toContain('Ajuste por redondeo</span></span><span>-0,01 €')
     const erpMarkup = renderToStaticMarkup(<InvoiceDetails {...props} featureAmounts={featureAmounts} dataTab="erp" />)

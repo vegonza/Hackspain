@@ -1,4 +1,4 @@
-import type { Invoice } from '@/api/invoices'
+import type { Invoice, PaymentDecision } from '@/api/invoices'
 
 export type BillingInvoice = Pick<Invoice, 'id' | 'name' | 'created_at' | 'billing' | 'payment_decision' | 'last_error' | 'next_retry_at'> & {
   status: Invoice['status'] | 'uploading'
@@ -75,4 +75,27 @@ export function shiftMonth(month: string, delta: number): string {
   const [year, index] = month.split('-').map(Number)
   const date = new Date(Date.UTC(year, index - 1 + delta, 1))
   return date.toISOString().slice(0, 7)
+}
+
+export interface BillingRow {
+  id: string
+  partyName: string
+  initials: string | null
+  logo: string | undefined
+  secondary: string
+  date: string
+  amount: string
+  gross: string
+  originalAmount: string | null
+  href: string
+  canOpen: boolean
+  badge: {
+    label: string
+    description: string
+    tone: 'neutral' | 'success' | 'warning' | 'error'
+    icon: 'spinner' | 'clock' | 'error' | null
+    processing: boolean
+    status: string
+    classification: PaymentDecision['classification'] | null
+  }
 }

@@ -1,9 +1,15 @@
 import { useRef } from 'react'
 import { useConfirmPopover } from '@/hooks/useConfirmPopover'
 
-export function useRowActionsMenu(onDelete: () => void, disabled: boolean) {
+export interface RowDeleteAction {
+  label: string
+  confirmation: string
+  onDelete: () => void
+}
+
+export function useRowActionsMenu(deletion: RowDeleteAction | null, disabled: boolean) {
   const trigger = useRef<HTMLButtonElement>(null)
-  const confirmation = useConfirmPopover(onDelete, disabled)
+  const confirmation = useConfirmPopover(() => { if (deletion !== null) deletion.onDelete() }, disabled || deletion === null)
 
   return {
     trigger,

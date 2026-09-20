@@ -8,9 +8,10 @@ import cleaning from '@/assets/categories/07-limpieza.svg'
 import transport from '@/assets/categories/08-transporte.svg'
 import technicalSupport from '@/assets/categories/09-soporte-tecnico.svg'
 import professionalServices from '@/assets/categories/10-servicios-profesionales.svg'
+import other from '@/assets/categories/11-otros.svg'
 import type { InvoiceCategory } from '@/api/invoices'
 
-const categoryIcons: Partial<Record<InvoiceCategory, string>> = {
+const categoryIcons: Record<InvoiceCategory, string> = {
   officeSupplies,
   maintenance,
   recurringServices,
@@ -21,8 +22,9 @@ const categoryIcons: Partial<Record<InvoiceCategory, string>> = {
   transport,
   technicalSupport,
   professionalServices,
+  other,
 }
 
-export function invoiceCategoryIcon(category: InvoiceCategory): string | null {
-  return categoryIcons[category] ?? null
+export function invoiceCategoryIcon(category: InvoiceCategory): string {
+  return categoryIcons[category]
 }

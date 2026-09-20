@@ -1,8 +1,15 @@
 import { describe, expect, test } from 'bun:test'
 import { supplierLogo } from '../src/lib/supplierLogos'
 import companies from '../../svgs/companies/generations.json'
+import bancoMiralmar from '../src/assets/banco-miralmar.svg'
 
 describe('supplier branding', () => {
+  test('recognizes Banco Miralmar as the issuer with its own emblem', () => {
+    expect(supplierLogo('Banco Miralmar S.A.')).toBe(bancoMiralmar)
+    expect(supplierLogo('BANCO MIRALMAR SA')).toBe(bancoMiralmar)
+    expect(supplierLogo('Banco Miralmar S.L.')).toBeUndefined()
+  })
+
   test.each(companies.generations.map(company => [company.supplier.legal_name, company.filename]))(
     'connects the generated logo for %s', (name, filename) => {
       expect(supplierLogo(name)).toContain(filename)

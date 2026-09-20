@@ -2,6 +2,8 @@ import { useCallback, useRef, useState, type ChangeEvent, type MouseEvent } from
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { invoicePath, useAppRoute } from '@/hooks/useAppRoute'
+import { useIssuedInvoices } from '@/hooks/useIssuedInvoices'
+import { useIssuedList } from '@/hooks/useIssuedList'
 import { useInvoiceTable } from '@/hooks/useInvoiceTable'
 import { useInvoiceImports, type InvoiceUpload } from '@/hooks/useInvoiceImports'
 import { useInvoiceDetail } from '@/hooks/useInvoiceDetail'
@@ -17,7 +19,9 @@ const isProcessing = (document: Invoice) => document.status === 'queued' || docu
 
 export function useInvoices() {
   const { t } = useTranslation()
-  const { view, invoiceId: selectedId, navigate, followLink } = useAppRoute()
+  const route = useAppRoute()
+  const { view, invoiceId: selectedId, navigate, followLink } = route
+  const issued = useIssuedInvoices()
   const [lineItemsState, setLineItemsState] = useState({ invoiceId: selectedId, expanded: false })
   if (lineItemsState.invoiceId !== selectedId) setLineItemsState({ invoiceId: selectedId, expanded: false })
   const lineItemsExpanded = lineItemsState.invoiceId === selectedId && lineItemsState.expanded
@@ -207,7 +211,8 @@ export function useInvoices() {
       ? t('processing.durationSeconds', { value: (centiseconds / 100).toFixed(2) })
       : t('processing.durationMinutes', { minutes: Math.floor(centiseconds / 6000), seconds: ((centiseconds % 6000) / 100).toFixed(2) })
   }
-  const table = useInvoiceTable(invoices, invoicesLoading)
+  const table = useInvoiceTable(invoices, invoicesLoading || issued.loading, issued.invoices)
+  const issuedList = useIssuedList(issued.invoices, table.period, table.search, table.sort)
 
   const erp = selected === null ? null : selected.erp
   const extraction = selected === null ? null : selected.extraction
@@ -223,7 +228,7 @@ export function useInvoices() {
         const icon = invoiceCategoryIcon(line.category)
         return {
           description: line.description, amount: featureMoney(line.amount, extraction.currency),
-          category: icon === null ? null : { icon, label: t(`extraction.categories.${line.category}`) },
+          category: { icon, label: t(`extraction.categories.${line.category}`) },
         }
       }),
     canExpandLineItems: extraction.line_items.length > 3,
@@ -258,6 +263,7 @@ export function useInvoices() {
   const identifierTrace = useIdentifierTrace(selected === null ? [] : selected.identifier_trace.identifier_corrections)
 
   return {
+    issued, issuedList, issuedId: route.view === 'issued' ? route.issuedId : null,
     redoing, onRedo,
     metricsLoading, emptyMessage, erpRows, totalDuration, totalCost, identifierTrace,
     table, imports, onRetryImport, invoicesLoading, onInvoiceLink, onNavigate: followLink,

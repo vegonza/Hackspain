@@ -1,4 +1,7 @@
-import { Wallet, DollarSign, Building2, Landmark, ShoppingCart } from 'lucide-react'
+import { ClientsView } from '@/components/clients/ClientsView'
+import type { useClients } from '@/hooks/useClients'
+import { Users, Wallet, DollarSign, Building2, Landmark, ShoppingCart } from 'lucide-react'
+import { IssuedInvoicePage } from '@/pages/IssuedInvoicePage'
 import { Button } from '@/components/ui/button'
 import { InvoicesTable } from '@/components/invoices/InvoicesTable'
 import { InvoiceImportPanel } from '@/components/invoices/InvoiceImportPanel'
@@ -14,22 +17,25 @@ import type { useUsage } from '@/hooks/useUsage'
 import type { useInvoices } from '@/hooks/useInvoices'
 import logo from '@/assets/logo.svg'
 
-type Props = ReturnType<typeof useInvoices> & { usage: ReturnType<typeof useUsage>; suppliers: ReturnType<typeof useSuppliers>; orders: ReturnType<typeof useOrders>; erp: ReturnType<typeof useErpSnapshot> }
+type Props = ReturnType<typeof useInvoices> & { clients: ReturnType<typeof useClients>; usage: ReturnType<typeof useUsage>; suppliers: ReturnType<typeof useSuppliers>; orders: ReturnType<typeof useOrders>; erp: ReturnType<typeof useErpSnapshot> }
 
-export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, suppliers, orders, erp, selectedId,
+export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, suppliers, orders, erp, clients, selectedId,
   table, onUpload, invoicesLoading, onSelect, imports, onRetryImport,
   onInvoiceLink, onDelete, deleting, mountDetail, invoiceName, supplierName, selected, loading, extractionLoading,
   pdfUrl, pdfLoading, sourceTab, dataTab, onDataTab, emptyMessage, extractionLabels, canRetry, onRetrySelected,
   retrying, metricsLoading, onSourceTab, erpRows, totalDuration, totalCost, featureAmounts,
-  redoing, onRedo, identifierTrace }: Props) {
+  redoing, onRedo, identifierTrace, issued: { mount: mountIssued, ...issued }, issuedList, issuedId }: Props) {
   return (
     <div className="app-shell" ref={watchInvoices}>
-      <main className="review-layout">
+      <main className="review-layout" ref={view === 'invoices' && selectedId === null ? mountIssued : undefined}>
         <aside className="sidebar">
           <div className="sidebar-brand"><img className="brand-logo" src={logo} alt={labels.appName} /></div>
           <nav className="sidebar-navigation" aria-label={labels.appName}>
-            <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'invoices' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
-              <a href="/invoices" onClick={onNavigate} aria-current={view === 'invoices' ? 'page' : undefined}><Wallet /><span>{labels.library}</span></a>
+            <Button variant="sidebar" size="sidebar" className={`sidebar-link ${(view === 'invoices' || view === 'issued') ? 'bg-selected hover:bg-selected' : ''}`} asChild>
+              <a href="/invoices" onClick={onNavigate} aria-current={(view === 'invoices' || view === 'issued') ? 'page' : undefined}><Wallet /><span>{labels.library}</span></a>
+            </Button>
+            <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'clients' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
+              <a href="/clients" onClick={onNavigate} aria-current={view === 'clients' ? 'page' : undefined}><Users /><span>{clients.labels.title}</span></a>
             </Button>
             <Button variant="sidebar" size="sidebar" className={`sidebar-link ${view === 'suppliers' ? 'bg-selected hover:bg-selected' : ''}`} asChild>
               <a href="/suppliers" onClick={onNavigate} aria-current={view === 'suppliers' ? 'page' : undefined}><Building2 /><span>{suppliers.labels.title}</span></a>
@@ -46,16 +52,18 @@ export function InvoicesView({ watchInvoices, labels, view, onNavigate, usage, s
           </nav>
         </aside>
         {view === 'usage' ? <UsageView {...usage} />
+          : view === 'clients' ? <ClientsView {...clients} />
           : view === 'orders' ? <OrdersView {...orders} />
           : view === 'suppliers' ? <SuppliersView {...suppliers} />
           : view === 'erp' ? <ErpView {...erp} />
           : view === 'not-found' ? <section className="invoice-unavailable"><h1>{labels.notFound}</h1><Button variant="link" asChild><a href="/invoices" onClick={onNavigate}>{labels.library}</a></Button></section>
+          : view === 'issued' && issuedId !== null ? <IssuedInvoicePage key={issuedId} id={issuedId} onUpdated={issued.update} />
           : selectedId !== null ? <InvoiceDetails mountDetail={mountDetail} invoiceName={invoiceName} supplierName={supplierName} selectedId={selectedId}
             selected={selected} identifierTrace={identifierTrace} featureAmounts={featureAmounts} loading={loading} extractionLoading={extractionLoading} pdfUrl={pdfUrl} pdfLoading={pdfLoading}
             sourceTab={sourceTab} dataTab={dataTab} onDataTab={onDataTab} emptyMessage={emptyMessage} labels={labels} extractionLabels={extractionLabels}
             canRetry={canRetry} onRetrySelected={onRetrySelected} retrying={retrying} metricsLoading={metricsLoading}
             onNavigate={onNavigate} onSourceTab={onSourceTab} erpRows={erpRows} totalDuration={totalDuration} totalCost={totalCost} />
-          : <InvoicesTable table={table} onUpload={onUpload} invoicesLoading={invoicesLoading}
+          : <InvoicesTable issued={{ ...issued, mount: mountIssued }} issuedList={issuedList} table={table} onUpload={onUpload} invoicesLoading={invoicesLoading}
             onSelect={onSelect} onInvoiceLink={onInvoiceLink} onDelete={onDelete} deleting={deleting}
             onRedo={onRedo} redoDisabled={redoing || retrying || deleting} />}
       </main>

@@ -39,8 +39,8 @@ export function OrdersView({ mount, loading, failed, rows, pagination, pageKey, 
             <TableCell className="tabular-nums">{order.displayAmount}</TableCell>
             <TableCell><Badge variant="secondary" className="invoice-table-status">{order.displayStatus}</Badge></TableCell>
             <TableCell className="text-muted-foreground">{order.displayDate}</TableCell>
-            <TableCell><RowActions confirmation={order.deleteConfirmation} labels={labels} name={order.order_id} disabled={editing || saving || deleting}
-              onEdit={() => onEdit(order)} onDelete={() => onDelete(order.order_id)} /></TableCell>
+            <TableCell><RowActions labels={labels} name={order.order_id} disabled={editing || saving || deleting}
+              onEdit={() => onEdit(order)} deletion={{ label: labels.delete, confirmation: order.deleteConfirmation, onDelete: () => onDelete(order.order_id) }} /></TableCell>
           </TableRow>)}
           {!loading && rows.length === 0 && <TableRow><TableCell colSpan={7} className="h-40 text-center text-muted-foreground">{labels.empty}</TableCell></TableRow>}
         </TableBody>

@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, type FormEvent } from 'react'
+import { supplierLogo } from '@/lib/supplierLogos'
 import { useTablePagination } from '@/hooks/useTablePagination'
 import { useTableSort } from '@/hooks/useTableSort'
 import { useTranslation } from 'react-i18next'
@@ -85,7 +86,7 @@ export function useSuppliers() {
 
   const query = search.trim().toLocaleLowerCase('es-ES')
   const table = useTablePagination(sortRows(suppliers.filter(supplier => [supplier.supplier_id, supplier.legal_name, supplier.tax_id, supplier.iban, supplier.city]
-      .some(value => value.toLocaleLowerCase('es-ES').includes(query))), (row, column) => row[column]).map(supplier => ({ ...supplier, deleteConfirmation: t('common.deleteConfirmation', { name: supplier.legal_name }) })), JSON.stringify([search, sortColumn, sortDirection]))
+      .some(value => value.toLocaleLowerCase('es-ES').includes(query))), (row, column) => row[column]).map(supplier => ({ ...supplier, logo: supplierLogo(supplier.legal_name), deleteConfirmation: t('common.deleteConfirmation', { name: supplier.legal_name }) })), JSON.stringify([search, sortColumn, sortDirection]))
   return {
     pagination: table.pagination, pageKey: table.pageKey,
     sortColumn, sortDirection, onToggleSort,

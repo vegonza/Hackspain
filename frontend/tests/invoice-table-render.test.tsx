@@ -4,6 +4,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { createInstance } from 'i18next'
 import { I18nextProvider } from 'react-i18next'
 import { InvoicesTable } from '../src/components/invoices/InvoicesTable'
+import { useIssuedInvoices } from '../src/hooks/useIssuedInvoices'
+import { useIssuedList } from '../src/hooks/useIssuedList'
 import { useInvoiceTable } from '../src/hooks/useInvoiceTable'
 import { shiftMonth } from '../src/hooks/invoiceBilling'
 import type { Invoice } from '../src/api/invoices'
@@ -25,8 +27,10 @@ const invoices: Invoice[] = Array.from({ length: 500 }, (_, index) => ({
 }))
 
 function Harness({ rows, loading }: { rows: Invoice[]; loading: boolean }) {
-  const table = useInvoiceTable(rows, loading)
-  return <InvoicesTable table={table} invoicesLoading={loading} onUpload={async () => {}} onSelect={() => {}}
+  const table = useInvoiceTable(rows, loading, [])
+  const issued = useIssuedInvoices()
+  const issuedList = useIssuedList([], table.period, table.search, table.sort)
+  return <InvoicesTable issued={{ ...issued, loading: false }} issuedList={issuedList} table={table} invoicesLoading={loading} onUpload={async () => {}} onSelect={() => {}}
     onInvoiceLink={() => {}} onDelete={async () => {}} onRedo={async () => {}} deleting={false} redoDisabled={false} />
 }
 function render(rows: Invoice[], loading = false): string {
@@ -46,7 +50,7 @@ describe('invoice billing table rendering', () => {
     const periods = [currentMonth, currentMonth, previousMonth, currentMonth, currentMonth, currentMonth, 'all', 'all', 'undated', 'undated', currentMonth]
     function NavigationHarness() {
       const [step, setStep] = useState(0)
-      const table = useInvoiceTable(monthInvoices, false)
+      const table = useInvoiceTable(monthInvoices, false, [])
       expect(table.period).toBe(periods[step])
       expect(table.monthOptions.some(option => option.value === futureMonth)).toBe(false)
       expect(table.monthOptions.some(option => option.value === currentMonth)).toBe(true)
@@ -85,14 +89,14 @@ describe('invoice billing table rendering', () => {
     const markup = render(invoices)
     expect(markup.match(/class="[^"]*\binvoice-table-row\b/g)).toHaveLength(500)
     expect(markup).not.toContain('aria-label="Paginación"')
-    expect(markup.indexOf('placeholder="Buscar proveedor, factura, pedido…"')).toBeLessThan(markup.indexOf('upload-button'))
+    expect(markup.indexOf('placeholder="Buscar cliente, proveedor, factura…"')).toBeLessThan(markup.indexOf('upload-button'))
     expect(markup.indexOf('upload-button')).toBeLessThan(markup.indexOf('class="billing-month"'))
     expect(markup).not.toContain('Descargar facturas')
     expect(markup).toContain('accept=".pdf,.doc,.docx,.odt,.rtf,.ppt,.pptx,.odp,.xls,.xlsx,.ods"')
     expect(markup).not.toContain('class="table-toolbar"')
     expect(markup).not.toContain('billing-filters')
     expect(markup).not.toContain('Todos los proveedores')
-    expect(markup).toContain('Total con IVA')
+    expect(markup).toContain('Ingresos facturados')
     expect(markup).toContain('href="/invoices/invoice-0"')
     expect(markup.match(/aria-label="Acciones"/g)).toHaveLength(500)
     expect(markup).not.toContain('aria-label="Reprocesar"')

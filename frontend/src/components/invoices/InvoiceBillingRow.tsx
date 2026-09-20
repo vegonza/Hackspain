@@ -1,40 +1,41 @@
+import type { MouseEvent, ReactNode } from 'react'
 import { Building2, CircleAlert, Clock, LoaderCircle } from 'lucide-react'
-import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu'
-import { InvoiceDecisionBadge } from '@/components/invoices/InvoiceDecisionBadge'
 import { Badge } from '@/components/ui/badge'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { Tooltip } from '@/components/ui/tooltip'
-import type { InvoicesTableProps } from '@/components/invoices/InvoicesTable'
-import type { useInvoiceTable } from '@/hooks/useInvoiceTable'
+import type { BillingRow } from '@/hooks/invoiceBilling'
 
-type Props = Pick<InvoicesTableProps, 'onSelect' | 'onInvoiceLink' | 'onRedo' | 'onDelete' | 'deleting' | 'redoDisabled'> & {
-  invoice: ReturnType<typeof useInvoiceTable>['rows'][number]
-  labels: ReturnType<typeof useInvoiceTable>['labels']
-  downloading: string | null
-  onDownload: (id: string) => void
+type Props = {
+  invoice: BillingRow
+  actions: ReactNode
+  onSelect: (id: string) => void
+  onInvoiceLink: (event: MouseEvent<HTMLAnchorElement>) => void
 }
 
-export function InvoiceBillingRow({ invoice, labels, downloading, onDownload, onSelect, onInvoiceLink, onRedo, onDelete, deleting, redoDisabled }: Props) {
+export function InvoiceBillingRow({ invoice, actions, onSelect, onInvoiceLink }: Props) {
   return <TableRow className="invoice-table-row billing-row" data-openable={invoice.canOpen} onClick={() => { if (invoice.canOpen) onSelect(invoice.id) }}>
     <TableCell>
       <div className="billing-identity">
         {invoice.logo !== undefined ? <img className="billing-supplier-logo" src={invoice.logo} alt="" width={36} height={36} />
           : <span className="billing-avatar" aria-hidden="true">{invoice.initials === null ? <Building2 size={20} /> : invoice.initials}</span>}
         <div className="billing-identity-text">
-          <Tooltip text={invoice.supplier} onlyWhenTruncated asChild>{invoice.canOpen
-            ? <a className="invoice-table-name" href={invoice.href} onClick={onInvoiceLink}>{invoice.supplier}</a>
-            : <span className="invoice-table-name">{invoice.supplier}</span>}</Tooltip>
-          <Tooltip text={invoice.secondary} onlyWhenTruncated asChild><div className="billing-secondary">
-            {invoice.secondary}
-          </div></Tooltip>
+          <Tooltip text={invoice.partyName} onlyWhenTruncated asChild>{invoice.canOpen
+            ? <a className="invoice-table-name" href={invoice.href} onClick={onInvoiceLink}>{invoice.partyName}</a>
+            : <span className="invoice-table-name">{invoice.partyName}</span>}</Tooltip>
+          <Tooltip text={invoice.secondary} onlyWhenTruncated asChild><div className="billing-secondary">{invoice.secondary}</div></Tooltip>
         </div>
       </div>
     </TableCell>
     <TableCell>
-      <Tooltip text={invoice.decisionDescription} asChild><span className="billing-status">{invoice.showStatus ? <Badge variant="secondary" className="invoice-table-status" data-status={invoice.status}>
-        {invoice.status === 'processing' || invoice.status === 'uploading' ? <LoaderCircle size={13} className="animate-spin" />
-          : invoice.status === 'error' ? <CircleAlert size={13} /> : <Clock size={13} />}{invoice.statusLabel}
-      </Badge> : <InvoiceDecisionBadge classification={invoice.classification} label={invoice.decisionLabel} />}</span></Tooltip>
+      <Tooltip text={invoice.badge.description} asChild><span className="billing-status">
+        <Badge variant="secondary" className={invoice.badge.processing ? 'invoice-table-status' : 'invoice-decision-badge'}
+          data-tone={invoice.badge.tone} data-status={invoice.badge.status} data-decision={invoice.badge.classification}>
+          {invoice.badge.icon === 'spinner' && <LoaderCircle size={13} className="animate-spin" />}
+          {invoice.badge.icon === 'error' && <CircleAlert size={13} />}
+          {invoice.badge.icon === 'clock' && <Clock size={13} />}
+          {invoice.badge.label}
+        </Badge>
+      </span></Tooltip>
     </TableCell>
     <TableCell className="billing-date">{invoice.date}</TableCell>
     <TableCell className="billing-money">
@@ -43,13 +44,6 @@ export function InvoiceBillingRow({ invoice, labels, downloading, onDownload, on
       </Tooltip>}{invoice.amount}</strong>
       <span>{invoice.gross}</span>
     </TableCell>
-    <TableCell onClick={event => event.stopPropagation()}>
-      <div className="invoice-table-action">
-        <InvoiceActionsMenu labels={labels} redoConfirmation={invoice.redoConfirmation} deleteConfirmation={invoice.deleteConfirmation}
-          redoDisabled={redoDisabled || !invoice.canManage} deleteDisabled={deleting || !invoice.canManage}
-          downloadDisabled={!invoice.canOpen || downloading !== null} downloading={downloading === invoice.id}
-          onRedo={() => void onRedo(invoice.id)} onDelete={() => void onDelete(invoice.id)} onDownload={() => onDownload(invoice.id)} />
-      </div>
-    </TableCell>
+    <TableCell onClick={event => event.stopPropagation()}><div className="invoice-table-action">{actions}</div></TableCell>
   </TableRow>
 }

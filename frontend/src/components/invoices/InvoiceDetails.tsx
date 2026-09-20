@@ -68,7 +68,7 @@ export function InvoiceDetails({ mountDetail, invoiceName, supplierName, selecte
           </dl>
           {!loading && selected === null ? <p role="alert" className="markdown-error">{labels.invoiceUnavailable}</p>
             : dataTab === 'erp' ? <InvoiceErp loading={loading} rows={erpRows} />
-            : extractionLoading ? <InvoiceExtractionSkeleton title={labels.extraction} />
+            : extractionLoading ? <InvoiceExtractionSkeleton title={labels.extraction} labels={extractionLabels} />
             : selected !== null && selected.extraction !== null && featureAmounts !== null ? <InvoiceExtraction title={labels.extraction} extraction={selected.extraction} amounts={featureAmounts} labels={extractionLabels} identifierTrace={identifierTrace} />
             : <p className="invoice-empty" role="status">{labels.noExtraction}</p>}
           {dataTab !== 'erp' && <section className="invoice-processing-summary" aria-label={labels.processingSummary}>

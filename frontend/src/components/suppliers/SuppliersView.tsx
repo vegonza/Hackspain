@@ -33,11 +33,14 @@ export function SuppliersView({ pagination, pageKey, mount, loading, failed, row
         <TableBody>
           {loading ? <TableSkeleton /> : rows.map(supplier => <TableRow key={supplier.supplier_id} className="invoice-table-row" data-openable="false">
             {(['supplier_id', 'legal_name', 'tax_id', 'iban', 'city'] as const).map(field => <TableCell key={field}>
-              <Tooltip text={supplier[field]} onlyWhenTruncated asChild><span className="block truncate">{supplier[field]}</span></Tooltip>
+              <div className="flex min-w-0 items-center gap-3">
+                {field === 'legal_name' && supplier.logo !== undefined && <img src={supplier.logo} alt="" className="size-6 shrink-0 object-contain" />}
+                <Tooltip text={supplier[field]} onlyWhenTruncated asChild><span className="block truncate">{supplier[field]}</span></Tooltip>
+              </div>
             </TableCell>)}
             <TableCell className="tabular-nums">{supplier.payment_terms_days} {labels.days}</TableCell>
-            <TableCell><RowActions confirmation={supplier.deleteConfirmation} labels={labels} name={supplier.supplier_id} disabled={editing || saving || deleting}
-              onEdit={() => onEdit(supplier)} onDelete={() => onDelete(supplier.supplier_id)} /></TableCell>
+            <TableCell><RowActions labels={labels} name={supplier.supplier_id} disabled={editing || saving || deleting}
+              onEdit={() => onEdit(supplier)} deletion={{ label: labels.delete, confirmation: supplier.deleteConfirmation, onDelete: () => onDelete(supplier.supplier_id) }} /></TableCell>
           </TableRow>)}
           {!loading && rows.length === 0 && <TableRow><TableCell colSpan={7} className="h-40 text-center text-muted-foreground">{labels.empty}</TableCell></TableRow>}
         </TableBody>

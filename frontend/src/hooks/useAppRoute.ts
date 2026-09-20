@@ -2,17 +2,21 @@ import { useSyncExternalStore, type MouseEvent } from 'react'
 
 export type AppRoute =
   | { view: 'invoices'; invoiceId: string | null }
-  | { view: 'usage' | 'orders' | 'suppliers' | 'not-found'; invoiceId: null }
+  | { view: 'issued'; invoiceId: null; issuedId: string }
+  | { view: 'usage' | 'orders' | 'suppliers' | 'clients' | 'not-found'; invoiceId: null }
   | { view: 'erp'; invoiceId: null; entryId: string | null }
 
 export function parseRoute(path: string): AppRoute {
   if (path === '/' || path === '/invoices') return { view: 'invoices', invoiceId: null }
+  if (path === '/clients') return { view: 'clients', invoiceId: null }
   if (path === '/orders') return { view: 'orders', invoiceId: null }
   if (path === '/suppliers') return { view: 'suppliers', invoiceId: null }
   if (path === '/cost') return { view: 'usage', invoiceId: null }
   if (path === '/erp') return { view: 'erp', invoiceId: null, entryId: null }
   const entry = /^\/erp\/([^/]+)$/.exec(path)
   if (entry !== null) return { view: 'erp', invoiceId: null, entryId: entry[1] }
+  const issued = /^\/invoices\/issued\/([^/]+)$/.exec(path)
+  if (issued !== null) return { view: 'issued', invoiceId: null, issuedId: issued[1] }
   const match = /^\/invoices\/([^/]+)$/.exec(path)
   if (match !== null) return { view: 'invoices', invoiceId: match[1] }
   return { view: 'not-found', invoiceId: null }

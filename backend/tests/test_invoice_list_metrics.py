@@ -11,6 +11,25 @@ EMPTY_BILLING = {field: None for field in InvoiceBilling.model_fields}
 
 
 class InvoiceListMetricsTests(unittest.TestCase):
+    def test_list_preserves_categorized_lines(self) -> None:
+        database, redis = MagicMock(), MagicMock()
+        database.rpc.return_value.execute.return_value.data = [{
+            "billing": {**EMPTY_BILLING, "line_items": [
+                {"description": "Cuota de servicio", "amount": "100.00", "category": "recurringServices"},
+                {"description": "Otro concepto", "amount": "20.00", "category": "other"},
+            ]},
+            "id": str(uuid4()), "name": "invoice.pdf", "sha256": "a" * 64,
+            "created_at": datetime.now(timezone.utc).isoformat(), "status": "ready",
+        }]
+        redis.__enter__.return_value.hmget.return_value = [None]
+        with patch("invoices.repository.get_client", return_value=database), patch("invoices.repository.get_redis", return_value=redis):
+            invoices = list_invoices()
+        lines = invoices[0].billing.line_items
+        self.assertEqual(lines[0].category, "recurringServices")
+        self.assertEqual(lines[1].category, "other")
+        self.assertEqual(invoices[0].model_dump()["billing"]["line_items"][0]["category"], "recurringServices")
+        database.table.assert_not_called()
+
     def test_list_preserves_rpc_metrics_and_retry_state(self) -> None:
         identifier = uuid4()
         client, redis = MagicMock(), MagicMock()

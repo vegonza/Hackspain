@@ -61,9 +61,9 @@ export function InvoiceExtraction({ title, extraction, amounts, labels, identifi
                 {amounts.lineItems.map((line, index) => (
                   <li key={index}>
                     <span className="extraction-line-description">
-                      {line.category !== null && <Tooltip text={line.category.label} asChild>
+                      <Tooltip text={line.category.label} asChild>
                         <img className="extraction-category-icon" src={line.category.icon} alt={line.category.label} width={24} height={24} />
-                      </Tooltip>}
+                      </Tooltip>
                       <span>{line.description}</span>
                     </span>
                     <span>{line.amount}</span>

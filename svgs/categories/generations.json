@@ -432,6 +432,45 @@
         "content_transform": "matrix(1.405858 0 0 1.405858 -105.774059 -103.665272)",
         "minimum_padding": 32
       }
+    },
+    {
+      "id": "11-otros",
+      "name": "Otros",
+      "description": "Conceptos que no corresponden a las categorías existentes",
+      "filename": "11-otros.svg",
+      "request": {
+        "model": "arrow-2",
+        "prompt": "Create a neutral miscellaneous category icon for Otros (Other): four large simple geometric shapes in a balanced compact two-by-two arrangement. A solid navy circle at top left, a solid warm gold diamond at top right, and two solid navy softly rounded squares in the bottom row. The diamond is a rotated square, not a sparkle. The differing shapes communicate a collection of miscellaneous items. Generous equal spacing, visually balanced, no surrounding container. Use navy #214C70 and gold #D0A34D only. Exactly four bold filled shapes, instantly legible at 20 and 24 pixels. No text, question mark, plus sign, dots inside the shapes, outlines, shadows or gradients.",
+        "instructions": "Create one polished category icon for invoice line items in the hUMAnos app. This is part of a coherent family of eleven icons. Use only navy #214C70 as the main color and warm gold #D0A34D for one restrained accent, both fully opaque. The style is a premium flat filled pictogram: recognizable everyday object, bold consistent visual weight, gently rounded corners, simple geometry, generous negative space. The icon must be instantly identifiable at 20px and 24px. At most six main shapes; keep essential gaps at least 32 SVG units wide, avoid tiny details and fine strokes. Square 512x512 SVG viewBox, centered artwork and approximately 48 units of clear margin. Fully transparent canvas. Do not draw any white background rectangle, colored tile, circular badge, surrounding frame or decorative backdrop. Only filled vector paths and basic geometric shapes. No gradients, shading, shadows, filters, raster images, external assets, lettering, digits or captions. Return one icon only, not a presentation sheet. Use the same navy-and-gold brand language as an elegant lighthouse emblem, but do not add a lighthouse to the category icon.",
+        "n": 1,
+        "stream": false,
+        "max_output_tokens": 16384,
+        "attributes": {
+          "viewBox": {
+            "minX": 0,
+            "minY": 0,
+            "width": 512,
+            "height": 512
+          }
+        }
+      },
+      "request_id": "7c3e30e9-fa03-42dd-8371-a7b3b5579ec1",
+      "generated_at": "2026-09-20T02:08:19.548087+00:00",
+      "response": {
+        "created": 1789870093,
+        "id": "465242d313854fd5acb220a3b782d539",
+        "usage": {
+          "input_tokens": 724,
+          "output_tokens": 2874,
+          "total_tokens": 3598
+        }
+      },
+      "postprocessing": {
+        "removed_background_rectangles": 0,
+        "color_adjustments": {},
+        "content_transform": "matrix(1.429027 0 0 1.429027 -110.188198 -103.043062)",
+        "minimum_padding": 32
+      }
     }
   ]
 }

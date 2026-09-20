@@ -1,0 +1,47 @@
+{
+  "company": {
+    "legal_name": "Banco Miralmar S.A.",
+    "tax_id": "A58231074",
+    "role": "issuer"
+  },
+  "source": "500-sombras-de-alberto/facturas/2026-01-12_P010.pdf, Cliente field; confirmed in facturas_primin/2026-08-09_P001.pdf",
+  "endpoint": "https://api.quiver.ai/v1/svgs/generations",
+  "filename": "logo.svg",
+  "direction": "Horizonte de confianza",
+  "request": {
+    "model": "arrow-2",
+    "prompt": "Design an original premium corporate emblem for Banco Miralmar S.A., a fictional Spanish bank. Merge a simple strong bank colonnade with a single flowing Mediterranean wave into one clever cohesive symbol: a broad navy architectural roof supported by three bold pillars, whose bases integrate with a sweeping turquoise sea wave. The distinctive wave should feel integral to the bank architecture. Convey financial trust, stability and an open horizon. Use deep navy #173D59 and sea turquoise #30AAA5. A compact, confident and balanced silhouette with generous negative space. This is an elegant bank brand mark, not a detailed building illustration. No letters, initials, monograms, text, coins, currency signs, stars, shield, surrounding circle, landscape or separate decorative objects. Must be clear at 24 and 36 pixels.",
+    "instructions": "Create an original, polished corporate brand symbol for the fictional company named in the prompt. Square 512x512 SVG viewBox. Fully transparent canvas: do not draw any background, white rectangle, backdrop or enclosing tile. Center the artwork with approximately 64 units of clear margin on every side. Use a bold recognizable silhouette and generous negative space, designed to remain readable at 32 and 40 pixels on a white invoice dashboard. Use only simple flat filled vector paths and basic geometric shapes; two opaque colors at most. No typography, initials, letters, company name, caption, watermark, raster images, fonts, filters, gradients, shadows or external assets. Make the composition feel like a crafted professional brand logo, not a stock UI icon or an illustration. One cohesive emblem only. Do not imitate an existing company logo.",
+    "n": 1,
+    "stream": false,
+    "max_output_tokens": 16384,
+    "attributes": {
+      "viewBox": {
+        "minX": 0,
+        "minY": 0,
+        "width": 512,
+        "height": 512
+      }
+    }
+  },
+  "request_id": "ecc2a12a-fd57-409f-9e38-867b3e8c4c34",
+  "generated_at": "2026-09-20T02:18:34.575484+00:00",
+  "response": {
+    "created": 1789870699,
+    "id": "a48ca5c9be834eb1b1435afa0ae59cfe",
+    "usage": {
+      "input_tokens": 725,
+      "output_tokens": 3525,
+      "total_tokens": 4250
+    }
+  },
+  "postprocessing": {
+    "removed_background_rectangles": 1,
+    "color_adjustments": {
+      "#123857": "#173D59",
+      "#2BAAAD": "#30AAA5"
+    },
+    "content_transform": "matrix(1.084746 0 0 1.084746 -22.508475 -8.542373)",
+    "minimum_padding": 64
+  }
+}

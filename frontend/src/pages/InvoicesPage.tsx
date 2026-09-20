@@ -3,6 +3,7 @@ import { useInvoices } from '@/hooks/useInvoices'
 import { useErpSnapshot } from '@/hooks/useErpSnapshot'
 import { useOrders } from '@/hooks/useOrders'
 import { useSuppliers } from '@/hooks/useSuppliers'
+import { useClients } from '@/hooks/useClients'
 import { useUsage } from '@/hooks/useUsage'
 
 export function InvoicesPage() {
@@ -11,5 +12,6 @@ export function InvoicesPage() {
   const orders = useOrders()
   const suppliers = useSuppliers()
   const erp = useErpSnapshot()
-  return <InvoicesView {...invoices} usage={usage} suppliers={suppliers} orders={orders} erp={erp} />
+  const clients = useClients()
+  return <InvoicesView {...invoices} usage={usage} suppliers={suppliers} orders={orders} erp={erp} clients={clients} />
 }

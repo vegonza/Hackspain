@@ -1,3 +1,4 @@
+@import "./issued.css";
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -232,9 +233,9 @@ h1 { margin: 0; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing:
 
 .invoice-decision-reasons ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; line-height: 1.5; overflow-wrap: anywhere; }
 .invoice-decision-reasons:empty { display: none; }
-.invoice-decision-badge[data-decision="PAGAR"] { background: #e3f5ec; color: #1b5e43; }
-.invoice-decision-badge[data-decision="NO_PAGAR"] { background: #fce8e8; color: #a52828; }
-.invoice-decision-badge[data-decision="ESCALAR"] { background: #fff1d6; color: #875500; }
+.invoice-decision-badge[data-decision="PAGAR"], .invoice-decision-badge[data-tone="success"] { background: #e3f5ec; color: #1b5e43; }
+.invoice-decision-badge[data-decision="NO_PAGAR"], .invoice-decision-badge[data-tone="error"] { background: #fce8e8; color: #a52828; }
+.invoice-decision-badge[data-decision="ESCALAR"], .invoice-decision-badge[data-tone="warning"] { background: #fff1d6; color: #875500; }
 .table-pagination { display: flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: 12px; color: var(--muted-foreground); }
 .table-pagination span { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .table-pagination-range { margin-right: 6px; }
@@ -358,3 +359,6 @@ a.invoice-import-name:hover { text-decoration: underline; }
 .app-select-option[data-state='checked'] { background: var(--accent-soft); color: var(--primary); }
 .app-select-count { margin-left: auto; min-width: 4ch; flex-shrink: 0; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted-foreground); }
 .app-select-option[data-state='checked'] .app-select-count { color: var(--primary); }
+
+.loading-field[data-loading="true"] input { color: transparent; }
+.loading-field[data-loading="true"] input::-webkit-datetime-edit { visibility: hidden; }

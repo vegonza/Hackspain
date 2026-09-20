@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { invoiceCategoryIcon } from '../src/lib/invoiceCategory'
+import otherIcon from '../src/assets/categories/11-otros.svg'
 
 describe('invoice category icons', () => {
   test.each(['officeSupplies', 'maintenance', 'recurringServices', 'inspection', 'supplies', 'installation',
@@ -7,7 +8,7 @@ describe('invoice category icons', () => {
     expect(invoiceCategoryIcon(category)).toContain('.svg')
   })
 
-  test('does not invent an icon for other concepts', () => {
-    expect(invoiceCategoryIcon('other')).toBeNull()
+  test('uses the custom Otros icon for other concepts', () => {
+    expect(invoiceCategoryIcon('other')).toBe(otherIcon)
   })
 })

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "d0bc81a8-a491-5627-bc6e-01b1fbdbfe93",
+    "name": "Brisa Norte Hoteles S.L.",
+    "tax_id": "B93041028",
+    "address": "Calle del Horizonte 18, 29010 Málaga",
+    "email": "reservas@brisanorte.example",
+    "logo_url": "/client-logos/brisa-norte-hoteles.svg"
+  },
+  {
+    "id": "8acfe659-cc8b-5e6b-b1ff-c8073df1cee7",
+    "name": "Órbita Verde Energía S.L.",
+    "tax_id": "B93041036",
+    "address": "Avenida de la Aurora 42, 46020 Valencia",
+    "email": "proyectos@orbitaverde.example",
+    "logo_url": "/client-logos/orbita-verde-energia.svg"
+  },
+  {
+    "id": "c87b260a-43bc-5691-bfd7-e7a8171ce29e",
+    "name": "Nébula Estudio Creativo S.L.",
+    "tax_id": "B93041044",
+    "address": "Calle del Prisma 7, 28022 Madrid",
+    "email": "hola@nebulaestudio.example",
+    "logo_url": "/client-logos/nebula-estudio-creativo.svg"
+  },
+  {
+    "id": "f6f37ea4-284f-5464-ab84-399a3615548b",
+    "name": "Marea Clara Salud S.L.",
+    "tax_id": "B93041051",
+    "address": "Paseo de la Vega 23, 41020 Sevilla",
+    "email": "contacto@mareaclara.example",
+    "logo_url": "/client-logos/marea-clara-salud.svg"
+  },
+  {
+    "id": "620efc24-9641-5986-9490-69abc4930b8a",
+    "name": "Tándem Aula Digital S.L.",
+    "tax_id": "B93041069",
+    "address": "Calle de las Ideas 12, 50018 Zaragoza",
+    "email": "equipo@tandemaula.example",
+    "logo_url": "/client-logos/tandem-aula-digital.svg"
+  }
+]

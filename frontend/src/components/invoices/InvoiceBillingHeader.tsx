@@ -8,9 +8,9 @@ import { Tooltip } from '@/components/ui/tooltip'
 import type { useInvoices } from '@/hooks/useInvoices'
 import type { useInvoiceTable } from '@/hooks/useInvoiceTable'
 
-type Props = { table: Omit<ReturnType<typeof useInvoiceTable>, 'mountMonthShortcuts'>; loading: boolean; onUpload: ReturnType<typeof useInvoices>['onUpload'] }
+type Props = { table: Omit<ReturnType<typeof useInvoiceTable>, 'mountMonthShortcuts'>; loading: boolean; failed: boolean; onUpload: ReturnType<typeof useInvoices>['onUpload'] }
 
-export function InvoiceBillingHeader({ table, loading, onUpload }: Props) {
+export function InvoiceBillingHeader({ table, loading, failed, onUpload }: Props) {
   return <header className="billing-header">
     <div className="billing-search-actions">
       <SearchInput className="billing-search" value={table.search} onChange={table.onSearch}
@@ -23,7 +23,7 @@ export function InvoiceBillingHeader({ table, loading, onUpload }: Props) {
     <dl className="billing-summary" aria-live="polite">
       {table.summaries.map(summary => <div key={summary.value} data-summary={summary.value}>
         <dt>{summary.label}</dt>
-        <dd>{loading ? <Skeleton className="h-4 w-20" /> : <Tooltip text={`${summary.count} · ${summary.description}`} asChild>
+        <dd>{loading ? <Skeleton className="h-4 w-20" /> : failed ? '—' : <Tooltip text={`${summary.count} · ${summary.description}`} asChild>
           <span>{summary.amount}{summary.incomplete && <span className="billing-incomplete">*</span>}</span>
         </Tooltip>}</dd>
       </div>)}

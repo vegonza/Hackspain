@@ -1,11 +1,24 @@
 import { useRef, useState } from 'react'
 import { useConfirmPopover } from '@/hooks/useConfirmPopover'
 
-export function useInvoiceActionsMenu(onRedo: () => void, onDelete: () => void, redoDisabled: boolean, deleteDisabled: boolean) {
+export interface InvoiceManagementActions {
+  redoLabel: string
+  deleteLabel: string
+  redoConfirmation: string
+  deleteConfirmation: string
+  redoDisabled: boolean
+  deleteDisabled: boolean
+  onRedo: () => void
+  onDelete: () => void
+}
+
+export function useInvoiceActionsMenu(management: InvoiceManagementActions | null) {
   const [action, setAction] = useState<'redo' | 'delete'>('redo')
   const trigger = useRef<HTMLButtonElement>(null)
-  const disabled = action === 'redo' ? redoDisabled : deleteDisabled
-  const confirmation = useConfirmPopover(action === 'redo' ? onRedo : onDelete, disabled)
+  const disabled = management === null || (action === 'redo' ? management.redoDisabled : management.deleteDisabled)
+  const confirmation = useConfirmPopover(() => {
+    if (management !== null) (action === 'redo' ? management.onRedo : management.onDelete)()
+  }, disabled)
 
   return {
     action, disabled, trigger, confirmation,
