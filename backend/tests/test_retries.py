@@ -12,8 +12,8 @@ from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 from fastapi import HTTPException
 
-from documents import queue, worker
-from documents import router as document_router
+from invoices import queue, worker
+from invoices import router as invoice_router
 from invoices.repository import Invoice
 from shared.retries import RetryState, read_retry, record_failure, retry_delay, retryable
 from shared.usage import UsageEntry, UsageRecord
@@ -54,14 +54,14 @@ class RetryTests(unittest.TestCase):
         retries, scheduled, ready = [self.prefix + name for name in ('state', 'scheduled', 'queue')]
         document = Invoice(id=identifier, name='test.pdf', sha256='a' * 64, created_at=datetime.now(timezone.utc), status='error')
         self.redis.hset(retries, str(identifier), RetryState(attempts=5, failed=True).model_dump_json())
-        with patch.multiple(document_router, RETRIES=retries, SCHEDULED=scheduled, QUEUE=ready), patch.object(document_router, 'get_redis', return_value=self.redis), patch.object(document_router, 'read_invoice', return_value=document), patch.object(document_router, 'write_invoice'):
-            result = document_router.retry_document(identifier)
+        with patch.multiple(invoice_router, RETRIES=retries, SCHEDULED=scheduled, QUEUE=ready), patch.object(invoice_router, 'get_redis', return_value=self.redis), patch.object(invoice_router, 'read_invoice', return_value=document), patch.object(invoice_router, 'write_invoice'):
+            result = invoice_router.retry_invoice(identifier)
             self.assertEqual(result.id, identifier)
             self.assertEqual(result.status, 'queued')
             self.assertEqual(self.redis.lrange(ready, 0, -1), [str(identifier)])
             self.assertFalse(self.redis.hexists(retries, str(identifier)))
             with self.assertRaises(HTTPException) as error:
-                document_router.retry_document(identifier)
+                invoice_router.retry_invoice(identifier)
             self.assertEqual(error.exception.status_code, 409)
             self.assertEqual(self.redis.llen(ready), 1)
 
