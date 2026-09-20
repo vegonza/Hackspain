@@ -45,13 +45,14 @@ export function useIssuedEditor(id: string, onUpdated: (invoice: IssuedInvoice) 
       setTestEnabled(settings.verifactu_test_enabled); setClients(nextClients); setCompany(nextCompany); setInvoice(nextInvoice)
       if (nextInvoice !== null) {
         setDraft({ client_id: nextInvoice.client_id, issue_date: nextInvoice.issue_date, due_date: nextInvoice.due_date, notes: nextInvoice.notes, items: nextInvoice.items })
+        setDirty(false)
         onUpdated(nextInvoice)
       }
     }).catch(() => { if (!controller.signal.aborted) setFailed(true) })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
   }, [id, onUpdated])
-  const locked = invoice !== null || submitted
+  const locked = id !== 'new' || invoice !== null || submitted
   const selectedClient = clients.find(client => client.id === draft.client_id)
   const client = locked && invoice !== null ? invoice.client : selectedClient === undefined ? null : selectedClient
   const issuer = locked && invoice !== null ? invoice.company : company
@@ -60,6 +61,7 @@ export function useIssuedEditor(id: string, onUpdated: (invoice: IssuedInvoice) 
     && draft.items.every(item => item.description.trim() !== '' && Number(item.quantity) > 0 && Number(item.quantity) <= 100000 && item.unit_price !== '' && Number(item.unit_price) >= 0 && Number(item.unit_price) <= 1000000 && item.tax_rate !== '' && Number(item.tax_rate) >= 0 && Number(item.tax_rate) <= 100)
 
   function change<K extends keyof IssuedDraft>(field: K, value: IssuedDraft[K]): void {
+    if (locked || draft[field] === value) return
     setDraft(current => ({ ...current, [field]: value })); setDirty(true)
   }
   function lineChange(index: number, field: keyof IssuedLine, value: string): void {
@@ -118,7 +120,7 @@ export function useIssuedEditor(id: string, onUpdated: (invoice: IssuedInvoice) 
     title: invoice === null ? t('issued.new') : invoice.invoice_number,
     status: invoice === null ? submitted ? t('issued.status.issuing') : null : t(`issued.status.${invoice.status}`),
     canIssue: validDraft && !locked && company !== null && !busy && !loading && !failed,
-    clientOptions: clients.map(client => ({ value: client.id, label: client.name })),
+    clientOptions: clients.map(client => ({ value: client.id, label: client.name, logoUrl: client.logo_url === '' ? undefined : client.logo_url })),
     totals: { base: formatAmount(amounts.base, 'EUR'), tax: formatAmount(amounts.tax, 'EUR'), total: formatAmount(amounts.total, 'EUR') },
     previewIssueDate: draft.issue_date === '' ? '' : formatDateShort(draft.issue_date, 'es-ES'),
     previewDueDate: draft.due_date === '' ? '' : formatDateShort(draft.due_date, 'es-ES'),
@@ -147,7 +149,7 @@ export function useIssuedEditor(id: string, onUpdated: (invoice: IssuedInvoice) 
     },
     onRequestIssue: requestIssue, onIssue: issue, onDownload: () => download(),
     onMarkPaid: () => { if (invoice !== null) void run(async () => { const result = await markInvoicePaid(invoice.id); setInvoice(result); onUpdated(result) }) },
-    onCloseDialog: () => { if (!busy) setDialog(null) }, onBack: () => { if (dirty) setDialog('leave'); else navigate('/invoices') },
+    onCloseDialog: () => { if (!busy) setDialog(null) }, onBack: () => { if (id === 'new' && invoice === null && dirty) setDialog('leave'); else navigate('/invoices') },
     onLeave: () => navigate('/invoices'), onRetry: () => setReload(value => value + 1),
   }
 }

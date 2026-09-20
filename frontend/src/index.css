@@ -418,6 +418,9 @@ a.invoice-import-name:hover { text-decoration: underline; }
 .app-select-option[data-highlighted] { background: var(--muted); }
 .app-select-option[data-state='checked'] { background: var(--accent-soft); color: var(--primary); }
 .app-select-count { margin-left: auto; min-width: 4ch; flex-shrink: 0; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted-foreground); }
+.app-select-option-label { display: inline-flex; align-items: center; gap: 10px; min-width: 0; max-width: 100%; vertical-align: middle; }
+.app-select-option-label > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.app-select-logo { width: 24px; height: 24px; flex-shrink: 0; object-fit: contain; }
 .app-select-option[data-state='checked'] .app-select-count { color: var(--primary); }
 
 .loading-field[data-loading="true"] input { color: transparent; }

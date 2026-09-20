@@ -1,5 +1,6 @@
 import { useGestoria } from '../src/hooks/useGestoria'
 import { describe, expect, test } from 'bun:test'
+import { useState } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createInstance } from 'i18next'
 import { I18nextProvider } from 'react-i18next'
@@ -46,6 +47,37 @@ function TableHarness({ state }: { state: 'ready' | 'loading' | 'empty' | 'error
 }
 
 describe('issued invoice billing', () => {
+  test.each([
+    ['issued-1', 'Attempted edit', false],
+    ['new', 'New invoice notes', true],
+    ['new', '', false],
+  ] as const)('warns on leaving %s only when an editable draft changed', (id, notes, shouldWarn) => {
+    const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window')
+    Object.defineProperty(globalThis, 'window', { configurable: true, value: { location: { pathname: '/invoices' } } })
+    function Harness() {
+      const editor = useIssuedEditor(id, () => {})
+      const [step, setStep] = useState(0)
+      if (step === 0) {
+        editor.onChange('notes', notes)
+        setStep(1)
+      } else if (step === 1) {
+        editor.onBack()
+        setStep(2)
+      }
+      return <output data-dialog={editor.dialog} data-dirty={editor.dirty} data-locked={editor.locked}>{editor.draft.notes}</output>
+    }
+    try {
+      const markup = renderToStaticMarkup(<I18nextProvider i18n={i18n}><Harness /></I18nextProvider>)
+      expect(markup.includes('data-dialog="leave"')).toBe(shouldWarn)
+      expect(markup).toContain(`data-dirty="${shouldWarn}"`)
+      expect(markup).toContain(`data-locked="${id !== 'new'}"`)
+      expect(markup).toContain(`>${id === 'new' ? notes : ''}</output>`)
+    } finally {
+      if (originalWindow === undefined) Reflect.deleteProperty(globalThis, 'window')
+      else Object.defineProperty(globalThis, 'window', originalWindow)
+    }
+  })
+
   test('new invoices expose issuance without a save-draft action and use the issuer identity', () => {
     function EditorHarness() {
       const editor = useIssuedEditor('new', () => {})

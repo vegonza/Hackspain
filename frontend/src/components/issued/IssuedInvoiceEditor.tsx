@@ -27,7 +27,8 @@ export function IssuedInvoiceEditor({ editor: { mount, ...e } }: Props) {
         <form className="issued-form-panel" onSubmit={e.onSubmit}>
           <fieldset disabled={e.locked || e.busy || e.loading}>
             <label>{e.labels.client}
-            <LoadingField loading={e.valuesLoading}><Select value={e.draft.client_id} onValueChange={value => e.onChange('client_id', value)} options={e.clientOptions} label={e.labels.client} placeholder={e.valuesLoading ? '' : e.labels.emptyClient} disabled={e.locked || e.busy || e.loading} /></LoadingField></label>
+            <LoadingField loading={e.valuesLoading}><Select value={e.draft.client_id} onValueChange={value => e.onChange('client_id', value)} options={e.clientOptions} label={e.labels.client} placeholder={e.valuesLoading ? '' : e.labels.emptyClient} disabled={e.locked || e.busy || e.loading}
+              className="issued-client-select" contentClassName="issued-client-options" align="start" /></LoadingField></label>
             <div className="issued-dates"><label>{e.labels.issueDate}<LoadingField loading={e.valuesLoading}><Input required type="date" value={e.valuesLoading ? '' : e.draft.issue_date} onChange={event => e.onChange('issue_date', event.target.value)} /></LoadingField></label>
               <label>{e.labels.dueDate}<LoadingField loading={e.valuesLoading}><Input required type="date" min={e.draft.issue_date} value={e.valuesLoading ? '' : e.draft.due_date} onChange={event => e.onChange('due_date', event.target.value)} /></LoadingField></label></div>
             <IssuedLinesEditor editor={{ ...e, mount }} />

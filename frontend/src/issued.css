@@ -15,6 +15,9 @@
 .issued-form-panel { padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; min-width: 0; }
 .issued-form-panel fieldset { border: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .issued-form-panel label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted-foreground); }
+.app-select-trigger.issued-client-select { width: 100%; height: 40px; padding: 6px 10px; font-size: 13px; text-align: left; }
+.app-select-content.issued-client-options { width: max(28rem, var(--radix-select-trigger-width)); }
+.issued-client-options .app-select-option { min-height: 44px; padding: 8px 10px; font-size: 13px; }
 .issued-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .issued-lines { border-block: 1px solid var(--border); padding: 16px 0; display: flex; flex-direction: column; gap: 16px; }
 .issued-line { display: grid; grid-template-columns: 1fr 1.3fr 1fr 28px; gap: 8px; align-items: end; }
